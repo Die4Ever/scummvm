@@ -65,6 +65,8 @@ public:
 	void setMouseClick(uint8 button);
 	void setKbdChar(uint8 c);
 
+	void setBitFlag(int bitnum, bool value);
+
 	Common::String &getContext();
 
 private:
@@ -149,6 +151,7 @@ private:
 	void loadgame(uint slot);
 	void savegame(uint slot);
 	bool playvideofromref(uint32 fileref, bool loopUntilAudioDone = false);
+	bool playBackgroundSound(uint32 fileref, uint32 loops);
 	void printString(Graphics::Surface *surface, const char *str);
 
 	// Opcodes
@@ -249,6 +252,7 @@ private:
 	void o2_gamespecial();
 	void o2_stub52();
 	void o2_setscriptend();
+	void o2_stub56();
 	void o2_stub59();
 };
 

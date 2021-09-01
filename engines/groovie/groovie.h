@@ -90,6 +90,26 @@ enum GameSpeed {
 
 struct GroovieGameDescription;
 
+struct SoundQueueEntry {
+	Common::SeekableReadStream *file;
+	uint32 loops;
+};
+
+class SoundEffectQueue {
+public:
+	SoundEffectQueue();
+	void setVM(GroovieEngine *vm);
+	VideoPlayer *player;
+	GroovieEngine *_vm;
+	Common::Queue<SoundQueueEntry> _queue;
+	Common::SeekableReadStream *_file;
+
+	void queue(Common::SeekableReadStream *soundfile, uint32 loops);
+	void tick();
+	void stopAll();
+	void deleteFile();
+};
+
 class GroovieEngine : public Engine {
 public:
 	GroovieEngine(OSystem *syst, const GroovieGameDescription *gd);
@@ -122,6 +142,7 @@ public:
 	ResMan *_resMan;
 	GrvCursorMan *_grvCursorMan;
 	VideoPlayer *_videoPlayer;
+	SoundEffectQueue _soundQueue;
 	MusicPlayer *_musicPlayer;
 	GraphicsMan *_graphicsMan;
 	const Graphics::Font *_font;

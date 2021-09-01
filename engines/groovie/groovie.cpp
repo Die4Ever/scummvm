@@ -160,6 +160,7 @@ Common::Error GroovieEngine::run() {
 		_grvCursorMan = new GrvCursorMan_v2(_system);
 #ifdef ENABLE_GROOVIE2
 		_videoPlayer = new ROQPlayer(this);
+		_soundQueue.setVM(this);
 #endif
 		break;
 
@@ -350,6 +351,7 @@ Common::Error GroovieEngine::run() {
 
 		// Update the screen if required
 		_graphicsMan->update();
+		_soundQueue.tick();
 	}
 
 	return Common::kNoError;
@@ -425,6 +427,73 @@ Common::Error GroovieEngine::saveGameState(int slot, const Common::String &desc,
 
 void GroovieEngine::waitForInput() {
 	_waitingForInput = true;
+}
+
+SoundEffectQueue::SoundEffectQueue() {
+	_vm = NULL;
+	player = NULL;
+	_file = NULL;
+}
+
+void SoundEffectQueue::setVM(GroovieEngine *vm) {
+	_vm = vm;
+#ifdef ENABLE_GROOVIE2
+	player = new ROQSoundPlayer(vm);
+#endif
+}
+
+void SoundEffectQueue::queue(Common::SeekableReadStream *soundfile, uint32 loops) {
+	if (_queue.size() > 20) {
+		stopAll();
+	}
+	_queue.push({soundfile, loops});
+	for (int i = 1; i < loops; i++) {
+		_queue.push({soundfile, loops});
+	}
+	tick();
+}
+
+void SoundEffectQueue::tick() {
+#ifdef ENABLE_GROOVIE2
+	if (_file && !player->playFrame()) {
+		_vm->_script->setBitFlag(0, true);
+		return;
+	}
+	if (_queue.size() == 0) {
+		deleteFile();
+		return;
+	}
+
+	auto entry = _queue.front();
+	if (entry.loops != 0 || _queue.size() > 1) {
+		_queue.pop();
+	}
+	if (_file != entry.file) {
+		deleteFile();
+	}
+	_file = entry.file;
+
+	_vm->_script->setBitFlag(0, true);
+	_file->seek(0);
+	_vm->_soundQueue.player->load(_file, 0);
+	player->playFrame();
+#endif
+}
+
+void SoundEffectQueue::deleteFile() {
+	if (_file) {
+		delete _file;
+		_file = NULL;
+		_vm->_script->setBitFlag(0, false);
+	}
+}
+
+void SoundEffectQueue::stopAll() {
+	if (player) {
+		player->stopAudioStream();
+	}
+	_queue.clear();
+	deleteFile();
 }
 
 } // End of namespace Groovie
