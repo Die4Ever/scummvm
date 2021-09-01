@@ -66,6 +66,7 @@ public:
 	void setKbdChar(uint8 c);
 
 	void setBitFlag(int bitnum, bool value);
+	bool getBitFlag(int bitnum);
 
 	Common::String &getContext();
 
@@ -250,10 +251,10 @@ private:
 	void o2_savescreen();
 	void o2_restorescreen();
 	void o2_gamespecial();
-	void o2_stub52();
+	void o2_copyfgtobg();
 	void o2_setscriptend();
-	void o2_stub56();
-	void o2_stub59();
+	void o2_playsound();
+	void o2_check_sounds_overlays();
 };
 
 } // End of Groovie namespace

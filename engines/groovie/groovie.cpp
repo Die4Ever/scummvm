@@ -431,14 +431,14 @@ void GroovieEngine::waitForInput() {
 
 SoundEffectQueue::SoundEffectQueue() {
 	_vm = NULL;
-	player = NULL;
+	_player = NULL;
 	_file = NULL;
 }
 
 void SoundEffectQueue::setVM(GroovieEngine *vm) {
 	_vm = vm;
 #ifdef ENABLE_GROOVIE2
-	player = new ROQSoundPlayer(vm);
+	_player = new ROQSoundPlayer(vm);
 #endif
 }
 
@@ -455,7 +455,7 @@ void SoundEffectQueue::queue(Common::SeekableReadStream *soundfile, uint32 loops
 
 void SoundEffectQueue::tick() {
 #ifdef ENABLE_GROOVIE2
-	if (_file && !player->playFrame()) {
+	if (_file && !_player->playFrame()) {
 		_vm->_script->setBitFlag(0, true);
 		return;
 	}
@@ -464,19 +464,19 @@ void SoundEffectQueue::tick() {
 		return;
 	}
 
-	auto entry = _queue.front();
-	if (entry.loops != 0 || _queue.size() > 1) {
+	SoundQueueEntry entry = _queue.front();
+	if (entry._loops != 0 || _queue.size() > 1) {
 		_queue.pop();
 	}
-	if (_file != entry.file) {
+	if (_file != entry._file) {
 		deleteFile();
 	}
-	_file = entry.file;
+	_file = entry._file;
 
 	_vm->_script->setBitFlag(0, true);
 	_file->seek(0);
-	_vm->_soundQueue.player->load(_file, 0);
-	player->playFrame();
+	_player->load(_file, 0);
+	_player->playFrame();
 #endif
 }
 
@@ -489,8 +489,8 @@ void SoundEffectQueue::deleteFile() {
 }
 
 void SoundEffectQueue::stopAll() {
-	if (player) {
-		player->stopAudioStream();
+	if (_player) {
+		_player->stopAudioStream();
 	}
 	_queue.clear();
 	deleteFile();

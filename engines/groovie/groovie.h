@@ -91,23 +91,24 @@ enum GameSpeed {
 struct GroovieGameDescription;
 
 struct SoundQueueEntry {
-	Common::SeekableReadStream *file;
-	uint32 loops;
+	Common::SeekableReadStream *_file;
+	uint32 _loops;
 };
 
 class SoundEffectQueue {
 public:
 	SoundEffectQueue();
 	void setVM(GroovieEngine *vm);
-	VideoPlayer *player;
-	GroovieEngine *_vm;
-	Common::Queue<SoundQueueEntry> _queue;
-	Common::SeekableReadStream *_file;
-
 	void queue(Common::SeekableReadStream *soundfile, uint32 loops);
 	void tick();
 	void stopAll();
+
+protected:
 	void deleteFile();
+	VideoPlayer *_player;
+	GroovieEngine *_vm;
+	Common::Queue<SoundQueueEntry> _queue;
+	Common::SeekableReadStream *_file;
 };
 
 class GroovieEngine : public Engine {

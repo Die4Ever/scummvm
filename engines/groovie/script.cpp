@@ -130,6 +130,10 @@ void Script::setBitFlag(int bitnum, bool value) {
 	}
 }
 
+bool Script::getBitFlag(int bitnum) {
+	return _bitflags & (1 << bitnum);
+}
+
 void Script::setDebugger(Debugger *debugger) {
 	_debugger = debugger;
 }
@@ -2071,10 +2075,10 @@ void Script::o2_gamespecial() {
 	}
 }
 
-void Script::o2_stub52() {
+void Script::o2_copyfgtobg() {
 	uint8 arg = readScript8bits();
-	debugC(1, kDebugScript, "Groovie::Script: STUB52 (0x%02X)", arg);
-	debugC(2, kDebugVideo, "Groovie::Script: @0x%04X: STUB52 (0x%02X)", _currentInstruction-2, arg);
+	debugC(1, kDebugScript, "Groovie::Script: o2_copyfgtobg (0x%02X)", arg);
+	debugC(2, kDebugVideo, "Groovie::Script: @0x%04X: o2_copyfgtobg (0x%02X)", _currentInstruction-2, arg);
 	// return;
 
 	_vm->_graphicsMan->_background.copyFrom(_vm->_graphicsMan->_foreground);
@@ -2086,35 +2090,31 @@ void Script::o2_setscriptend() {
 	debugC(1, kDebugScript, "Groovie::Script: SetScriptEnd (0x%04X)", arg);
 }
 
-void Script::o2_stub56() {
+void Script::o2_playsound() {
 	uint32 fileref = readScript32bits();
 	uint8 loops = readScript8bits();// 0 means loop forever, 1 means play once
 	uint8 val3 = readScript8bits();
 
-	debugC(1, kDebugScript, "Groovie::Script: STUB56: 0x%08X 0x%02X 0x%02X", fileref, loops, val3);
+	debugC(1, kDebugScript, "Groovie::Script: o2_playsound: 0x%08X 0x%02X 0x%02X", fileref, loops, val3);
 
 	if (fileref == 0 && loops == 0) {
 		_vm->_soundQueue.stopAll();
 		return;
 	}
 
-	Groovie::ResInfo resInfo;
-	_vm->_resMan->getResInfo(fileref, resInfo);
 	playBackgroundSound(fileref, loops);
 }
 
-void Script::o2_stub59() {
+void Script::o2_check_sounds_overlays() {
 	uint16 val1 = readScript8or16bits();
 	uint8 val2 = readScript8bits();
 
 	debugC(1, kDebugScript, "Groovie::Script: STUB59: 0x%04X 0x%02X", val1, val2);
 
-	_vm->_soundQueue.tick();
-
 	// bitflag 0 is set by background sounds (clock chimes, wind, heart, drip in the kitchen)
 	// bitflag 2 is set by overlay videos
 	// this instruction is notably used at the end of the game when you have until midnight to choose a door
-	_variables[val1] = char(bool(_bitflags & 5));
+	_variables[val1] = getBitFlag(0) || getBitFlag(2);
 }
 
 Script::OpcodeFunc Script::_opcodesT7G[NUM_OPCODES] = {
@@ -2296,14 +2296,14 @@ Script::OpcodeFunc Script::_opcodesV2[NUM_OPCODES] = {
 	&Script::o2_savescreen,
 	&Script::o2_restorescreen, // 0x50
 	&Script::o2_setvideoskip,
-	&Script::o2_stub52,
+	&Script::o2_copyfgtobg,
 	&Script::o_hotspot_outrect,
 	&Script::o_invalid, // 0x54
 	&Script::o2_setscriptend,
-	&Script::o2_stub56,
+	&Script::o2_playsound,
 	&Script::o_invalid,
 	&Script::o_invalid, // 0x58
-	&Script::o2_stub59
+	&Script::o2_check_sounds_overlays
 };
 
 } // End of Groovie namespace
