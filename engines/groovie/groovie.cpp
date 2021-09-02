@@ -489,7 +489,7 @@ void SoundEffectQueue::deleteFile() {
 }
 
 void SoundEffectQueue::stopAll() {
-	if (_player) {
+	if (_file && _player) {
 		_player->stopAudioStream();
 	}
 	_queue.clear();
