@@ -179,7 +179,7 @@ Common::Error GroovieEngine::run() {
 		}
 		// else, fall through
 	case kGroovieT11H:
-	case kGroovieCDY:
+	//case kGroovieCDY:
 	case kGroovieUHP:
 		// Create the music player
 		switch (getPlatform()) {
@@ -198,8 +198,9 @@ Common::Error GroovieEngine::run() {
 		}
 		break;
 
+	case kGroovieCDY:
 	case kGroovieTLC:
-		_musicPlayer = new MusicPlayerTlc(this);
+		_musicPlayer = new MusicPlayerClan(this);
 		break;
 	}
 
