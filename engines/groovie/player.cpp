@@ -89,6 +89,7 @@ bool VideoPlayer::playFrame() {
 			if (_audioStream->endOfData() || isFastForwarding()) {
 				// Mark the audio stream as finished (no more data will be appended)
 				_audioStream->finish();
+				_audioStream = NULL;
 			} else {
 				// Don't end if there's still audio playing
 				end = false;
