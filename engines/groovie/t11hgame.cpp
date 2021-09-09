@@ -88,12 +88,34 @@ void T11hGame::opMouseTrap() {
 	// variable 24 is the mouse?
 	//_scriptVariables[24] = 2;
 
-	// value of 0 is V, 1 is <, 2 is ^, 3 is >
-	// variable 23 is the outside piece
-	_scriptVariables[23] = 1;
-	// variable slot is the space number + 25, the left corner (Stauf's goal) is space 1, above that is space 2, the center is 13, and the right corner (goal) is space 25
-	for (int i = 27; i <= 49; i++) {
-		_scriptVariables[i] = 3;
+	switch (_scriptVariables[2]) {
+	case 0:
+		error("mouse trap _scriptVariables[2] is 0 not implemented yet");
+		break;
+	case 1: // init board
+		// value of 0 is V, 1 is <, 2 is ^, 3 is >
+		// variable 23 is the outside piece
+		_scriptVariables[23] = 1;
+		// variable slot is the space number + 25, the left corner (Stauf's goal) is space 1, above that is space 2, the center is 13, and the right corner (goal) is space 25
+		for (int i = 27; i <= 49; i++) {
+			_scriptVariables[i] = 3;
+		}
+		break;
+	case 2: // player choose move floor
+		break;
+	case 3: // player moving floor
+		break;
+	case 4: // 4 is not in the switch/case according to Ghidra
+		error("mouse trap _scriptVariables[2] is 4? this shouldn't happen");
+		break;
+	case 5: // maybe player moving mouse
+		break;
+	case 6: // Stauf moving floor?
+		break;
+	case 7: // maybe Stauf moving mouse
+		break;
+	case 8: // samantha making a move
+		break;
 	}
 }
 
