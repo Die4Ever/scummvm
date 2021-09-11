@@ -85,11 +85,8 @@ static const GroovieGameDescription gameDescriptions[] = {
 	{
 		{
 			"t7g", "",
-			{
-				{ "script.grv", 0, "d1b8033b40aa67c076039881eccce90d", 16659},
-				{ "intro.gjd", 0, NULL, 31711554},
-				AD_LISTEND
-			},
+			AD_ENTRY2s("script.grv", "d1b8033b40aa67c076039881eccce90d", 16659,
+						"intro.gjd", NULL, 31711554),
 			Common::RU_RUS, Common::kPlatformDOS, ADGF_NO_FLAGS,
 			GUIO6(GUIO_MIDIADLIB, GUIO_MIDIMT32, GUIO_MIDIGM, GUIO_NOASPECT, GUIO_NOSFX, GAMEOPTION_T7G_FAST_MOVIE_SPEED)
 		},
@@ -100,11 +97,8 @@ static const GroovieGameDescription gameDescriptions[] = {
 	{
 		{
 			"t7g", "",
-			{
-				{ "script.grv", 0, "d1b8033b40aa67c076039881eccce90d", 16659},
-				{ "SeventhGuest", 0, NULL, -1},
-				AD_LISTEND
-			},
+			AD_ENTRY2s("script.grv", "d1b8033b40aa67c076039881eccce90d", 16659,
+						"SeventhGuest", NULL, -1),
 			Common::EN_ANY, Common::kPlatformIOS, ADGF_NO_FLAGS,
 			GUIO4(GUIO_NOMIDI, GUIO_NOASPECT, GUIO_NOSFX, GAMEOPTION_T7G_FAST_MOVIE_SPEED)
 		},
