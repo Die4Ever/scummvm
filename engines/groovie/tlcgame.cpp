@@ -696,35 +696,31 @@ void TlcGame::opFlags() {
 
 			debugC(1, kDebugTlcGame, "Tlc:TatFlags: Set x=%d, y=%d to 1", x, y);
 
-			debugC(5, kDebugTlcGame, "Tlc:TatFlags: %d%d%d%d%d%d%d%d%d%d%d%d%d%d  %d%d%d%d%d%d%d%d%d%d%d%d%d%d",
-				_tatFlags[0][0], _tatFlags[1][0], _tatFlags[2][0], _tatFlags[ 3][0], _tatFlags[ 4][0], _tatFlags[ 5][0], _tatFlags[ 6][0],
-				_tatFlags[7][0], _tatFlags[8][0], _tatFlags[9][0], _tatFlags[10][0], _tatFlags[11][0], _tatFlags[12][0], _tatFlags[13][0],
-				_tatFlags[0][1], _tatFlags[1][1], _tatFlags[2][1], _tatFlags[ 3][1], _tatFlags[ 4][1], _tatFlags[ 5][1], _tatFlags[ 6][1],
-				_tatFlags[7][1], _tatFlags[8][1], _tatFlags[9][1], _tatFlags[10][1], _tatFlags[11][1], _tatFlags[12][1], _tatFlags[13][1]);
-
-			debugC(5, kDebugTlcGame, "Tlc:TatFlags: %d%d%d%d%d%d%d%d%d%d%d%d%d%d  %d%d%d%d%d%d%d%d%d%d%d%d%d%d",
-				_tatFlags[0][2], _tatFlags[1][2], _tatFlags[2][2], _tatFlags[ 3][2], _tatFlags[ 4][2], _tatFlags[ 5][2], _tatFlags[ 6][2],
-				_tatFlags[7][2], _tatFlags[8][2], _tatFlags[9][2], _tatFlags[10][2], _tatFlags[11][2], _tatFlags[12][2], _tatFlags[13][2],
-				_tatFlags[0][3], _tatFlags[1][3], _tatFlags[2][3], _tatFlags[ 3][3], _tatFlags[ 4][3], _tatFlags[ 5][3], _tatFlags[ 6][3],
-				_tatFlags[7][3], _tatFlags[8][3], _tatFlags[9][3], _tatFlags[10][3], _tatFlags[11][3], _tatFlags[12][3], _tatFlags[13][3]);
-
-			debugC(5, kDebugTlcGame, "Tlc:TatFlags: %d%d%d%d%d%d%d%d%d%d%d%d%d%d  %d%d%d%d%d%d%d%d%d%d%d%d%d%d",
-				_tatFlags[0][4], _tatFlags[1][4], _tatFlags[2][4], _tatFlags[ 3][4], _tatFlags[ 4][4], _tatFlags[ 5][4], _tatFlags[ 6][4],
-				_tatFlags[7][4], _tatFlags[8][4], _tatFlags[9][4], _tatFlags[10][4], _tatFlags[11][4], _tatFlags[12][4], _tatFlags[13][4],
-				_tatFlags[0][5], _tatFlags[1][5], _tatFlags[2][5], _tatFlags[ 3][5], _tatFlags[ 4][5], _tatFlags[ 5][5], _tatFlags[ 6][5],
-				_tatFlags[7][5], _tatFlags[8][5], _tatFlags[9][5], _tatFlags[10][5], _tatFlags[11][5], _tatFlags[12][5], _tatFlags[13][5]);
-
-			debugC(5, kDebugTlcGame, "Tlc:TatFlags: %d%d%d%d%d%d%d%d%d%d%d%d%d%d  %d%d%d%d%d%d%d%d%d%d%d%d%d%d",
-				_tatFlags[0][6], _tatFlags[1][6], _tatFlags[2][6], _tatFlags[ 3][6], _tatFlags[ 4][6], _tatFlags[ 5][6], _tatFlags[ 6][6],
-				_tatFlags[7][6], _tatFlags[8][6], _tatFlags[9][6], _tatFlags[10][6], _tatFlags[11][6], _tatFlags[12][6], _tatFlags[13][6],
-				_tatFlags[0][7], _tatFlags[1][7], _tatFlags[2][7], _tatFlags[ 3][7], _tatFlags[ 4][7], _tatFlags[ 5][7], _tatFlags[ 6][7],
-				_tatFlags[7][7], _tatFlags[8][7], _tatFlags[9][7], _tatFlags[10][7], _tatFlags[11][7], _tatFlags[12][7], _tatFlags[13][7]);
+			debugTatFlags(0, 1);
+			debugTatFlags(2, 3);
+			debugTatFlags(4, 5);
+			debugTatFlags(6, 7);
 		}
 		else {
 			setScriptVar(0x01, 1);
 		}
 		break;
 	}
+}
+
+
+void TlcGame::debugTatFlags(int y, int y2) {
+	Common::String s = "Tlc:TatFlags: ";
+	for (int x = 0; x < 14; x++) {
+		s += int(_tatFlags[x][y]);
+	}
+	y = y2;
+	s += "  ";
+	for (int x = 0; x < 14; x++) {
+		s += int(_tatFlags[x][y]);
+	}
+
+	debugC(5, kDebugTlcGame, s.c_str());
 }
 
 

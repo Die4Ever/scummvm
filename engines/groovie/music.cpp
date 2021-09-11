@@ -768,6 +768,10 @@ void MusicPlayerTlc::unload() {
 	MusicPlayer::unload();
 
 	_vm->_system->getMixer()->stopHandle(_handle);
+	if (_file) {
+		delete _file;
+	}
+	_file = NULL;
 }
 
 Common::String MusicPlayerTlc::getFilename(uint32 fileref) {
@@ -775,10 +779,7 @@ Common::String MusicPlayerTlc::getFilename(uint32 fileref) {
 }
 
 bool MusicPlayerTlc::load(uint32 fileref, bool loop) {
-	if (_file) {
-		delete _file;
-		g_system->getMixer()->stopHandle(_handle);
-	}
+	unload();
 	_file = new Common::File();
 
 	// Create the audio stream from fileref

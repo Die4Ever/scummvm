@@ -182,6 +182,7 @@ private:
 	void tatResultQuest();
 	void tatResultEpisode();
 	void tatGetProfile();
+	void debugTatFlags(int y, int y2);
 
 	// Variables for TAT handling
 	int _tatEpisodes;
