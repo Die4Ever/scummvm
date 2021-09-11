@@ -110,7 +110,7 @@ static const GroovieGameDescription gameDescriptions[] = {
 		{
 			"11h", "",
 			AD_ENTRY2s("script.grv", "bdb9a783d4debe477ac3856adc454c17", 62447,
-						"atpuz.gjd", NULL, -1),
+						"introd1.gjd", NULL, -1),
 			Common::EN_ANY, Common::kPlatformWindows, ADGF_UNSTABLE,
 			GUIO5(GUIO_MIDIADLIB, GUIO_MIDIMT32, GUIO_MIDIGM, GUIO_NOASPECT, GAMEOPTION_T7G_FAST_MOVIE_SPEED)
 		},
