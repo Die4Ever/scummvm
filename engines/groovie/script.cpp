@@ -1889,6 +1889,7 @@ void Script::o2_midicontrol() {
 	uint16 arg1 = readScript16bits();
 	uint16 arg2 = readScript16bits();
 
+	// TODO: see if we need to revisit the commented code here, maybe @Alphard-o can help
 	switch (arg1) {
 	case 0:
 		// Stop Playback

@@ -279,12 +279,7 @@ void ROQPlayer::buildShowBuf() {
 			if (destBuf == _overBuf) {
 				copyPixelIfAlpha(out, in);
 			} else {
-				if (_interlacedVideo && (line % 2) && 0) {
-					const byte blackPixel[4] = { 0, 0, 0, 0 };
-					copyPixel(out, blackPixel);
-				} else {
-					copyPixelWithA(out, in);
-				}
+				copyPixelWithA(out, in);
 			}
 
 			if (_alpha && in[kAIndex] != 0 && destBuf != _overBuf) {

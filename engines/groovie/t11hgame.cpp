@@ -225,6 +225,7 @@ void T11hGame::opGallery() {
 
 byte T11hGame::opGallerySub(int one, byte* field) {
 	// TODO
+	warning("STUB: T11hGame::opGallerySub()");
 	return 0;
 }
 
