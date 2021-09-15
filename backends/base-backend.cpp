@@ -35,6 +35,7 @@
 
 
 #include "gui/message.h"
+#include "backends/stacktraces/stacktrace.h"
 
 bool BaseBackend::setScaler(const char *name, int factor) {
 	if (!name)
@@ -85,4 +86,8 @@ void EventsBaseBackend::initBackend() {
 #endif
 
 	BaseBackend::initBackend();
+}
+
+void BaseBackend::printStacktrace() {
+	createStacktrace();
 }

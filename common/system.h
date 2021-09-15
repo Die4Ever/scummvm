@@ -956,6 +956,8 @@ public:
 	 */
 	virtual void initSizeHint(const Graphics::ModeList &modes) {}
 
+	virtual void printStacktrace() {}
+
 	/**
 	 * Return an int value that is changed whenever any screen
 	 * parameters (like the resolution) change, i.e. whenever
@@ -1839,6 +1841,21 @@ public:
 
 /** The global OSystem instance. Initialized in main(). */
 extern OSystem *g_system;
+
+#define XXSTRING_X(s) #s
+#define XXSTRING(s) XXSTRING_X(s)
+
+#ifndef NDEBUG
+#define scummvm_assert(cond, message) \
+	if (!(cond)) { \
+		warning("%s - " XXSTRING(cond), message); \
+		if (g_system) g_system->printStacktrace(); \
+		assert(false); \
+	}
+#else
+// none debug build should rely on the system headers to define assert
+#define scummvm_assert(cond, message) assert(cond);
+#endif
 
 /** @} */
 

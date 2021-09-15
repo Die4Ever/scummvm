@@ -20,32 +20,17 @@
  *
  */
 
-#ifndef BACKENDS_BASE_BACKEND_H
-#define BACKENDS_BASE_BACKEND_H
+#ifndef BACKENDS_STACKTRACE_H
+#define BACKENDS_STACKTRACE_H
 
-#include "common/system.h"
-#include "common/events.h"
+#if defined(HAVE_CONFIG_H)
+#include "config.h"
+#endif
 
-/**
- * Subclass of OSystem that contains default implementations of functions that would
- * cause circular dependencies if they were implemented in common/system.cpp
- */
-class BaseBackend : public OSystem {
-public:
-	virtual void initBackend() override;
-
-	using OSystem::setScaler;
-	virtual bool setScaler(const char *name, int factor) override final;
-	virtual void displayMessageOnOSD(const Common::U32String &msg) override;
-	virtual void displayActivityIconOnOSD(const Graphics::Surface *icon) override {}
-	virtual void fillScreen(uint32 col) override;
-	virtual void printStacktrace() override;
-};
-
-class EventsBaseBackend : virtual public BaseBackend, Common::EventSource {
-public:
-	virtual void initBackend();
-};
-
+#ifdef USE_STACKTRACES
+void createStacktrace();
+#else
+inline void createStacktrace() {}
+#endif
 
 #endif
