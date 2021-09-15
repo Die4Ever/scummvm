@@ -1842,13 +1842,10 @@ public:
 /** The global OSystem instance. Initialized in main(). */
 extern OSystem *g_system;
 
-#define XXSTRING_X(s) #s
-#define XXSTRING(s) XXSTRING_X(s)
-
 #ifndef NDEBUG
 #define scummvm_assert(cond, message) \
 	if (!(cond)) { \
-		warning("%s - " XXSTRING(cond), message); \
+		warning("%s - " STRINGIFY(cond), message); \
 		if (g_system) g_system->printStacktrace(); \
 		assert(false); \
 	}

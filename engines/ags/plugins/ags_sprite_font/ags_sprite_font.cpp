@@ -22,6 +22,7 @@
 
 #include "ags/plugins/ags_sprite_font/ags_sprite_font.h"
 #include "ags/shared/core/platform.h"
+#include "common/util.h"
 
 namespace AGS3 {
 namespace Plugins {
@@ -68,9 +69,6 @@ namespace AGSSpriteFont {
 
 
 #pragma endregion
-
-#define STRINGIFY(s) STRINGIFY_X(s)
-#define STRINGIFY_X(s) #s
 
 const char *AGSSpriteFont::AGS_GetPluginName() {
 	return "AGSSpriteFont";
