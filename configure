@@ -1181,7 +1181,6 @@ for ac_option in $@; do
 	--disable-bink)               _bink=no               ;;
 	--enable-discord)             _discord=yes           ;;
 	--disable-discord)            _discord=no            ;;
-	--enable-stacktraces)         _stacktraces=yes       ;;
 	--disable-stacktraces)        _stacktraces=no        ;;
 	--opengl-mode=*)
 		_opengl_mode=`echo $ac_option | cut -d '=' -f 2`
@@ -5810,11 +5809,20 @@ EOF
 		_stacktraces_unwind=yes
 		;;
 	*)
-		cat > $TMPC << EOF
+		if test "$_pkg_config" = "yes" && $_pkgconfig --exists libunwind; then
+			_stacktraces_unwind=yes
+			prepend_var LIBS "`$_pkgconfig --libs libunwind`"
+			append_var INCLUDES "`$_pkgconfig --cflags libunwind`"
+		else
+			cat > $TMPC << EOF
 #include <ibunwind.h>
 int main(void) { return 0; }
 EOF
-		cc_check -lunwind && _stacktraces_unwind=yes
+			cc_check -lunwind && _stacktraces_unwind=yes
+			if test "$_stacktraces_unwind" = yes; then
+				append_var LIBS "-lunwind"
+			fi
+		fi
 		;;
 	esac
 	echo "$_stacktraces_unwind"
@@ -5822,21 +5830,14 @@ EOF
 	if test "$_stacktraces_dw" = yes || test "$_stacktraces_bfd" = yes || test "$_stacktraces_unwind" = yes || test "$_stacktraces_dwarf" = yes; then
 		_stacktraces=yes
 	fi
-	if test "$_stacktraces_unwind" = yes; then
-		append_var LIBS "-lunwind"
-		_stacktraces_dw=no
-		_stacktraces_bfd=no
-		_stacktraces_dwarf=no
-	else
-		if test "$_stacktraces_dw" = yes; then
-			append_var LIBS "-ldw"
-		fi
-		if test "$_stacktraces_bfd" = yes; then
-			append_var LIBS "-lbfd"
-		fi
-		if test "$_stacktraces_dwarf" = yes; then
-			append_var LIBS "-lelf -ldwarf"
-		fi
+	if test "$_stacktraces_dw" = yes; then
+		append_var LIBS "-ldw"
+	fi
+	if test "$_stacktraces_bfd" = yes; then
+		append_var LIBS "-lbfd"
+	fi
+	if test "$_stacktraces_dwarf" = yes; then
+		append_var LIBS "-lelf -ldwarf"
 	fi
 fi
 define_in_config_if_yes "$_stacktraces_dw" 'USE_STACKTRACES_DW'

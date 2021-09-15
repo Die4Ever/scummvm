@@ -45,7 +45,7 @@
 #define BACKWARD_HAS_BFD 1
 #endif
 #ifdef USE_STACKTRACES_UNWIND
-#define BACKWARD_HAS_UNWIND 1
+#define BACKWARD_HAS_LIBUNWIND 1
 #endif
 
 #include "backward.h"
@@ -56,11 +56,10 @@
 void createStacktrace() {
 	backward::StackTrace st;
 	st.load_here(32);
-	backward::TraceResolver tr;
-	tr.load_stacktrace(st);
-	for (size_t i = 0; i < st.size(); ++i) {
-		const backward::ResolvedTrace& trace = tr.resolve(st[i]);
-		printf("#%i %s %s [%p]\n", int(i), trace.object_filename.c_str(), trace.object_function.c_str(), trace.addr);
-	}
+	backward::Printer p;
+	p.object = true;
+	p.color_mode = backward::ColorMode::always;
+	p.address = true;
+	p.print(st);
 }
 #endif
