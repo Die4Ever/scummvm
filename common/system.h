@@ -1842,16 +1842,16 @@ public:
 /** The global OSystem instance. Initialized in main(). */
 extern OSystem *g_system;
 
-#ifndef NDEBUG
+#ifdef NDEBUG
+// none debug build should rely on the system headers to define assert
+#define scummvm_assert(cond, message) assert(cond);
+#else
 #define scummvm_assert(cond, message) \
 	if (!(cond)) { \
 		warning("%s - " STRINGIFY(cond), message); \
 		if (g_system) g_system->printStacktrace(); \
 		assert(false); \
 	}
-#else
-// none debug build should rely on the system headers to define assert
-#define scummvm_assert(cond, message) assert(cond);
 #endif
 
 /** @} */
