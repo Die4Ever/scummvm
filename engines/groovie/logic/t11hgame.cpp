@@ -33,8 +33,13 @@
 
 namespace Groovie {
 
-T11hGame::T11hGame(byte *scriptVariables) :
-	_random("GroovieT11hGame"), _scriptVariables(scriptVariables) {
+T11hGame::T11hGame(byte *scriptVariables) : _random("GroovieT11hGame"), _scriptVariables(scriptVariables) {
+#ifndef RELEASE_BUILD
+	// run tests
+	warning("T11hGame running tests");
+
+	warning("T11hGame finished tests");
+#endif
 }
 
 T11hGame::~T11hGame() {
@@ -732,7 +737,7 @@ void __cdecl maybe_place_piece_FUN_00417e00(s_ptable_DAT_0044faf4 *param_1, byte
 	last_move_slot -= 1;
 	last_move_slot *= 4;
 	local_9 = 1;
-	uint *pi = (uint *)((_DAT_0044faf0 + _last_move * 4) + last_move_slot);
+	uint *pi = (uint *)(*(uint *)(_DAT_0044faf0 + _last_move * 4) + last_move_slot);
 	byte *pb = *(byte **)pi;
 	bVar2 = *pb;
 	if (bVar2 != 0) {
@@ -846,18 +851,22 @@ void __cdecl FUN_00418050(int param_1, byte param_2)
 	int iVar8;
 	byte local_5;
 
+	uint _DAT_0044faf0 = (uint)DAT_0044faf0;
 	uVar7 = (uint)param_2;
 	uVar4 = *(uint16 *)(param_1 + 0x24);
 	iVar6 = (uint) * (byte *)(*(int *)(param_1 + 0x20) + uVar7) * 4;
 	local_5 = 1;
-	bVar3 = **(byte **)(*(int *)(DAT_0044faf0 + uVar7 * 4) + iVar6);
+	auto i1 = (uint *)(_DAT_0044faf0 + uVar7 * 4);
+	auto i2 = (*i1) + iVar6;
+	auto p1 = (byte **)i2;
+	bVar3 = **p1;
 	if (bVar3 != 0) {
 		piVar1 = (int *)(param_1 + (uint)((byte)uVar4 & 1) * 4);
 		do {
 			piVar2 = (int *)(*piVar1 +
-							 (uint) * (uint16 *)(*(int *)(*(int *)(DAT_0044faf0 + uVar7 * 4) + iVar6) + (uint)local_5 * 2) * 4);
+							 (uint) * (uint16 *)(*(int *)(*(int *)(_DAT_0044faf0 + uVar7 * 4) + iVar6) + (uint)local_5 * 2) * 4);
 			*piVar2 = *piVar2 + -1;
-			iVar8 = (uint) * (ushort *)(*(int *)(*(int *)(DAT_0044faf0 + uVar7 * 4) + iVar6) + (uint)local_5 * 2) * 4;
+			iVar8 = (uint) * (ushort *)(*(int *)(*(int *)(_DAT_0044faf0 + uVar7 * 4) + iVar6) + (uint)local_5 * 2) * 4;
 			iVar5 = *(int *)(*piVar1 + iVar8);
 			if ((uint) * (byte *)(param_1 + 0x1c) - iVar5 == 1) {
 				piVar1[2] = piVar1[2] + -1000000;
@@ -1005,8 +1014,8 @@ uint FUN_00412b50(uint param_1, undefined4 param_2, uint param_3)
 {
 	uint uVar1;
 	uint uVar2;
-	uint extraout_ECX;
-	undefined4 extraout_EDX;
+	uint extraout_ECX = 0;
+	undefined4 extraout_EDX = 0;
 
 	uVar1 = FUN_00412a70(param_1, param_2, param_3);
 	uVar2 = FUN_00412a70(uVar1, extraout_EDX, extraout_ECX);
