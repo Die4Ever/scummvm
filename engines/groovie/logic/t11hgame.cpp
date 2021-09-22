@@ -728,7 +728,7 @@ void __cdecl maybe_place_piece_FUN_00417e00(s_ptable_DAT_0044faf4 *param_1, byte
 	int *piVar6;
 	byte local_9;
 	uint _DAT_0044faf0 = (uint)DAT_0044faf0;
-
+	return;// FIXME: this crashes?
 	_last_move = (uint)last_move;
 	//uVar3 = *(ushort *)(param_1 + 0x24);
 	uVar3 = param_1->c6[0];
@@ -816,7 +816,7 @@ void __cdecl maybe_place_piece_FUN_00417db0(int *param_1, byte last_move)
 	uint uVar1;
 
 	s_ptable_DAT_0044faf4 *p = (s_ptable_DAT_0044faf4 *)param_1;
-
+	
 	uVar1 = last_move;
 	/**(byte *)(*(int *)(param_1[5] + uVar1 * 4) + (uint) * (byte *)(param_1[8] + uVar1)) =
 		(-((*(uint16 *)(param_1 + 9) & 1) == 0) & 6U) + 0x53;*/
@@ -830,10 +830,10 @@ void __cdecl maybe_place_piece_FUN_00417db0(int *param_1, byte last_move)
 
 	//*(char *)(param_1[8] + uVar1) = *(char *)(param_1[8] + uVar1) + '\x01';
 	auto t4 = (ushort *)((char *)p->p8 + uVar1);
-	(*t4)++;
+	//(*t4)++;// FIXME: this crashes?
 	maybe_place_piece_FUN_00417e00(p, (byte)uVar1);
 	//*(short *)(param_1 + 9) = *(short *)(param_1 + 9) + 1;
-	p->p9++;
+	//p->p9++;// this gives Stauf the win because of all the other commented out code?
 }
 
 
@@ -850,7 +850,7 @@ void __cdecl FUN_00418050(int param_1, byte param_2)
 	uint uVar7;
 	int iVar8;
 	byte local_5;
-
+	
 	uint _DAT_0044faf0 = (uint)DAT_0044faf0;
 	uVar7 = (uint)param_2;
 	uVar4 = *(uint16 *)(param_1 + 0x24);
@@ -895,10 +895,10 @@ void __cdecl FUN_00418010(int param_1, byte param_2)
 {
 	char *pcVar1;
 	uint uVar2;
-
+	
 	uVar2 = (uint)param_2;
 	pcVar1 = (char *)(*(int *)(param_1 + 0x20) + uVar2);
-	*pcVar1 = *pcVar1 + -1;
+	//*pcVar1 = *pcVar1 + -1;// FIXME: this crashes?
 	*(int *)(*(int *)(*(int *)(param_1 + 0x14) + uVar2 * 4) +
 				   (uint) * (byte *)(*(int *)(param_1 + 0x20) + uVar2)) = 0;
 	*(short *)(param_1 + 0x24) = *(short *)(param_1 + 0x24) + -1;
@@ -1114,8 +1114,6 @@ void connect_four_FUN_00417c00(int param_1, int param_2, int param_3, byte *vars
 		ptable8_DAT_0044fafc = '\0';
 		param_3 = extraout_ECX;
 		param_2 = extraout_EDX;
-		/*frees_FUN_004182e0(ptable_DAT_0044faf4);
-		ptable_DAT_0044faf4 = NULL;*/
 	}
 	if (*last_move == 9) {
 		uVar2 = con4_AI_FUN_00417f10((uint)ptable_DAT_0044faf4, param_2, 0, (uint)ptable_DAT_0044faf4, 6);
