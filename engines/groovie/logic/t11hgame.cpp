@@ -178,13 +178,13 @@ struct s_ptable_DAT_0044faf4 {
 	//void *u4;
 	ushort s4;// starts at byte 16
 	ushort s4again;// starts at byte 18
-	int **p5;// starts at byte 20
+	byte **p5;// starts at byte 20
 	char c6[2]; //starts at byte 24
 	ushort us0x1a;//starts at byte 26
 	//char padding[4];//starts at byte 28?
 	ushort us0x1c; //starts at byte 28?
 	ushort us0x1e;//starts at byte 30?
-	void *p8;   //starts at byte 32?
+	byte *p8;   //starts at byte 32?
 	ushort p9;//starts at byte 36?
 	char padding[2];// starts at byte 38?
 };
@@ -217,12 +217,13 @@ int DAT_0044fa9c = 0;
 
 int DAT_0043d35c = 0;
 
-uint __cdecl FUN_00417d40(uint param_1, byte param_2)
+uint __cdecl FUN_00417d40(s_ptable_DAT_0044faf4 *param_1, byte param_2)
 
 {
-	return param_1 & 0xffffff00 |
+	/*return param_1 & 0xffffff00 |
 		   (uint)(byte)(1 - (*(byte *)((uint)param_2 + *(int *)(param_1 + 0x20)) <
-							 *(byte *)(param_1 + 0x19)));
+							 *(byte *)(param_1 + 0x19)));*/
+	return param_1->p8[param_2] >= param_1->c6[1];
 }
 
 
@@ -684,18 +685,18 @@ s_ptable_DAT_0044faf4 *__cdecl init_FUN_004181f0(byte param_1, byte param_2, byt
 	p->us0x1c = param_3;
 	piVar2 = allocs_FUN_00406bc0((uint)param_1, 4);
 	//ppiVar1[5] = piVar2;
-	p->p5 = (int **)piVar2;
+	p->p5 = (byte **)piVar2;
 	if (param_1 != 0) {
 		do {
 			piVar2 = allocs_FUN_00406bc0((uint)(ushort)param_2, 1);
 			uVar3 = (uint)bVar4;
 			bVar4 = bVar4 + 1;
-			p->p5[uVar3] = piVar2;
+			p->p5[uVar3] = (byte *)piVar2;
 		} while (bVar4 < param_1);
 	}
 	piVar2 = allocs_FUN_00406bc0((uint)param_1, 4);
 	//ppiVar1[8] = piVar2;
-	p->p8 = (void *)piVar2;
+	p->p8 = (byte *)piVar2;
 	init_FUN_00418360(param_1, param_2, param_3);
 	//*(ushort *)(ppiVar1 + 4) = DAT_0044faf8;
 	p->s4 = DAT_0044faf8;
@@ -733,7 +734,7 @@ void __cdecl maybe_place_piece_FUN_00417e00(s_ptable_DAT_0044faf4 *param_1, byte
 	//uVar3 = *(ushort *)(param_1 + 0x24);
 	uVar3 = param_1->c6[0];
 	//last_move_slot = (uint)(byte)(*(char *)(*(uint *)(param_1 + 0x20) + _last_move) - 1) * 4;
-	last_move_slot = *((char *)param_1->p8 + _last_move);// -1; // maybe * 4
+	last_move_slot = *(param_1->p8 + _last_move);// -1; // maybe * 4
 	last_move_slot -= 1;
 	last_move_slot *= 4;
 	local_9 = 1;
@@ -742,7 +743,7 @@ void __cdecl maybe_place_piece_FUN_00417e00(s_ptable_DAT_0044faf4 *param_1, byte
 	bVar2 = *pb;
 	if (bVar2 != 0) {
 		//piVar1 = (int *)(param_1 + (uint)((byte)uVar3 & 1) * 4);
-		piVar1 = (uVar3 & 1) ? (int *)param_1->p1 : (int *)param_1->p0;
+		piVar1 = (uVar3 & 1) ? (int *)&param_1->p1 : (int *)&param_1->p0;
 		do {
 			uint t1 = (*(int *)(_DAT_0044faf0 + _last_move * 4) + last_move_slot);
 			uint t2 = (*(int *)t1 + (uint)local_9 * 2);
@@ -754,7 +755,7 @@ void __cdecl maybe_place_piece_FUN_00417e00(s_ptable_DAT_0044faf4 *param_1, byte
 				piVar1[2] = piVar1[2] + 1000000;
 			} else {
 				//piVar6 = (int *)(param_1 + (uint)((uVar3 & 1) == 0) * 4);
-				piVar6 = (uVar3 & 1) ? (int *)param_1->p0 : (int *)param_1->p1;
+				piVar6 = (uVar3 & 1) ? (int *)&param_1->p0 : (int *)&param_1->p1;
 				//piVar6 = (int *)*piVar6;
 				//iVar5 = *(int *)(*piVar6 +
 								 //(uint) * (ushort *)(*(int *)(*(int *)(_DAT_0044faf0 + _last_move * 4) + last_move_slot) + (uint)local_9 * 2) * 4);
@@ -790,19 +791,19 @@ uint CONCAT22(uint a, uint b) {
 	return ret;
 }
 
-uint __cdecl check_player_win_FUN_00417d60(int param_1)
+uint __cdecl check_player_win_FUN_00417d60(s_ptable_DAT_0044faf4 *param_1)
 
 {
 	uint uVar2;
 	uint uVar1;
 
 	uVar2 = ((uint)param_1 >> 8);
-	if (999999 < *(int *)(param_1 + 8)) {
+	if (999999 < (int)param_1->u2) {
 		return CONCAT31(uVar2, 0x59);
 	}
 	uVar1 = CONCAT31(uVar2, 0x53);
-	if (*(int *)(param_1 + 0xc) < 1000000) {
-		uVar1 = param_1 & 0xffffff00;
+	if ((int)param_1->u3 < 1000000) {
+		uVar1 = 0;//param_1 & 0xffffff00;
 	}
 	return uVar1;
 }
@@ -810,7 +811,7 @@ uint __cdecl check_player_win_FUN_00417d60(int param_1)
 
 
 
-void __cdecl maybe_place_piece_FUN_00417db0(int *param_1, byte last_move)
+void __cdecl maybe_place_piece_FUN_00417db0(s_ptable_DAT_0044faf4 *param_1, byte last_move)
 
 {
 	uint uVar1;
@@ -821,24 +822,24 @@ void __cdecl maybe_place_piece_FUN_00417db0(int *param_1, byte last_move)
 	/**(byte *)(*(int *)(param_1[5] + uVar1 * 4) + (uint) * (byte *)(param_1[8] + uVar1)) =
 		(-((*(uint16 *)(param_1 + 9) & 1) == 0) & 6U) + 0x53;*/
 	//*(byte *)(*(int *)(param_1[5] + uVar1 * 4)
-	auto t1 = *(ushort *)((char *)p->p8 + uVar1);
+	auto t1 = *(byte *)(p->p8 + uVar1);
 	//+ (uint) * (byte *)(param_1[8] + uVar1))
-	auto t2 = (byte *)p->p5[uVar1] + t1;
+	auto t2 = (byte *)&p->p5[uVar1][t1];
 	//auto t3 = (-((*(uint16 *)(param_1 + 9) & 1) == 0) & 6U) + 0x53;
 	auto t3 = (-((p->p9 & 1) == 0) & 6) + 83;
 	*t2 = t3;
 
 	//*(char *)(param_1[8] + uVar1) = *(char *)(param_1[8] + uVar1) + '\x01';
-	auto t4 = (ushort *)((char *)p->p8 + uVar1);
-	//(*t4)++;// FIXME: this crashes?
+	auto t4 = (byte *)(p->p8 + uVar1);
+	(*t4)++;// FIXME: this crashes?
 	maybe_place_piece_FUN_00417e00(p, (byte)uVar1);
 	//*(short *)(param_1 + 9) = *(short *)(param_1 + 9) + 1;
-	//p->p9++;// this gives Stauf the win because of all the other commented out code?
+	p->p9++;// this gives Stauf the win because of all the other commented out code?
 }
 
 
 
-void __cdecl FUN_00418050(int param_1, byte param_2)
+void __cdecl FUN_00418050(s_ptable_DAT_0044faf4 *p, byte param_2)
 
 {
 	int *piVar1;
@@ -853,32 +854,44 @@ void __cdecl FUN_00418050(int param_1, byte param_2)
 	
 	uint _DAT_0044faf0 = (uint)DAT_0044faf0;
 	uVar7 = (uint)param_2;
-	uVar4 = *(uint16 *)(param_1 + 0x24);
-	iVar6 = (uint) * (byte *)(*(int *)(param_1 + 0x20) + uVar7) * 4;
+	//uVar4 = *(uint16 *)(param_1 + 0x24);
+	uVar4 = p->p9;
+	//iVar6 = (uint) * (byte *)(*(int *)(param_1 + 0x20) + uVar7) * 4;
+	iVar6 = (uint)p->p8[uVar7] * 4;
 	local_5 = 1;
 	auto i1 = (uint *)(_DAT_0044faf0 + uVar7 * 4);
 	auto i2 = (*i1) + iVar6;
 	auto p1 = (byte **)i2;
-	bVar3 = **p1;
+	bVar3 = 0; //**p1;// FIXME: this crashes
 	if (bVar3 != 0) {
-		piVar1 = (int *)(param_1 + (uint)((byte)uVar4 & 1) * 4);
+		//piVar1 = (int *)(param_1 + (uint)((byte)uVar4 & 1) * 4);
+		if (uVar4 & 1)
+			piVar1 = (int *)&p->p1;
+		else
+			piVar1 = (int *)&p->p0;
 		do {
 			piVar2 = (int *)(*piVar1 +
 							 (uint) * (uint16 *)(*(int *)(*(int *)(_DAT_0044faf0 + uVar7 * 4) + iVar6) + (uint)local_5 * 2) * 4);
 			*piVar2 = *piVar2 + -1;
 			iVar8 = (uint) * (ushort *)(*(int *)(*(int *)(_DAT_0044faf0 + uVar7 * 4) + iVar6) + (uint)local_5 * 2) * 4;
 			iVar5 = *(int *)(*piVar1 + iVar8);
-			if ((uint) * (byte *)(param_1 + 0x1c) - iVar5 == 1) {
+			//if ((uint) * (byte *)(param_1 + 0x1c) - iVar5 == 1) {
+			if ( p->us0x1c - iVar5 == 1 ) {
 				piVar1[2] = piVar1[2] + -1000000;
 			} else {
-				piVar2 = (int *)(param_1 + (uint)((uVar4 & 1) == 0) * 4);
+				//piVar2 = (int *)(param_1 + (uint)((uVar4 & 1) == 0) * 4);
+				if (uVar4 & 1)
+					piVar2 = (int *)&p->p0;
+				else
+					piVar2 = (int *)&p->p1;
 				iVar8 = *(int *)(*piVar2 + iVar8);
 				if (iVar5 == 0) {
 					piVar2 = piVar2 + 2;
 					*piVar2 = *piVar2 + (1 << ((byte)iVar8 & 0x1f));
 				}
 				if (iVar8 == 0) {
-					piVar1[2] = piVar1[2] + (-1 << ((byte)iVar5 & 0x1f));
+					//piVar1[2] = piVar1[2] + (-1 << ((byte)iVar5 & 0x1f));
+					piVar1[2] = piVar1[2] + (0xffffffff << ((byte)iVar5 & 0x1f));
 				}
 			}
 			local_5 = local_5 + 1;
@@ -890,25 +903,29 @@ void __cdecl FUN_00418050(int param_1, byte param_2)
 
 
 
-void __cdecl FUN_00418010(int param_1, byte param_2)
+void __cdecl FUN_00418010(s_ptable_DAT_0044faf4 *param_1, byte param_2)
 
 {
-	char *pcVar1;
+	byte *pcVar1;
 	uint uVar2;
 	
 	uVar2 = (uint)param_2;
-	pcVar1 = (char *)(*(int *)(param_1 + 0x20) + uVar2);
+	//pcVar1 = (char *)(*(int *)(param_1 + 0x20) + uVar2);
+	pcVar1 = (param_1->p8 + uVar2);
 	//*pcVar1 = *pcVar1 + -1;// FIXME: this crashes?
-	*(int *)(*(int *)(*(int *)(param_1 + 0x14) + uVar2 * 4) +
-				   (uint) * (byte *)(*(int *)(param_1 + 0x20) + uVar2)) = 0;
-	*(short *)(param_1 + 0x24) = *(short *)(param_1 + 0x24) + -1;
+	(*pcVar1)++;
+	/**(int *)(*(int *)(*(int *)(param_1 + 0x14) + uVar2 * 4) +
+				   (uint) * (byte *)(*(int *)(param_1 + 0x20) + uVar2)) = 0;*/
+	param_1->p5[uVar2][param_1->p8[uVar2]] = 0;
+	//*(short *)(param_1 + 0x24) = *(short *)(param_1 + 0x24) + -1;
+	param_1->p9--;
 	FUN_00418050(param_1, param_2);
 	return;
 }
 
 
 
-uint __cdecl check_stauf_win_FUN_00417d80(int param_1)
+uint __cdecl check_stauf_win_FUN_00417d80(s_ptable_DAT_0044faf4 *param_1)
 
 {
 	ushort uVar1;
@@ -916,9 +933,14 @@ uint __cdecl check_stauf_win_FUN_00417d80(int param_1)
 	uint uVar3;
 
 	uVar3 = check_player_win_FUN_00417d60(param_1);
-	if (((char)uVar3 == '\0') &&
+	/*if (((char)uVar3 == '\0') &&
 		(uVar1 = *(ushort *)(param_1 + 0x1a), uVar2 = uVar3 & 0xffff0000, uVar3 = uVar2 | uVar1,
 		 *(ushort *)(param_1 + 0x24) != uVar1)) {
+		return uVar2 | uVar1 & 0xffffff00;
+	}*/
+	if (((char)uVar3 == '\0') &&
+		(uVar1 = param_1->us0x1a, uVar2 = uVar3 & 0xffff0000, uVar3 = uVar2 | uVar1,
+		 param_1->p9 != uVar1)) {
 		return uVar2 | uVar1 & 0xffffff00;
 	}
 	return CONCAT31((uVar3 >> 8), 1);
@@ -926,7 +948,7 @@ uint __cdecl check_stauf_win_FUN_00417d80(int param_1)
 
 
 
-int __cdecl recurse_FUN_00418150(uint param_1, char param_2, int param_3)
+int __cdecl recurse_FUN_00418150(s_ptable_DAT_0044faf4 *param_1, char param_2, int param_3)
 
 {
 	byte bVar1;
@@ -940,19 +962,23 @@ int __cdecl recurse_FUN_00418150(uint param_1, char param_2, int param_3)
 
 	last_move = 0; //(unaff_EBX & 0xffffff00);
 	iVar5 = 0x7fffffff;
-	bVar1 = *(byte *)(param_1 + 0x18);
+	//bVar1 = *(byte *)(param_1 + 0x18);
+	bVar1 = param_1->c6[0];
 	if (bVar1 != 0) {
 		do {
 			bVar6 = (byte)last_move;
 			uVar2 = FUN_00417d40(param_1, bVar6);
 			if ((char)uVar2 == '\0') {
-				maybe_place_piece_FUN_00417db0((int *)param_1, last_move);
+				maybe_place_piece_FUN_00417db0(param_1, last_move);
 				if (param_2 == '\x01') {
 				LAB_004181ae:
-					if ((*(byte *)(param_1 + 0x24) & 1) == 0) {
-						iVar4 = *(int *)(param_1 + 8) - *(int *)(param_1 + 0xc);
+					//if ((*(byte *)(param_1 + 0x24) & 1) == 0) {
+					if (param_1->p9 & 1 == 0) {
+						//iVar4 = *(int *)(param_1 + 8) - *(int *)(param_1 + 0xc);
+						iVar4 = ((int)param_1->u2) - ((int)param_1->u3);
 					} else {
-						iVar4 = *(int *)(param_1 + 0xc) - *(int *)(param_1 + 8);
+						//iVar4 = *(int *)(param_1 + 0xc) - *(int *)(param_1 + 8);
+						iVar4 = (int)(param_1->u3) - (int)(param_1->u2);
 					}
 				} else {
 					uVar3 = check_stauf_win_FUN_00417d80(param_1);
@@ -1026,7 +1052,7 @@ uint FUN_00412b50(uint param_1, undefined4 param_2, uint param_3)
 
 /* WARNING: Could not reconcile some variable overlaps */
 
-uint con4_AI_FUN_00417f10(uint param_1, int param_2, int *param_3, uint param_4, byte param_5)
+uint con4_AI_FUN_00417f10(uint param_1, int param_2, int *param_3, s_ptable_DAT_0044faf4 *param_4, byte param_5)
 
 {
 	byte bVar1=0;
@@ -1046,14 +1072,15 @@ uint con4_AI_FUN_00417f10(uint param_1, int param_2, int *param_3, uint param_4,
 	iVar5 = 0x7fffffff;
 	do {
 		unaff_EBX = ((uint)unaff_EBX & 0xffffff00);
-		bVar1 = *(byte *)(param_4 + 0x18);
+		//bVar1 = *(byte *)(param_4 + 0x18);
+		bVar1 = (byte)param_4->c6[0];
 		param_1 = param_1 & 0xffffff00;
 		if (bVar1 != 0) {
 			do {
 				bVar6 = (byte)unaff_EBX;
 				param_1 = FUN_00417d40(param_4, bVar6);
 				if ((char)param_1 == '\0') {
-					maybe_place_piece_FUN_00417db0((int *)param_4, unaff_EBX);
+					maybe_place_piece_FUN_00417db0(param_4, unaff_EBX);
 					uVar2 = check_player_win_FUN_00417d60(param_4);
 					if ((char)uVar2 != '\0') {
 						/*uVar4 = */
@@ -1116,18 +1143,18 @@ void connect_four_FUN_00417c00(int param_1, int param_2, int param_3, byte *vars
 		param_2 = extraout_EDX;
 	}
 	if (*last_move == 9) {
-		uVar2 = con4_AI_FUN_00417f10((uint)ptable_DAT_0044faf4, param_2, 0, (uint)ptable_DAT_0044faf4, 6);
+		uVar2 = con4_AI_FUN_00417f10(0, param_2, 0, ptable_DAT_0044faf4, 6);
 		*last_move = (byte)uVar2;
 		ptable8_DAT_0044fafc = 1;
 		return;
 	}
-	uVar2 = FUN_00417d40((uint)ptable_DAT_0044faf4, *last_move);
+	uVar2 = FUN_00417d40(ptable_DAT_0044faf4, *last_move);
 	if ((char)uVar2 != '\0') {
 		*last_move = 10;
 		return;
 	}
-	maybe_place_piece_FUN_00417db0((int *)ptable_DAT_0044faf4, *last_move);
-	uVar2 = check_player_win_FUN_00417d60((int)ptable_DAT_0044faf4);
+	maybe_place_piece_FUN_00417db0(ptable_DAT_0044faf4, *last_move);
+	uVar2 = check_player_win_FUN_00417d60(ptable_DAT_0044faf4);
 	if ((char)uVar2 != '\0') {
 		vars[3] = 2;
 		frees_FUN_004182e0(ptable_DAT_0044faf4);
@@ -1136,10 +1163,10 @@ void connect_four_FUN_00417c00(int param_1, int param_2, int param_3, byte *vars
 	}
 	bVar1 = (ptable8_DAT_0044fafc == '\0') + 4;
 	last_move_00 = con4_AI_FUN_00417f10(uVar2 & 0xffffff00 | (uint)bVar1, extraout_EDX_00,
-												0, (uint)ptable_DAT_0044faf4, bVar1);
+												0, ptable_DAT_0044faf4, bVar1);
 	*last_move = (byte)last_move_00;
-	maybe_place_piece_FUN_00417db0((int *)ptable_DAT_0044faf4, last_move_00);
-	uVar3 = check_stauf_win_FUN_00417d80((int)ptable_DAT_0044faf4);
+	maybe_place_piece_FUN_00417db0(ptable_DAT_0044faf4, last_move_00);
+	uVar3 = check_stauf_win_FUN_00417d80(ptable_DAT_0044faf4);
 	if ((char)uVar3 != '\0') {
 		vars[3] = 1;
 		frees_FUN_004182e0(ptable_DAT_0044faf4);
