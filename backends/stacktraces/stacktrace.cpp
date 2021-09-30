@@ -58,17 +58,16 @@
 
 #include "stacktrace.h"
 
-#ifdef USE_STACKTRACES_DW
+#if defined(USE_STACKTRACES_DW)
 #define BACKWARD_HAS_DW 1
-#endif
-#ifdef USE_STACKTRACES_DWARF
+#elif defined(USE_STACKTRACES_DWARF)
 #define BACKWARD_HAS_DWARF 1
-#endif
-#ifdef USE_STACKTRACES_BFD
+#elif defined(USE_STACKTRACES_BFD)
 #define BACKWARD_HAS_BFD 1
-#endif
-#ifdef USE_STACKTRACES_UNWIND
+#elif defined(USE_STACKTRACES_UNWIND)
 #define BACKWARD_HAS_LIBUNWIND 1
+#elif defined(USE_STACKTRACES)
+#error "One of the above given defines must be set when using stacktraces"
 #endif
 
 #include "backward.h"
