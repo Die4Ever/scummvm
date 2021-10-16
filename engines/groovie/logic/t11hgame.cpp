@@ -223,6 +223,8 @@ uint __cdecl FUN_00417d40(s_ptable_DAT_0044faf4 *param_1, byte param_2)
 	/*return param_1 & 0xffffff00 |
 		   (uint)(byte)(1 - (*(byte *)((uint)param_2 + *(int *)(param_1 + 0x20)) <
 							 *(byte *)(param_1 + 0x19)));*/
+	/*(1 - (*(byte *)((uint)param_2 + *(int *)(param_1 + 0x20)) <
+		  *(byte *)(param_1 + 0x19)))*/
 	return param_1->p8[param_2] >= param_1->c6[1];
 }
 
