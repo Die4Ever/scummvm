@@ -202,19 +202,24 @@ struct s_ptable_DAT_0044faf4 {
 	char padding[2];// starts at byte 38?
 };*/
 
+// table for tons of cake data, it's struct s_ptable_DAT_0044faf4
 int **ptable_DAT_0044faf4 = NULL;
-int ptable8_DAT_0044fafc = 0;
-int _DAT_0045aae4 = 0;
-int DAT_0044faf0 = NULL;
-int &INT_0044faf0 = DAT_0044faf0;
+
+// set to 0 every time the puzzle starts, set to 1 when samantha makes a move
+int has_cheated_DAT_0044fafc = 0;
+
+// counter gets incremented on free and decremented on malloc, but nothing actually checks it, maybe was just used in debugging
+int free_mem_DAT_0045aae4 = 0;
+
+// a pointer to a table of pointers, seems to hold a lot of data
+int ptable_DAT_0044faf0 = NULL;
+
 int DAT_0044faf8 = 0;// a counter for allocations?
 
 int DAT_0043df84 = 0;// length of DAT_0044e614?
 
-uint array_0044e610[1024];
-
-
-int DAT_00448398;
+// an offset, but it seems to always be 0?
+int DAT_00448398 = 0;
 
 /*struct s_DAT_0044e610 {
 	void *p0;//DAT_0044e610
@@ -225,13 +230,17 @@ int DAT_00448398;
 	void *p5;//DAT_0044e624
 };*/
 
-int DAT_0044fa94 = 0;
-int DAT_0044fa98 = 0;
-int DAT_0044fa9c = 0;
+// an array of pointers and lengths maybe struct s_DAT_0044e610?
+uint array_0044e610[1024];
 
+// these 3 control rng in some weird way
+int rng_a_DAT_0044fa94 = 0;
+int rng_b_DAT_0044fa98 = 0;
+int rng_c_DAT_0044fa9c = 0;
+
+// error code that isn't written to in any of the cake code
 int DAT_0043d35c = 0;
 
-undefined DAT_00447dd0 = 0;
 
 uint CONCAT31(uint a, uint b) {
 	uint ret;
@@ -252,7 +261,7 @@ uint CONCAT22(uint a, uint b) {
 void __cdecl FUN_00406c80(int param_1)
 
 {
-	_DAT_0045aae4 = _DAT_0045aae4 + *(int *)(param_1 + -4);
+	free_mem_DAT_0045aae4 = free_mem_DAT_0045aae4 + *(int *)(param_1 + -4);
 	free((int *)(param_1 + -4));
 	return;
 }
@@ -276,7 +285,7 @@ void __cdecl FUN_004186f0(byte param_1, byte param_2)
 				uVar1 = (uint)param_2;
 				do {
 					iVar3 = iVar3 + 4;
-					FUN_00406c80(*(int *)(*(int *)(DAT_0044faf0 + iVar2) + -4 + iVar3));
+					FUN_00406c80(*(int *)(*(int *)(ptable_DAT_0044faf0 + iVar2) + -4 + iVar3));
 					uVar1 = uVar1 - 1;
 				} while (uVar1 != 0);
 			}
@@ -288,13 +297,13 @@ void __cdecl FUN_004186f0(byte param_1, byte param_2)
 			uVar1 = (uint)param_1;
 			do {
 				iVar2 = iVar2 + 4;
-				FUN_00406c80(*(int *)(DAT_0044faf0 + -4 + iVar2));
+				FUN_00406c80(*(int *)(ptable_DAT_0044faf0 + -4 + iVar2));
 				uVar1 = uVar1 - 1;
 			} while (uVar1 != 0);
 		}
 	}
-	FUN_00406c80((int)DAT_0044faf0);
-	DAT_0044faf0 = 0;
+	FUN_00406c80((int)ptable_DAT_0044faf0);
+	ptable_DAT_0044faf0 = 0;
 	DAT_0044faf8 = 0;
 	return;
 }
@@ -371,7 +380,7 @@ undefined4 __cdecl FUN_0040d7b0(int param_1)
 		//local_4 = local_4 + (&DAT_0044e620)[iVar3 * 5];
 		local_4 = local_4 + array_0044e610[iVar3 * 5 + 4];
 		//_DAT_0045aae4 = _DAT_0045aae4 + (&DAT_0044e620)[iVar3 * 5];
-		_DAT_0045aae4 = _DAT_0045aae4 + array_0044e610[iVar3 * 5 + 4];
+		free_mem_DAT_0045aae4 = free_mem_DAT_0045aae4 + array_0044e610[iVar3 * 5 + 4];
 		//(&DAT_0044e620)[iVar3 * 5] = 0;
 		array_0044e610[iVar3 * 5 + 4] = 0;
 		//free((void *)(&DAT_0044e610)[iVar3 * 5]);
@@ -387,18 +396,18 @@ undefined4 __cdecl FUN_0040d7b0(int param_1)
 }
 
 
-void __stdcall FUN_00406a20(void)
+/*void __stdcall FUN_00406a20(void)
 
 {
 	return;
-}
+}*/
 
 
-undefined *__stdcall FUN_00404410(void)
+/*undefined *__stdcall FUN_00404410(void)
 
 {
 	return &DAT_00447dd0;
-}
+}*/
 
 
 /* Library Function - Multiple Matches With Different Base Names
@@ -559,11 +568,11 @@ int *__cdecl allocs_FUN_00406bc0(int param_1, int param_2)
 				goto LAB_00406c49;
 			pcVar7 = "s_Out_of_memory_0043d644";
 		} else {
-			FUN_00406a20();
+			//FUN_00406a20();
 			if (DAT_0043d35c == 4) {
 				local_4 = 0x10;
 				FUN_0040e920(0, &local_4);
-				warning("s_Info : _your_configuration_has_bee_0043d5fc");
+				warning("s_Info : _your_configuration_has_bee_0043d5fc been reset to 16bpp to use less memory");
 			}
 			pcVar7 = "s_Out_of_memory._Info : _It's_possib_0043d51c";
 		}
@@ -582,7 +591,7 @@ LAB_00406c49:
 		}
 	}
 	*piVar1 = iVar5 + 4;
-	_DAT_0045aae4 = _DAT_0045aae4 - (iVar5 + 4);
+	free_mem_DAT_0045aae4 = free_mem_DAT_0045aae4 - (iVar5 + 4);
 	return piVar1 + 1;
 }
 
@@ -607,13 +616,13 @@ void __cdecl FUN_00418360(byte param_1, byte param_2, byte param_3)
 	uVar4 = (uint)param_1;
 	bVar8 = 0;
 	DAT_0044faf8 = 0;
-	INT_0044faf0 = (int)allocs_FUN_00406bc0(uVar4, 4);
+	ptable_DAT_0044faf0 = (int)allocs_FUN_00406bc0(uVar4, 4);
 	if (param_1 != 0) {
 		do {
 			piVar5 = allocs_FUN_00406bc0((uint)param_2, 4);
 			uVar6 = (uint)bVar8;
 			bVar8 = bVar8 + 1;
-			*(int **)(INT_0044faf0 + uVar6 * 4) = piVar5;
+			*(int **)(ptable_DAT_0044faf0 + uVar6 * 4) = piVar5;
 		} while (bVar8 < param_1);
 	}
 	local_12 = 0;
@@ -625,7 +634,7 @@ void __cdecl FUN_00418360(byte param_1, byte param_2, byte param_3)
 					piVar5 = allocs_FUN_00406bc0((uint)param_3 * 4 + 1, 2);
 					uVar6 = (uint)local_11;
 					local_11 = local_11 + 1;
-					*(int **)(*(int *)((uint)local_12 * 4 + INT_0044faf0) + uVar6 * 4) = piVar5;
+					*(int **)(*(int *)((uint)local_12 * 4 + ptable_DAT_0044faf0) + uVar6 * 4) = piVar5;
 				} while (local_11 < param_2);
 			}
 			local_12 = local_12 + 1;
@@ -643,9 +652,9 @@ void __cdecl FUN_00418360(byte param_1, byte param_2, byte param_3)
 							uVar6 = (uint)bVar8;
 							bVar8 = bVar8 + 1;
 							iVar1 = (uVar6 + local_12) * 4;
-							psVar2 = *(short **)(*(int *)(iVar1 + INT_0044faf0) + (uint)local_11 * 4);
+							psVar2 = *(short **)(*(int *)(iVar1 + ptable_DAT_0044faf0) + (uint)local_11 * 4);
 							*psVar2 = *psVar2 + 1;
-							puVar3 = *(ushort **)(*(int *)(iVar1 + INT_0044faf0) + (uint)local_11 * 4);
+							puVar3 = *(ushort **)(*(int *)(iVar1 + ptable_DAT_0044faf0) + (uint)local_11 * 4);
 							puVar3[*puVar3] = DAT_0044faf8;
 						} while (bVar8 < param_3);
 					}
@@ -667,9 +676,9 @@ void __cdecl FUN_00418360(byte param_1, byte param_2, byte param_3)
 						do {
 							bVar8 = (char)uVar6 + 1;
 							iVar1 = (uVar6 + local_11) * 4;
-							psVar2 = *(short **)(*(int *)((uint)local_12 * 4 + INT_0044faf0) + iVar1);
+							psVar2 = *(short **)(*(int *)((uint)local_12 * 4 + ptable_DAT_0044faf0) + iVar1);
 							*psVar2 = *psVar2 + 1;
-							puVar3 = *(ushort **)(*(int *)((uint)local_12 * 4 + INT_0044faf0) + iVar1);
+							puVar3 = *(ushort **)(*(int *)((uint)local_12 * 4 + ptable_DAT_0044faf0) + iVar1);
 							puVar3[*puVar3] = DAT_0044faf8;
 							uVar6 = (uint)bVar8;
 						} while (bVar8 < param_3);
@@ -694,9 +703,9 @@ void __cdecl FUN_00418360(byte param_1, byte param_2, byte param_3)
 							bVar8 = (char)uVar7 + 1;
 							iVar9 = (local_12 + uVar7) * 4;
 							iVar1 = (uVar7 + local_11) * 4;
-							psVar2 = *(short **)(*(int *)(iVar9 + INT_0044faf0) + iVar1);
+							psVar2 = *(short **)(*(int *)(iVar9 + ptable_DAT_0044faf0) + iVar1);
 							*psVar2 = *psVar2 + 1;
-							puVar3 = *(ushort **)(*(int *)(iVar9 + INT_0044faf0) + iVar1);
+							puVar3 = *(ushort **)(*(int *)(iVar9 + ptable_DAT_0044faf0) + iVar1);
 							puVar3[*puVar3] = DAT_0044faf8;
 							uVar7 = (uint)bVar8;
 						} while (bVar8 < param_3);
@@ -720,9 +729,9 @@ void __cdecl FUN_00418360(byte param_1, byte param_2, byte param_3)
 							bVar8 = (char)uVar7 + 1;
 							iVar9 = (uVar7 + local_12) * 4;
 							iVar1 = (local_11 - uVar7) * 4;
-							psVar2 = *(short **)(*(int *)(iVar9 + INT_0044faf0) + iVar1);
+							psVar2 = *(short **)(*(int *)(iVar9 + ptable_DAT_0044faf0) + iVar1);
 							*psVar2 = *psVar2 + 1;
-							puVar3 = *(ushort **)(*(int *)(iVar9 + INT_0044faf0) + iVar1);
+							puVar3 = *(ushort **)(*(int *)(iVar9 + ptable_DAT_0044faf0) + iVar1);
 							puVar3[*puVar3] = DAT_0044faf8;
 							uVar7 = (uint)bVar8;
 						} while (bVar8 < param_3);
@@ -806,11 +815,11 @@ void __cdecl FUN_00417e00(int param_1, byte last_move)
 	uVar3 = *(ushort *)(param_1 + 0x24);
 	last_move_slot = (uint)(byte)(*(char *)(*(int *)(param_1 + 0x20) + _last_move) - 1) * 4;
 	local_9 = 1;
-	bVar2 = **(byte **)(*(int *)(DAT_0044faf0 + _last_move * 4) + last_move_slot);
+	bVar2 = **(byte **)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot);
 	if (bVar2 != 0) {
 		piVar1 = (int *)(param_1 + (uint)((byte)uVar3 & 1) * 4);
 		do {
-			piVar6 = (int *)((uint) * (ushort *)(*(int *)(*(int *)(DAT_0044faf0 + _last_move * 4) + last_move_slot) + (uint)local_9 * 2) * 4 + *piVar1);
+			piVar6 = (int *)((uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot) + (uint)local_9 * 2) * 4 + *piVar1);
 			iVar4 = *piVar6;
 			*piVar6 = iVar4 + 1;
 			if ((uint) * (byte *)(param_1 + 0x1c) - iVar4 == 1) {
@@ -818,7 +827,7 @@ void __cdecl FUN_00417e00(int param_1, byte last_move)
 			} else {
 				piVar6 = (int *)(param_1 + (uint)((uVar3 & 1) == 0) * 4);
 				iVar5 = *(int *)(*piVar6 +
-								 (uint) * (ushort *)(*(int *)(*(int *)(DAT_0044faf0 + _last_move * 4) + last_move_slot) + (uint)local_9 * 2) * 4);
+								 (uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot) + (uint)local_9 * 2) * 4);
 				if (iVar4 == 0) {
 					piVar6 = piVar6 + 2;
 					*piVar6 = *piVar6 + (-1 << ((byte)iVar5 & 0x1f));
@@ -885,14 +894,14 @@ void __cdecl FUN_00418050(int param_1, byte param_2)
 	uVar4 = *(ushort *)(param_1 + 0x24);
 	iVar6 = (uint) * (byte *)(*(int *)(param_1 + 0x20) + uVar7) * 4;
 	local_5 = 1;
-	bVar3 = **(byte **)(*(int *)(DAT_0044faf0 + uVar7 * 4) + iVar6);
+	bVar3 = **(byte **)(*(int *)(ptable_DAT_0044faf0 + uVar7 * 4) + iVar6);
 	if (bVar3 != 0) {
 		piVar1 = (int *)(param_1 + (uint)((byte)uVar4 & 1) * 4);
 		do {
 			piVar2 = (int *)(*piVar1 +
-							 (uint) * (ushort *)(*(int *)(*(int *)(DAT_0044faf0 + uVar7 * 4) + iVar6) + (uint)local_5 * 2) * 4);
+							 (uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + uVar7 * 4) + iVar6) + (uint)local_5 * 2) * 4);
 			*piVar2 = *piVar2 + -1;
-			iVar8 = (uint) * (ushort *)(*(int *)(*(int *)(DAT_0044faf0 + uVar7 * 4) + iVar6) + (uint)local_5 * 2) * 4;
+			iVar8 = (uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + uVar7 * 4) + iVar6) + (uint)local_5 * 2) * 4;
 			iVar5 = *(int *)(*piVar1 + iVar8);
 			if ((uint) * (byte *)(param_1 + 0x1c) - iVar5 == 1) {
 				piVar1[2] = piVar1[2] + -1000000;
@@ -1011,28 +1020,28 @@ uint FUN_00412a70(uint param_1, /*undefined4 &param_2,*/ uint &param_3)
 	ushort uVar5;
 	short local_4;
 
-	uVar2 = param_1 & 0xffff0000 | (uint)DAT_0044fa94;
-	if (((DAT_0044fa94 == 0) && (DAT_0044fa98 == 0)) && (DAT_0044fa9c == 0)) {
-		DAT_0044fa9c = 0xc;
+	uVar2 = param_1 & 0xffff0000 | (uint)rng_a_DAT_0044fa94;
+	if (((rng_a_DAT_0044fa94 == 0) && (rng_b_DAT_0044fa98 == 0)) && (rng_c_DAT_0044fa9c == 0)) {
+		rng_c_DAT_0044fa9c = 0xc;
 		uVar2 = CONCAT22((short)((param_1 & 0xffff0000) >> 0x10), 0xe6);
-		DAT_0044fa98 = 0x1c;
+		rng_b_DAT_0044fa98 = 0x1c;
 	}
 	local_4 = 0x10;
 	uVar5 = 0;
 	do {
 		uVar3 = ((ushort)uVar2 >> 1) + uVar5;
 		uVar5 = (ushort)uVar2 & 1;
-		uVar4 = DAT_0044fa9c & 0x80;
-		DAT_0044fa9c = ((uVar3 >> 2 ^ DAT_0044fa98) & 1) + DAT_0044fa9c * 2;
-		uVar1 = (uint)DAT_0044fa98;
-		DAT_0044fa98 = (uVar4 >> 7) + DAT_0044fa98 * 2;
+		uVar4 = rng_c_DAT_0044fa9c & 0x80;
+		rng_c_DAT_0044fa9c = ((uVar3 >> 2 ^ rng_b_DAT_0044fa98) & 1) + rng_c_DAT_0044fa9c * 2;
+		uVar1 = (uint)rng_b_DAT_0044fa98;
+		rng_b_DAT_0044fa98 = (uVar4 >> 7) + rng_b_DAT_0044fa98 * 2;
 		//param_3 = param_3 & 0xffff0000 | (uVar1 & 0x80) >> 7;
 		param_3 = ((uVar1 & 0x80) >> 7);
 		local_4 = local_4 + -1;
 		uVar2 = param_3 + uVar2 * 2;
 	} while (local_4 != 0);
-	DAT_0044fa94 = (short)uVar2;
-	return uVar2 & 0xffff0000 | (uint)(ushort)((short)uVar2 << 8 | DAT_0044fa98);
+	rng_a_DAT_0044fa94 = (short)uVar2;
+	return uVar2 & 0xffff0000 | (uint)(ushort)((short)uVar2 << 8 | rng_b_DAT_0044fa98);
 }
 
 
@@ -1063,8 +1072,8 @@ uint con4_AI_FUN_00417f10(uint param_1, /*undefined4 param_2,*/ undefined4 param
 	undefined4 uVar2;
 	int iVar3;
 	uint uVar4;
-	uint extraout_ECX;
-	undefined4 extraout_EDX;
+	//uint extraout_ECX;
+	//undefined4 extraout_EDX;
 	//byte *unaff_EBX;
 	byte unaff_EBX;
 	int iVar5;
@@ -1145,14 +1154,14 @@ void connect_four_FUN_00417c00(undefined4 param_1, undefined4 param_2, undefined
 	}
 	if (ptable_DAT_0044faf4 == (int **)0x0) {
 		ptable_DAT_0044faf4 = init_FUN_004181f0(8, 7, 4);
-		ptable8_DAT_0044fafc = '\0';
+		has_cheated_DAT_0044fafc = '\0';
 		param_3 = 4; //extraout_ECX;
 		param_2 = 7; //extraout_EDX;
 	}
 	if (*last_move == 9) {
 		uVar2 = con4_AI_FUN_00417f10((uint)ptable_DAT_0044faf4, /*param_2,*/ param_3, (uint)ptable_DAT_0044faf4, 6);
 		*last_move = (byte)uVar2;
-		ptable8_DAT_0044fafc = 1;
+		has_cheated_DAT_0044fafc = 1;
 		return;
 	}
 	uVar2 = FUN_00417d40((uint)ptable_DAT_0044faf4, *last_move);
@@ -1169,7 +1178,7 @@ void connect_four_FUN_00417c00(undefined4 param_1, undefined4 param_2, undefined
 		ptable_DAT_0044faf4 = (int **)0x0;
 		return;
 	}
-	bVar1 = (ptable8_DAT_0044fafc == '\0') + 4;
+	bVar1 = (has_cheated_DAT_0044fafc == '\0') + 4;
 	/*last_move_00 = (byte *)con4_AI_FUN_00417f10(uVar2 & 0xffffff00 | (uint)bVar1, extraout_EDX_00,
 												(undefined4)ptable_DAT_0044faf4, (uint)ptable_DAT_0044faf4, bVar1);
 	*last_move = (byte)last_move_00;
@@ -1197,9 +1206,9 @@ void run_cake_test(int a, int b, int c, const char *moves, bool player_win) {
 	byte &winner = _scriptVariables[3];
 
 	winner = 0;
-	DAT_0044fa94 = a;
-	DAT_0044fa98 = b;
-	DAT_0044fa9c = c;
+	rng_a_DAT_0044fa94 = a;
+	rng_b_DAT_0044fa98 = b;
+	rng_c_DAT_0044fa9c = c;
 
 	debug("\nstarting run_cake_test(%d, %d, %d, %s, %d)", a, b, c, moves, (int)player_win);
 
@@ -1249,10 +1258,10 @@ void T11hGame::opConnectFour() {
 	byte &last_move = _scriptVariables[1];
 	byte &winner = _scriptVariables[3];
 	if (last_move == 8) {
-		DAT_0044fa94 = _random.getRandomNumber(UINT_MAX);
-		DAT_0044fa98 = _random.getRandomNumber(UINT_MAX);
-		DAT_0044fa9c = _random.getRandomNumber(UINT_MAX);
-		debug("\nstarting cake, DAT_0044fa94: %d, DAT_0044fa98: %d, DAT_0044fa9c: %d", DAT_0044fa94, DAT_0044fa98, DAT_0044fa9c);
+		rng_a_DAT_0044fa94 = _random.getRandomNumber(UINT_MAX);
+		rng_b_DAT_0044fa98 = _random.getRandomNumber(UINT_MAX);
+		rng_c_DAT_0044fa9c = _random.getRandomNumber(UINT_MAX);
+		debug("\nstarting cake, DAT_0044fa94: %d, DAT_0044fa98: %d, DAT_0044fa9c: %d", rng_a_DAT_0044fa94, rng_b_DAT_0044fa98, rng_c_DAT_0044fa9c);
 	}
 	debug("cake player last_move: %d", (int)last_move);
 	connect_four_FUN_00417c00(0, 0, 0, _scriptVariables);
