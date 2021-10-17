@@ -36,11 +36,13 @@
 
 namespace Groovie {
 
+void test_cake();
+
 T11hGame::T11hGame(byte *scriptVariables) : _random("GroovieT11hGame"), _scriptVariables(scriptVariables) {
 #ifndef RELEASE_BUILD
 	// run tests
 	warning("T11hGame running tests");
-
+	test_cake();
 	warning("T11hGame finished tests");
 #endif
 }
@@ -205,21 +207,12 @@ int ptable8_DAT_0044fafc = 0;
 int _DAT_0045aae4 = 0;
 int DAT_0044faf0 = NULL;
 int &INT_0044faf0 = DAT_0044faf0;
-int DAT_0044faf8 = 0;
+int DAT_0044faf8 = 0;// a counter for allocations?
 
 int DAT_0043df84 = 0;// length of DAT_0044e614?
 
-uint DAT_0044e614;
-uint DAT_0044e618;
-uint DAT_0044e61C;
-uint DAT_0044e620;
-uint DAT_0044e624;
-uint DAT_0044e628;
-uint DAT_0044e62C;
-uint DAT_0044e630;
-uint DAT_0044e634;
-uint DAT_0044e638;
-uint DAT_0044e63C;
+uint array_0044e610[1024];
+
 
 int DAT_00448398;
 
@@ -232,18 +225,13 @@ int DAT_00448398;
 	void *p5;//DAT_0044e624
 };*/
 
-int DAT_0044e610;
-
 int DAT_0044fa94 = 0;
 int DAT_0044fa98 = 0;
 int DAT_0044fa9c = 0;
 
 int DAT_0043d35c = 0;
 
-FILE *DAT_0044fa14 = 0;
-FILE *DAT_0044fa18 = 0;
 undefined DAT_00447dd0 = 0;
-undefined DAT_00441380 = 0;
 
 uint CONCAT31(uint a, uint b) {
 	uint ret;
@@ -363,7 +351,8 @@ undefined4 __cdecl FUN_0040d7b0(int param_1)
 		iVar3 = -1;
 		iVar2 = 0;
 		if (0 < iVar1) {
-			puVar5 = &DAT_0044e614;
+			//puVar5 = &DAT_0044e614;
+			puVar5 = &array_0044e610[1];
 			do {
 				if ((puVar5[3] != 0) && (*puVar5 < uVar4)) {
 					iVar3 = iVar2;
@@ -375,14 +364,21 @@ undefined4 __cdecl FUN_0040d7b0(int param_1)
 		}
 		if (iVar3 < 1)
 			break;
-		FUN_00408520((&DAT_0044e618)[iVar3 * 5]);
-		(&DAT_0044e614)[iVar3 * 5] = 0;
-		local_4 = local_4 + (&DAT_0044e620)[iVar3 * 5];
-		_DAT_0045aae4 = _DAT_0045aae4 + (&DAT_0044e620)[iVar3 * 5];
-		(&DAT_0044e620)[iVar3 * 5] = 0;
-		free((void *)(&DAT_0044e610)[iVar3 * 5]);
+		//FUN_00408520((&DAT_0044e618)[iVar3 * 5]);
+		FUN_00408520(array_0044e610[iVar3 * 5 + 2]);
+		//(&DAT_0044e614)[iVar3 * 5] = 0;
+		array_0044e610[iVar3 * 5 + 1] = 0;
+		//local_4 = local_4 + (&DAT_0044e620)[iVar3 * 5];
+		local_4 = local_4 + array_0044e610[iVar3 * 5 + 4];
+		//_DAT_0045aae4 = _DAT_0045aae4 + (&DAT_0044e620)[iVar3 * 5];
+		_DAT_0045aae4 = _DAT_0045aae4 + array_0044e610[iVar3 * 5 + 4];
+		//(&DAT_0044e620)[iVar3 * 5] = 0;
+		array_0044e610[iVar3 * 5 + 4] = 0;
+		//free((void *)(&DAT_0044e610)[iVar3 * 5]);
+		free((void *)array_0044e610[iVar3 * 5]);
 		iVar1 = DAT_0043df84;
-		(&DAT_0044e610)[iVar3 * 5] = 0;
+		//(&DAT_0044e610)[iVar3 * 5] = 0;
+		array_0044e610[iVar3 * 5] = 0;
 		if (param_1 <= local_4) {
 			return 1;
 		}
@@ -1195,11 +1191,76 @@ void connect_four_FUN_00417c00(undefined4 param_1, undefined4 param_2, undefined
 
 // end Ghidra crap
 
-void T11hGame::opConnectFour() {
-	connect_four_FUN_00417c00(0, 0, 0, _scriptVariables);
-	return;
+void run_cake_test(int a, int b, int c, const char *moves, bool player_win) {
+	byte _scriptVariables[1024];
 	byte &last_move = _scriptVariables[1];
 	byte &winner = _scriptVariables[3];
+
+	winner = 0;
+	DAT_0044fa94 = a;
+	DAT_0044fa98 = b;
+	DAT_0044fa9c = c;
+
+	debug("\nstarting run_cake_test(%d, %d, %d, %s, %d)", a, b, c, moves, (int)player_win);
+
+	last_move = 8;
+	connect_four_FUN_00417c00(0, 0, 0, _scriptVariables);
+
+	for (int i = 0; moves[i]; i+=2) {
+		if (winner != 0) {
+			warning("early win at %d", i);
+		}
+		last_move = moves[i] - '0';
+		byte stauf_move = moves[i + 1] - '0';
+
+		connect_four_FUN_00417c00(0, 0, 0, _scriptVariables);
+		
+		if (stauf_move < 8) {
+			if (winner == 2) {
+				warning("early player win at %d", i);
+			}
+
+			if (stauf_move != last_move) {
+				warning("incorrect Stauf move, expected: %d, got: %d", (int)stauf_move, (int)last_move);
+			}
+		} else if (winner != 2) {
+			warning("missing Stauf move, last_move: %d", (int)last_move);
+		} else
+			break;
+	}
+
+	if (player_win && winner != 2) {
+		warning("player didn't win! winner: %d", (int)winner);
+	}
+	else if (player_win == false && winner != 1) {
+		warning("Stauf didn't win! winner: %d", (int)winner);
+	}
+
+	debug("finished run_cake_test(%d, %d, %d, %s, %d)\n", a, b, c, moves, (int)player_win);
+}
+
+void test_cake() {
+	run_cake_test(5548, -468341609, 363632432, "24223233041", true);
+	run_cake_test(-8128, 65028198, -532650441, "232232432445", false);
+	run_cake_test(-21148, 732783721, -1385928214, "4453766355133466", false);
+}
+
+void T11hGame::opConnectFour() {
+	byte &last_move = _scriptVariables[1];
+	byte &winner = _scriptVariables[3];
+	if (last_move == 8) {
+		DAT_0044fa94 = _random.getRandomNumber(UINT_MAX);
+		DAT_0044fa98 = _random.getRandomNumber(UINT_MAX);
+		DAT_0044fa9c = _random.getRandomNumber(UINT_MAX);
+		debug("\nstarting cake, DAT_0044fa94: %d, DAT_0044fa98: %d, DAT_0044fa9c: %d", DAT_0044fa94, DAT_0044fa98, DAT_0044fa9c);
+	}
+	debug("cake player last_move: %d", (int)last_move);
+	connect_four_FUN_00417c00(0, 0, 0, _scriptVariables);
+	debug("cake stauf last_move: %d", (int)last_move);
+	if (winner != 0) {
+		debug("cake winner: %d\n", (int)winner);
+	}
+	return;
 
 	if (last_move == 8) {
 		clearCake();

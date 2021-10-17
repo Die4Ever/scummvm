@@ -81,6 +81,8 @@ Script::Script(GroovieEngine *vm, EngineVersion version) :
 		_opcodes = _opcodesT7G;
 	} else {
 		_opcodes = _opcodesV2;
+		if (!_t11hGame)
+			_t11hGame = new T11hGame(_variables);
 	}
 
 	// Prepare the variables
