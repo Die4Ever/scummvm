@@ -657,7 +657,7 @@ void __cdecl FUN_00417e00(int param_1, byte last_move)
 }
 
 
-
+// 83 and 89 are magic numbers for this function and the next one for some reason
 void __cdecl maybe_place_piece_FUN_00417db0(int *param_1, byte last_move)
 
 {
@@ -683,13 +683,14 @@ void __cdecl maybe_place_piece_FUN_00417db0(int *param_1, byte last_move)
 }
 
 
-uint __cdecl check_player_win_FUN_00417d60(int param_1)
+byte __cdecl check_player_win_FUN_00417d60(int param_1)
 
 {
-	undefined3 uVar2;
-	uint uVar1;
+	//undefined3 uVar2;
+	//uint uVar1;
+	s_ptable_DAT_0044faf4 *p = (s_ptable_DAT_0044faf4 *)param_1;
 
-	uVar2.data = ((uint)param_1 >> 8);
+	/*uVar2.data = ((uint)param_1 >> 8);
 	if (999999 < *(int *)(param_1 + 8)) {
 		return CONCAT31(uVar2.data, 0x59);
 	}
@@ -697,11 +698,17 @@ uint __cdecl check_player_win_FUN_00417d60(int param_1)
 	if (*(int *)(param_1 + 0xc) < 1000000) {
 		uVar1 = param_1 & 0xffffff00;
 	}
-	return uVar1;
+	return uVar1;*/
+
+	if (999999 < (int)p->p8)
+		return 89;
+	if ((int)p->u12 < 1000000)
+		return 0;
+	return 83;
 }
 
 
-void __cdecl FUN_00418050(int param_1, byte param_2)
+void __cdecl ai_FUN_00418050(int param_1, byte param_2)
 
 {
 	int *piVar1;
@@ -748,7 +755,7 @@ void __cdecl FUN_00418050(int param_1, byte param_2)
 
 
 
-void __cdecl FUN_00418010(int param_1, byte param_2)
+void __cdecl ai_FUN_00418010(int param_1, byte param_2)
 
 {
 	char *pcVar1;
@@ -760,7 +767,7 @@ void __cdecl FUN_00418010(int param_1, byte param_2)
 	*(undefined *)(*(int *)(*(int *)(param_1 + 0x14) + uVar2 * 4) +
 				   (uint) * (byte *)(*(int *)(param_1 + 0x20) + uVar2)) = 0;
 	*(short *)(param_1 + 0x24) = *(short *)(param_1 + 0x24) + -1;
-	FUN_00418050(param_1, param_2);
+	ai_FUN_00418050(param_1, param_2);
 	return;
 }
 
@@ -784,7 +791,7 @@ uint __cdecl check_stauf_win_FUN_00417d80(int param_1)
 
 
 
-int __cdecl recurse_FUN_00418150(uint param_1, char param_2, int param_3)
+int __cdecl recurse_ai_FUN_00418150(uint param_1, char param_2, int param_3)
 
 {
 	byte bVar1;
@@ -817,9 +824,9 @@ int __cdecl recurse_FUN_00418150(uint param_1, char param_2, int param_3)
 					uVar3 = check_stauf_win_FUN_00417d80(param_1);
 					if ((char)uVar3 != '\0')
 						goto LAB_004181ae;
-					iVar4 = recurse_FUN_00418150(param_1, param_2 + -1, iVar5);
+					iVar4 = recurse_ai_FUN_00418150(param_1, param_2 + -1, iVar5);
 				}
-				FUN_00418010(param_1, bVar6);
+				ai_FUN_00418010(param_1, bVar6);
 				if (iVar4 < iVar5) {
 					iVar5 = iVar4;
 				}
@@ -921,12 +928,12 @@ uint con4_AI_FUN_00417f10(uint param_1, /*undefined4 param_2,*/ undefined4 param
 					maybe_place_piece_FUN_00417db0((int *)param_4, unaff_EBX);
 					uVar2 = check_player_win_FUN_00417d60(param_4);
 					if ((char)uVar2 != '\0') {
-						/*uVar4 =*/ FUN_00418010(param_4, bVar6);
+						/*uVar4 =*/ ai_FUN_00418010(param_4, bVar6);
 						//return uVar4 & 0xffffff00 | (uint)unaff_EBX & 0xff;
 						return (uint)unaff_EBX & 0xff;
 					}
-					iVar3 = recurse_FUN_00418150(param_4, param_5 - 1, iVar5);
-					/*param_1 =*/ FUN_00418010(param_4, bVar6);
+					iVar3 = recurse_ai_FUN_00418150(param_4, param_5 - 1, iVar5);
+					/*param_1 =*/ ai_FUN_00418010(param_4, bVar6);
 					if (iVar3 < iVar5) {
 						local_3 = 1;
 						param_1 = param_1 & 0xffff0000;
