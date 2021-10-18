@@ -181,26 +181,27 @@ struct int24 {
 #pragma pack(pop)
 typedef int24 undefined3;
 
-/*#pragma pack(1)
+#pragma pack(push, 1)
 struct s_ptable_DAT_0044faf4 {
 	// I think this struct is supposed to be 40 bytes long
 	void *p0;// starts at byte 0
-	void *p1;// starts at byte 4
-	void *u2;// starts at byte 8
-	void *u3;// starts at byte 12
+	void *p4;// starts at byte 4
+	void *p8;// starts at byte 8
+	void *u12;// starts at byte 12
 	//void *u4;
-	ushort s4;// starts at byte 16
-	ushort s4again;// starts at byte 18
-	byte **p5;// starts at byte 20
-	char c6[2]; //starts at byte 24
-	ushort us0x1a;//starts at byte 26
+	ushort s16;// starts at byte 16
+	ushort s18;// starts at byte 18
+	byte **p20;// starts at byte 20
+	char c24[2]; //starts at byte 24
+	ushort us0x1a_26;//starts at byte 26
 	//char padding[4];//starts at byte 28?
-	ushort us0x1c; //starts at byte 28?
-	ushort us0x1e;//starts at byte 30?
-	byte *p8;   //starts at byte 32?
-	ushort p9;//starts at byte 36?
-	char padding[2];// starts at byte 38?
-};*/
+	ushort us0x1c_28; //starts at byte 28?
+	ushort us0x1e_30;//starts at byte 30?
+	byte *p32;   //starts at byte 32? maybe the height of each column
+	ushort p36;//starts at byte 36?
+	char padding_38[2];// starts at byte 38?
+};
+#pragma pack(pop)
 
 // table for tons of cake data, it's struct s_ptable_DAT_0044faf4
 int **ptable_DAT_0044faf4 = NULL;
@@ -388,7 +389,7 @@ int *__cdecl allocs_FUN_00406bc0(int param_1, int param_2)
 
 
 
-void __cdecl FUN_00418360(byte param_1, byte param_2, byte param_3)
+void __cdecl init_FUN_00418360(byte param_1, byte param_2, byte param_3)
 
 {
 	int iVar1;
@@ -565,7 +566,7 @@ int **__cdecl init_FUN_004181f0(byte param_1, byte param_2, byte param_3)
 	}
 	piVar2 = allocs_FUN_00406bc0((uint)param_1, 4);
 	ppiVar1[8] = piVar2;
-	FUN_00418360(param_1, param_2, param_3);
+	init_FUN_00418360(param_1, param_2, param_3);
 	*(ushort *)(ppiVar1 + 4) = DAT_0044faf8;
 	piVar2 = allocs_FUN_00406bc0((uint)DAT_0044faf8, 4);
 	*ppiVar1 = piVar2;
@@ -579,12 +580,27 @@ int **__cdecl init_FUN_004181f0(byte param_1, byte param_2, byte param_3)
 
 
 
-uint __cdecl FUN_00417d40(uint param_1, byte param_2)
+bool __cdecl bound_check_width_FUN_00417d40(uint param_1, byte x)
 
 {
-	return param_1 & 0xffffff00 |
+	s_ptable_DAT_0044faf4 *p = (s_ptable_DAT_0044faf4 *)param_1;
+
+	/*return param_1 & 0xffffff00 |
 		   (uint)(byte)(1 - (*(byte *)((uint)param_2 + *(int *)(param_1 + 0x20)) <
-							 *(byte *)(param_1 + 0x19)));
+							 *(byte *)(param_1 + 0x19)));*/
+	//byte a = *(byte *)((uint)param_2 + *(int *)(param_1 + 0x20));
+	byte a = p->p32[x];
+	//byte b = *(byte *)(param_1 + 0x19);
+	byte b = p->c24[1];
+	return a >= b;
+}
+
+
+int *p0_or_p1(s_ptable_DAT_0044faf4 *p, bool ret_1) {
+	if (ret_1)
+		return (int *)&p->p4;
+	else
+		return (int *)&p->p0;
 }
 
 
@@ -593,7 +609,7 @@ void __cdecl FUN_00417e00(int param_1, byte last_move)
 {
 	int *piVar1;
 	byte bVar2;
-	ushort uVar3;
+	ushort move_num_uVar3;
 	int iVar4;
 	int iVar5;
 	int last_move_slot;
@@ -601,23 +617,31 @@ void __cdecl FUN_00417e00(int param_1, byte last_move)
 	int *piVar6;
 	byte local_9;
 
+	s_ptable_DAT_0044faf4 *p = (s_ptable_DAT_0044faf4 *)param_1;
+
 	_last_move = (uint)last_move;
-	uVar3 = *(ushort *)(param_1 + 0x24);
-	last_move_slot = (uint)(byte)(*(char *)(*(int *)(param_1 + 0x20) + _last_move) - 1) * 4;
+	//uVar3 = *(ushort *)(param_1 + 0x24);
+	move_num_uVar3 = p->p36;
+	//last_move_slot = (uint)(byte)(*(char *)(*(int *)(param_1 + 0x20) + _last_move) - 1) * 4;
+	last_move_slot = (p->p32[_last_move] - 1) * 4;
 	local_9 = 1;
 	bVar2 = **(byte **)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot);
 	if (bVar2 != 0) {
-		piVar1 = (int *)(param_1 + (uint)((byte)uVar3 & 1) * 4);
+		//piVar1 = (int *)(param_1 + (uint)((byte)uVar3 & 1) * 4);
+		piVar1 = p0_or_p1(p, move_num_uVar3 & 1);
+
 		do {
 			piVar6 = (int *)((uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot) + (uint)local_9 * 2) * 4 + *piVar1);
 			iVar4 = *piVar6;
 			*piVar6 = iVar4 + 1;
-			if ((uint) * (byte *)(param_1 + 0x1c) - iVar4 == 1) {
+			//if ((uint) * (byte *)(param_1 + 0x1c) - iVar4 == 1) {
+			if (p->us0x1c_28 - iVar4 == 1) {
 				piVar1[2] = piVar1[2] + 1000000;
 			} else {
-				piVar6 = (int *)(param_1 + (uint)((uVar3 & 1) == 0) * 4);
-				iVar5 = *(int *)(*piVar6 +
-								 (uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot) + (uint)local_9 * 2) * 4);
+				//piVar6 = (int *)(param_1 + (uint)((uVar3 & 1) == 0) * 4);
+				piVar6 = p0_or_p1(p, (move_num_uVar3 & 1) == 0);
+				uint offset = (uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot) + (uint)local_9 * 2) * 4;
+				iVar5 = *(int *)(*piVar6 + offset);
 				if (iVar4 == 0) {
 					piVar6 = piVar6 + 2;
 					*piVar6 = *piVar6 + (-1 << ((byte)iVar5 & 0x1f));
@@ -638,13 +662,23 @@ void __cdecl maybe_place_piece_FUN_00417db0(int *param_1, byte last_move)
 
 {
 	uint uVar1;
+	s_ptable_DAT_0044faf4 *p = (s_ptable_DAT_0044faf4 *)param_1;
 
 	uVar1 = (uint)last_move & 0xff;
-	*(byte *)(*(int *)(param_1[5] + uVar1 * 4) + (uint) * (byte *)(param_1[8] + uVar1)) =
-		(-((*(ushort *)(param_1 + 9) & 1) == 0) & 6U) + 0x53;
-	*(char *)(param_1[8] + uVar1) = *(char *)(param_1[8] + uVar1) + '\x01';
+
+	/**(byte *)(*(int *)(param_1[5] + uVar1 * 4) + (uint) * (byte *)(param_1[8] + uVar1)) =
+		(-((*(ushort *)(param_1 + 9) & 1) == 0) & 6U) + 0x53;*/
+	auto &l = ((byte *)p->p20[uVar1])[p->p32[uVar1]];
+	if (p->p36 & 1)
+		l = 83;
+	else
+		l = 89;
+
+	//*(char *)(param_1[8] + uVar1) = *(char *)(param_1[8] + uVar1) + '\x01';
+	p->p32[uVar1]++;
 	FUN_00417e00((int)param_1, (byte)uVar1);
-	*(short *)(param_1 + 9) = *(short *)(param_1 + 9) + 1;
+	//*(short *)(param_1 + 9) = *(short *)(param_1 + 9) + 1;
+	p->p36++;
 	return;
 }
 
@@ -769,7 +803,7 @@ int __cdecl recurse_FUN_00418150(uint param_1, char param_2, int param_3)
 	if (bVar1 != 0) {
 		do {
 			bVar6 = (byte)last_move;
-			uVar2 = FUN_00417d40(param_1, bVar6);
+			uVar2 = bound_check_width_FUN_00417d40(param_1, bVar6);
 			if ((char)uVar2 == '\0') {
 				maybe_place_piece_FUN_00417db0((int *)param_1, last_move);
 				if (param_2 == '\x01') {
@@ -882,7 +916,7 @@ uint con4_AI_FUN_00417f10(uint param_1, /*undefined4 param_2,*/ undefined4 param
 		if (bVar1 != 0) {
 			do {
 				bVar6 = (byte)unaff_EBX;
-				param_1 = FUN_00417d40(param_4, bVar6);
+				param_1 = bound_check_width_FUN_00417d40(param_4, bVar6);
 				if ((char)param_1 == '\0') {
 					maybe_place_piece_FUN_00417db0((int *)param_4, unaff_EBX);
 					uVar2 = check_player_win_FUN_00417d60(param_4);
@@ -954,7 +988,7 @@ void connect_four_FUN_00417c00(undefined4 param_1, undefined4 param_2, undefined
 		has_cheated_DAT_0044fafc = 1;
 		return;
 	}
-	uVar2 = FUN_00417d40((uint)ptable_DAT_0044faf4, *last_move);
+	uVar2 = bound_check_width_FUN_00417d40((uint)ptable_DAT_0044faf4, *last_move);
 	if ((char)uVar2 != '\0') {
 		*last_move = 10;
 		return;
