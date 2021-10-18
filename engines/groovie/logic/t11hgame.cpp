@@ -239,7 +239,7 @@ int rng_b_DAT_0044fa98 = 0;
 int rng_c_DAT_0044fa9c = 0;
 
 // error code that isn't written to in any of the cake code
-int DAT_0043d35c = 0;
+int error_DAT_0043d35c = 0;
 
 
 uint CONCAT31(uint a, uint b) {
@@ -258,7 +258,7 @@ uint CONCAT22(uint a, uint b) {
 
 /* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
 
-void __cdecl FUN_00406c80(int param_1)
+void __cdecl free_FUN_00406c80(int param_1)
 
 {
 	free_mem_DAT_0045aae4 = free_mem_DAT_0045aae4 + *(int *)(param_1 + -4);
@@ -267,8 +267,7 @@ void __cdecl FUN_00406c80(int param_1)
 }
 
 
-
-void __cdecl FUN_004186f0(byte param_1, byte param_2)
+void __cdecl frees_FUN_004186f0(byte param_1, byte param_2)
 
 {
 	uint uVar1;
@@ -285,7 +284,7 @@ void __cdecl FUN_004186f0(byte param_1, byte param_2)
 				uVar1 = (uint)param_2;
 				do {
 					iVar3 = iVar3 + 4;
-					FUN_00406c80(*(int *)(*(int *)(ptable_DAT_0044faf0 + iVar2) + -4 + iVar3));
+					free_FUN_00406c80(*(int *)(*(int *)(ptable_DAT_0044faf0 + iVar2) + -4 + iVar3));
 					uVar1 = uVar1 - 1;
 				} while (uVar1 != 0);
 			}
@@ -297,12 +296,12 @@ void __cdecl FUN_004186f0(byte param_1, byte param_2)
 			uVar1 = (uint)param_1;
 			do {
 				iVar2 = iVar2 + 4;
-				FUN_00406c80(*(int *)(ptable_DAT_0044faf0 + -4 + iVar2));
+				free_FUN_00406c80(*(int *)(ptable_DAT_0044faf0 + -4 + iVar2));
 				uVar1 = uVar1 - 1;
 			} while (uVar1 != 0);
 		}
 	}
-	FUN_00406c80((int)ptable_DAT_0044faf0);
+	free_FUN_00406c80((int)ptable_DAT_0044faf0);
 	ptable_DAT_0044faf0 = 0;
 	DAT_0044faf8 = 0;
 	return;
@@ -315,232 +314,22 @@ void __cdecl frees_FUN_004182e0(int *param_1)
 	uint uVar1;
 	byte bVar2;
 
-	FUN_00406c80(*param_1);
-	FUN_00406c80(param_1[1]);
+	free_FUN_00406c80(*param_1);
+	free_FUN_00406c80(param_1[1]);
 	bVar2 = 0;
-	FUN_00406c80(param_1[8]);
+	free_FUN_00406c80(param_1[8]);
 	if (*(char *)(param_1 + 6) != '\0') {
 		do {
 			uVar1 = (uint)bVar2;
 			bVar2 = bVar2 + 1;
-			FUN_00406c80(*(int *)(param_1[5] + uVar1 * 4));
+			free_FUN_00406c80(*(int *)(param_1[5] + uVar1 * 4));
 		} while (bVar2 <= *(byte *)(param_1 + 6) && *(byte *)(param_1 + 6) != bVar2);
 	}
-	FUN_00406c80(param_1[5]);
-	FUN_004186f0(*(byte *)(param_1 + 6), *(byte *)((int)param_1 + 0x19));
-	FUN_00406c80((int)param_1);
+	free_FUN_00406c80(param_1[5]);
+	frees_FUN_004186f0(*(byte *)(param_1 + 6), *(byte *)((int)param_1 + 0x19));
+	free_FUN_00406c80((int)param_1);
 	return;
 }
-
-
-void __cdecl FUN_00408520(int param_1)
-
-{
-	*(undefined2 *)(param_1 * 0x20 + 0x1e + DAT_00448398) = 0;
-	return;
-}
-
-
-/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
-
-undefined4 __cdecl FUN_0040d7b0(int param_1)
-
-{
-	int iVar1;
-	int iVar2;
-	int iVar3;
-	uint uVar4;
-	uint *puVar5;
-	int local_4;
-
-	local_4 = 0;
-	iVar1 = DAT_0043df84;
-	while (true) {
-		uVar4 = 0x40000000;
-		iVar3 = -1;
-		iVar2 = 0;
-		if (0 < iVar1) {
-			//puVar5 = &DAT_0044e614;
-			puVar5 = &array_0044e610[1];
-			do {
-				if ((puVar5[3] != 0) && (*puVar5 < uVar4)) {
-					iVar3 = iVar2;
-					uVar4 = *puVar5;
-				}
-				puVar5 = puVar5 + 5;
-				iVar2 = iVar2 + 1;
-			} while (iVar2 < iVar1);
-		}
-		if (iVar3 < 1)
-			break;
-		//FUN_00408520((&DAT_0044e618)[iVar3 * 5]);
-		FUN_00408520(array_0044e610[iVar3 * 5 + 2]);
-		//(&DAT_0044e614)[iVar3 * 5] = 0;
-		array_0044e610[iVar3 * 5 + 1] = 0;
-		//local_4 = local_4 + (&DAT_0044e620)[iVar3 * 5];
-		local_4 = local_4 + array_0044e610[iVar3 * 5 + 4];
-		//_DAT_0045aae4 = _DAT_0045aae4 + (&DAT_0044e620)[iVar3 * 5];
-		free_mem_DAT_0045aae4 = free_mem_DAT_0045aae4 + array_0044e610[iVar3 * 5 + 4];
-		//(&DAT_0044e620)[iVar3 * 5] = 0;
-		array_0044e610[iVar3 * 5 + 4] = 0;
-		//free((void *)(&DAT_0044e610)[iVar3 * 5]);
-		free((void *)array_0044e610[iVar3 * 5]);
-		iVar1 = DAT_0043df84;
-		//(&DAT_0044e610)[iVar3 * 5] = 0;
-		array_0044e610[iVar3 * 5] = 0;
-		if (param_1 <= local_4) {
-			return 1;
-		}
-	}
-	return 0xffffffff;
-}
-
-
-/*void __stdcall FUN_00406a20(void)
-
-{
-	return;
-}*/
-
-
-/*undefined *__stdcall FUN_00404410(void)
-
-{
-	return &DAT_00447dd0;
-}*/
-
-
-/* Library Function - Multiple Matches With Different Base Names
-    __wfopen
-    _fopen
-   
-   Library: Visual Studio 1998 Release */
-
-FILE *__cdecl FID_conflict__wfopen(char *_Filename, char *_Mode)
-
-{
-	FILE *pFVar1;
-
-	pFVar1 = _fsopen(_Filename, _Mode, 0x40);
-	return pFVar1;
-}
-
-
-
-/*uint __stdcall FUN_0040e630(void)
-
-{
-	undefined *puVar1;
-	char local_400[1024];
-
-	puVar1 = FUN_00404410();
-	sprintf(local_400, "s_ %s groovie2.tmp_00441384", puVar1);
-	DAT_0044fa18 = FID_conflict__wfopen(local_400, &DAT_00441380);
-	return (uint)DAT_0044fa18 & 0xffffff00 | (uint)(byte)(1 - (DAT_0044fa18 == (FILE *)0x0));
-}*/
-
-
-
-undefined4 __cdecl FUN_0040e920(int param_1, undefined4 *param_2)
-
-{
-	/*bool bVar1;
-	bool bVar2;
-	char *pcVar3;
-	int iVar4;
-	uint uVar5;
-	char local_600[256];
-	undefined local_500[256];
-	char local_400[1024];
-
-	if (DAT_0044fa14 != (FILE *)0x0) {
-		rewind(DAT_0044fa14);
-	}
-	bVar1 = false;
-	FUN_0040e630();
-	bVar2 = false;
-	if (DAT_0044fa14 != (FILE *)0x0) {
-		do {
-			bVar1 = bVar2;
-			local_600[0] = '\0';
-			pcVar3 = fgets(local_400, 0x400, DAT_0044fa14);
-			if (pcVar3 == (char *)0x0)
-				break;
-			//sscanf(local_400, "s_ %s_ %s_0043de74", local_600, local_500);
-			sscanf(local_400, "%s %s", local_600, local_500);
-			iVar4 = _strcmpi(local_600, &("bitsPerPixel")[param_1]);
-			if (iVar4 == 0) {
-				bVar1 = true;
-				FUN_0040e780(param_1, param_2, DAT_0044fa18);
-			} else {
-				if (((DAT_0044fa14->_flag & 0x10U) == 0) && (local_600[0] != '\0')) {
-					//_fprintf(DAT_0044fa18, s_ % s_ % s_004413b4, local_600, local_500);
-					fprintf(DAT_0044fa18, "%s %s\n", local_600, local_500);
-				}
-			}
-			bVar2 = bVar1;
-		} while ((DAT_0044fa14->_flag & 0x10U) == 0);
-		FUN_0040e6f0();
-	}
-	if (!bVar1) {
-		FUN_0040e780(param_1, param_2, DAT_0044fa18);
-	}
-	FUN_0040e6d0();
-	FUN_0040e710();
-	uVar5 = FUN_0040e680();
-	return CONCAT31((int3)(uVar5 >> 8), 1);*/
-	// read config file?
-	return 0;
-}
-
-
-void __cdecl FUN_0040b870(const char *param_1, int param_2)
-
-{
-	/*HWND hWnd;
-	int iVar1;
-	char *pcVar2;
-	undefined uVar3;
-	char *pcVar4;
-	UINT uType;
-	char local_100[256];
-
-	uVar3 = (undefined *)register0x00000010 == (undefined *)0x100;
-	FUN_00406a20();
-	FUN_00401600();
-	iVar1 = 8;
-	pcVar2 = param_1;
-	pcVar4 = s_NOERROR_0043de3c;
-	do {
-		if (iVar1 == 0)
-			break;
-		iVar1 = iVar1 + -1;
-		uVar3 = *pcVar2 == *pcVar4;
-		pcVar2 = pcVar2 + 1;
-		pcVar4 = pcVar4 + 1;
-	} while ((bool)uVar3);
-	if (!(bool)uVar3) {
-		_sprintf(local_100, s_ERROR_
-				 : _ % s_0043dea0, param_1);
-		pcVar2 = local_100;
-		uType = 0x10;
-		pcVar4 = s_Error_0043de98;
-		hWnd = GetActiveWindow();
-		MessageBoxA(hWnd, pcVar2, pcVar4, uType);
-	}
-	FUN_00407500();
-	thunk_FUN_0040b910();
-	FUN_004118b0();
-	FUN_00406040();
-	FUN_004064b0();
-	FUN_00406080();
-	FUN_004068f0();*/
-	/* WARNING: Subroutine does not return */
-	warning("FUN_0040b870");
-	error(param_1);
-	_exit(param_2);
-}
-
 
 
 /* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
@@ -549,19 +338,20 @@ int *__cdecl allocs_FUN_00406bc0(int param_1, int param_2)
 
 {
 	int *piVar1;
-	int iVar2;
+	//int iVar2;
 	uint uVar3;
 	uint uVar4;
 	int iVar5;
 	int *piVar6;
-	const char *pcVar7;
-	undefined4 local_4;
+	//const char *pcVar7;
+	//undefined4 local_4;
 
 	iVar5 = param_2 * param_1;
 	uVar4 = iVar5 + 4;
 	piVar1 = (int *)malloc(uVar4);
 	if (piVar1 == (int *)0x0) {
-		iVar2 = FUN_0040d7b0(uVar4);
+		error("malloc failed, uVar4: %d", (int)uVar4);
+		/*iVar2 = error_FUN_0040d7b0(uVar4);
 		if (iVar2 == 1) {
 			piVar1 = (int *)malloc(uVar4);
 			if (piVar1 != (int *)0x0)
@@ -569,16 +359,16 @@ int *__cdecl allocs_FUN_00406bc0(int param_1, int param_2)
 			pcVar7 = "s_Out_of_memory_0043d644";
 		} else {
 			//FUN_00406a20();
-			if (DAT_0043d35c == 4) {
+			if (error_DAT_0043d35c == 4) {
 				local_4 = 0x10;
-				FUN_0040e920(0, &local_4);
+				error_FUN_0040e920(0, &local_4);
 				warning("s_Info : _your_configuration_has_bee_0043d5fc been reset to 16bpp to use less memory");
 			}
 			pcVar7 = "s_Out_of_memory._Info : _It's_possib_0043d51c";
 		}
-		FUN_0040b870(pcVar7, 2);
+		error_FUN_0040b870(pcVar7, 2);*/
 	}
-LAB_00406c49:
+//LAB_00406c49:
 	if (uVar4 != 0) {
 		piVar6 = piVar1;
 		for (uVar3 = uVar4 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
