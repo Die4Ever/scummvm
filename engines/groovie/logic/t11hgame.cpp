@@ -183,7 +183,7 @@ typedef int24 undefined3;
 
 #pragma pack(push, 1)
 struct s_ptable_DAT_0044faf4 {
-	// I think this struct is supposed to be 40 bytes long
+	// 40 bytes long, every member has their starting byte at the end of the name
 	void *p0;// starts at byte 0
 	void *p4;// starts at byte 4
 	void *p8;// starts at byte 8
@@ -191,17 +191,18 @@ struct s_ptable_DAT_0044faf4 {
 	//void *u4;
 	ushort s16;// starts at byte 16
 	ushort s18;// starts at byte 18
-	byte **p20;// starts at byte 20
+	byte **board_state_20;// 2d array of bytes, starts at byte 20
 	char c24[2]; //starts at byte 24
 	ushort us0x1a_26;//starts at byte 26
 	//char padding[4];//starts at byte 28?
 	ushort us0x1c_28; //starts at byte 28?
 	ushort us0x1e_30;//starts at byte 30?
-	byte *p32;   //starts at byte 32? maybe the height of each column
-	ushort p36;//starts at byte 36?
+	byte *column_heights_32;   //starts at byte 32? maybe the height of each column
+	ushort move_count_36;//starts at byte 36?
 	char padding_38[2];// starts at byte 38?
 };
 #pragma pack(pop)
+static_assert(sizeof(s_ptable_DAT_0044faf4) == 40, "s_ptable_DAT_0044faf4 size");
 
 // table for tons of cake data, it's struct s_ptable_DAT_0044faf4
 int **ptable_DAT_0044faf4 = NULL;
@@ -212,7 +213,7 @@ int has_cheated_DAT_0044fafc = 0;
 // counter gets incremented on free and decremented on malloc, but nothing actually checks it, maybe was just used in debugging
 int free_mem_DAT_0045aae4 = 0;
 
-// a pointer to a table of pointers, seems to hold a lot of data
+// a pointer to an array of 8 pointers, each one pointing to 7 pointers, each one of those is pointing to 34 bytes, which I think is 17 shorts with the first one being an index into the array of the following 16
 int ptable_DAT_0044faf0 = NULL;
 
 int DAT_0044faf8 = 0;// a counter for allocations?
@@ -389,7 +390,7 @@ int *__cdecl allocs_FUN_00406bc0(int param_1, int param_2)
 
 
 
-void __cdecl init_FUN_00418360(byte param_1, byte param_2, byte param_3)
+void __cdecl init_FUN_00418360(byte width, byte height, byte param_3)
 
 {
 	int iVar1;
@@ -404,35 +405,35 @@ void __cdecl init_FUN_00418360(byte param_1, byte param_2, byte param_3)
 	byte local_12;
 	byte local_11;
 
-	uVar4 = (uint)param_1;
+	uVar4 = (uint)width;
 	bVar8 = 0;
 	DAT_0044faf8 = 0;
 	ptable_DAT_0044faf0 = (int)allocs_FUN_00406bc0(uVar4, 4);
-	if (param_1 != 0) {
+	if (width != 0) {
 		do {
-			piVar5 = allocs_FUN_00406bc0((uint)param_2, 4);
+			piVar5 = allocs_FUN_00406bc0((uint)height, 4);
 			uVar6 = (uint)bVar8;
 			bVar8 = bVar8 + 1;
 			*(int **)(ptable_DAT_0044faf0 + uVar6 * 4) = piVar5;
-		} while (bVar8 < param_1);
+		} while (bVar8 < width);
 	}
 	local_12 = 0;
-	if (param_1 != 0) {
+	if (width != 0) {
 		do {
 			local_11 = 0;
-			if (param_2 != 0) {
+			if (height != 0) {
 				do {
 					piVar5 = allocs_FUN_00406bc0((uint)param_3 * 4 + 1, 2);
 					uVar6 = (uint)local_11;
 					local_11 = local_11 + 1;
 					*(int **)(*(int *)((uint)local_12 * 4 + ptable_DAT_0044faf0) + uVar6 * 4) = piVar5;
-				} while (local_11 < param_2);
+				} while (local_11 < height);
 			}
 			local_12 = local_12 + 1;
-		} while (local_12 < param_1);
+		} while (local_12 < width);
 	}
 	local_11 = 0;
-	if (param_2 != 0) {
+	if (height != 0) {
 		do {
 			local_12 = 0;
 			if (-1 < (int)(uVar4 - param_3)) {
@@ -454,13 +455,13 @@ void __cdecl init_FUN_00418360(byte param_1, byte param_2, byte param_3)
 				} while ((int)(uint)local_12 <= (int)(uVar4 - param_3));
 			}
 			local_11 = local_11 + 1;
-		} while (local_11 < param_2);
+		} while (local_11 < height);
 	}
 	local_12 = 0;
-	if (param_1 != 0) {
+	if (width != 0) {
 		do {
 			local_11 = 0;
-			if (-1 < (int)((uint)param_2 - (uint)param_3)) {
+			if (-1 < (int)((uint)height - (uint)param_3)) {
 				do {
 					if (param_3 != 0) {
 						uVar6 = 0;
@@ -476,14 +477,14 @@ void __cdecl init_FUN_00418360(byte param_1, byte param_2, byte param_3)
 					}
 					DAT_0044faf8 = DAT_0044faf8 + 1;
 					local_11 = local_11 + 1;
-				} while ((int)(uint)local_11 <= (int)((uint)param_2 - (uint)param_3));
+				} while ((int)(uint)local_11 <= (int)((uint)height - (uint)param_3));
 			}
 			local_12 = local_12 + 1;
-		} while (local_12 < param_1);
+		} while (local_12 < width);
 	}
 	local_11 = 0;
 	uVar6 = (uint)param_3;
-	if (-1 < (int)(param_2 - uVar6)) {
+	if (-1 < (int)(height - uVar6)) {
 		do {
 			local_12 = 0;
 			if (-1 < (int)(uVar4 - uVar6)) {
@@ -506,10 +507,10 @@ void __cdecl init_FUN_00418360(byte param_1, byte param_2, byte param_3)
 				} while ((int)(uint)local_12 <= (int)(uVar4 - uVar6));
 			}
 			local_11 = local_11 + 1;
-		} while ((int)(uint)local_11 <= (int)(param_2 - uVar6));
+		} while ((int)(uint)local_11 <= (int)(height - uVar6));
 	}
 	local_11 = param_3 - 1;
-	if (local_11 < param_2) {
+	if (local_11 < height) {
 		do {
 			local_12 = 0;
 			if (-1 < (int)(uVar4 - uVar6)) {
@@ -532,7 +533,7 @@ void __cdecl init_FUN_00418360(byte param_1, byte param_2, byte param_3)
 				} while ((int)(uint)local_12 <= (int)(uVar4 - uVar6));
 			}
 			local_11 = local_11 + 1;
-		} while (local_11 < param_2);
+		} while (local_11 < height);
 	}
 	return;
 }
@@ -540,7 +541,7 @@ void __cdecl init_FUN_00418360(byte param_1, byte param_2, byte param_3)
 
 
 
-int **__cdecl init_FUN_004181f0(byte param_1, byte param_2, byte param_3)
+int **__cdecl init_FUN_004181f0(byte width, byte height, byte param_3)
 
 {
 	int **ppiVar1;
@@ -549,24 +550,24 @@ int **__cdecl init_FUN_004181f0(byte param_1, byte param_2, byte param_3)
 	byte bVar4;
 
 	ppiVar1 = (int **)allocs_FUN_00406bc0(1, 0x28);
-	*(byte *)(ppiVar1 + 6) = param_1;
-	*(byte *)((int)ppiVar1 + 0x19) = param_2;
-	*(ushort *)((int)ppiVar1 + 0x1a) = (ushort)param_1 * (ushort)param_2;
+	*(byte *)(ppiVar1 + 6) = width;
+	*(byte *)((int)ppiVar1 + 0x19) = height;
+	*(ushort *)((int)ppiVar1 + 0x1a) = (ushort)width * (ushort)height;
 	bVar4 = 0;
 	*(byte *)(ppiVar1 + 7) = param_3;
-	piVar2 = allocs_FUN_00406bc0((uint)param_1, 4);
+	piVar2 = allocs_FUN_00406bc0((uint)width, 4);
 	ppiVar1[5] = piVar2;
-	if (param_1 != 0) {
+	if (width != 0) {
 		do {
-			piVar2 = allocs_FUN_00406bc0((uint)(ushort)param_2, 1);
+			piVar2 = allocs_FUN_00406bc0((uint)(ushort)height, 1);
 			uVar3 = (uint)bVar4;
 			bVar4 = bVar4 + 1;
 			ppiVar1[5][uVar3] = (int)piVar2;
-		} while (bVar4 < param_1);
+		} while (bVar4 < width);
 	}
-	piVar2 = allocs_FUN_00406bc0((uint)param_1, 4);
+	piVar2 = allocs_FUN_00406bc0((uint)width, 4);
 	ppiVar1[8] = piVar2;
-	init_FUN_00418360(param_1, param_2, param_3);
+	init_FUN_00418360(width, height, param_3);
 	*(ushort *)(ppiVar1 + 4) = DAT_0044faf8;
 	piVar2 = allocs_FUN_00406bc0((uint)DAT_0044faf8, 4);
 	*ppiVar1 = piVar2;
@@ -580,7 +581,7 @@ int **__cdecl init_FUN_004181f0(byte param_1, byte param_2, byte param_3)
 
 
 
-bool __cdecl bound_check_width_FUN_00417d40(uint param_1, byte x)
+bool __cdecl bound_check_height_FUN_00417d40(uint param_1, byte x)
 
 {
 	s_ptable_DAT_0044faf4 *p = (s_ptable_DAT_0044faf4 *)param_1;
@@ -589,14 +590,14 @@ bool __cdecl bound_check_width_FUN_00417d40(uint param_1, byte x)
 		   (uint)(byte)(1 - (*(byte *)((uint)param_2 + *(int *)(param_1 + 0x20)) <
 							 *(byte *)(param_1 + 0x19)));*/
 	//byte a = *(byte *)((uint)param_2 + *(int *)(param_1 + 0x20));
-	byte a = p->p32[x];
+	byte a = p->column_heights_32[x];
 	//byte b = *(byte *)(param_1 + 0x19);
 	byte b = p->c24[1];
 	return a >= b;
 }
 
-
-int *p0_or_p1(s_ptable_DAT_0044faf4 *p, bool ret_1) {
+// player or stauf
+int *p0_or_p4(s_ptable_DAT_0044faf4 *p, bool ret_1) {
 	if (ret_1)
 		return (int *)&p->p4;
 	else
@@ -621,14 +622,14 @@ void __cdecl FUN_00417e00(int param_1, byte last_move)
 
 	_last_move = (uint)last_move;
 	//uVar3 = *(ushort *)(param_1 + 0x24);
-	move_num_uVar3 = p->p36;
+	move_num_uVar3 = p->move_count_36;
 	//last_move_slot = (uint)(byte)(*(char *)(*(int *)(param_1 + 0x20) + _last_move) - 1) * 4;
-	last_move_slot = (p->p32[_last_move] - 1) * 4;
+	last_move_slot = (p->column_heights_32[_last_move] - 1) * 4;
 	local_9 = 1;
 	bVar2 = **(byte **)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot);
 	if (bVar2 != 0) {
 		//piVar1 = (int *)(param_1 + (uint)((byte)uVar3 & 1) * 4);
-		piVar1 = p0_or_p1(p, move_num_uVar3 & 1);
+		piVar1 = p0_or_p4(p, move_num_uVar3 & 1);
 
 		do {
 			piVar6 = (int *)((uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot) + (uint)local_9 * 2) * 4 + *piVar1);
@@ -639,7 +640,7 @@ void __cdecl FUN_00417e00(int param_1, byte last_move)
 				piVar1[2] = piVar1[2] + 1000000;
 			} else {
 				//piVar6 = (int *)(param_1 + (uint)((uVar3 & 1) == 0) * 4);
-				piVar6 = p0_or_p1(p, (move_num_uVar3 & 1) == 0);
+				piVar6 = p0_or_p4(p, (move_num_uVar3 & 1) == 0);
 				uint offset = (uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot) + (uint)local_9 * 2) * 4;
 				iVar5 = *(int *)(*piVar6 + offset);
 				if (iVar4 == 0) {
@@ -657,28 +658,27 @@ void __cdecl FUN_00417e00(int param_1, byte last_move)
 }
 
 
-// 83 and 89 are magic numbers for this function and the next one for some reason
-void __cdecl maybe_place_piece_FUN_00417db0(int *param_1, byte last_move)
+// 83 and 89 are magic numbers for this function and the next one, I think one is for Stauf the other is for the player
+void __cdecl maybe_place_piece_FUN_00417db0(int *param_1, byte move)
 
 {
-	uint uVar1;
 	s_ptable_DAT_0044faf4 *p = (s_ptable_DAT_0044faf4 *)param_1;
 
-	uVar1 = (uint)last_move & 0xff;
+	//uVar1 = (uint)last_move & 0xff;
 
 	/**(byte *)(*(int *)(param_1[5] + uVar1 * 4) + (uint) * (byte *)(param_1[8] + uVar1)) =
 		(-((*(ushort *)(param_1 + 9) & 1) == 0) & 6U) + 0x53;*/
-	auto &l = ((byte *)p->p20[uVar1])[p->p32[uVar1]];
-	if (p->p36 & 1)
+	auto &l = p->board_state_20[move][p->column_heights_32[move]];
+	if (p->move_count_36 & 1)
 		l = 83;
 	else
 		l = 89;
 
 	//*(char *)(param_1[8] + uVar1) = *(char *)(param_1[8] + uVar1) + '\x01';
-	p->p32[uVar1]++;
-	FUN_00417e00((int)param_1, (byte)uVar1);
+	p->column_heights_32[move]++;
+	FUN_00417e00((int)param_1, move);
 	//*(short *)(param_1 + 9) = *(short *)(param_1 + 9) + 1;
-	p->p36++;
+	p->move_count_36++;
 	return;
 }
 
@@ -708,7 +708,7 @@ byte __cdecl check_player_win_FUN_00417d60(int param_1)
 }
 
 
-void __cdecl ai_FUN_00418050(int param_1, byte param_2)
+void __cdecl revert_move_FUN_00418050(int param_1, byte param_2)
 
 {
 	int *piVar1;
@@ -755,19 +755,20 @@ void __cdecl ai_FUN_00418050(int param_1, byte param_2)
 
 
 
-void __cdecl ai_FUN_00418010(int param_1, byte param_2)
+void __cdecl revert_move_FUN_00418010(int param_1, byte move)
 
 {
-	char *pcVar1;
-	uint uVar2;
+	s_ptable_DAT_0044faf4 *p = (s_ptable_DAT_0044faf4 *)param_1;
 
-	uVar2 = (uint)param_2;
-	pcVar1 = (char *)(*(int *)(param_1 + 0x20) + uVar2);
-	*pcVar1 = *pcVar1 + -1;
-	*(undefined *)(*(int *)(*(int *)(param_1 + 0x14) + uVar2 * 4) +
-				   (uint) * (byte *)(*(int *)(param_1 + 0x20) + uVar2)) = 0;
-	*(short *)(param_1 + 0x24) = *(short *)(param_1 + 0x24) + -1;
-	ai_FUN_00418050(param_1, param_2);
+	/*pcVar1 = (char *)(*(int *)(param_1 + 0x20) + uVar2);
+	*pcVar1 = *pcVar1 + -1;*/
+	p->column_heights_32[move]--;
+	/**(undefined *)(*(int *)(*(int *)(param_1 + 0x14) + uVar2 * 4) +
+				   (uint) * (byte *)(*(int *)(param_1 + 0x20) + uVar2)) = 0;*/
+	p->board_state_20[move][p->column_heights_32[move]] = 0;
+	//*(short *)(param_1 + 0x24) = *(short *)(param_1 + 0x24) + -1;
+	p->move_count_36--;
+	revert_move_FUN_00418050(param_1, move);
 	return;
 }
 
@@ -810,7 +811,7 @@ int __cdecl recurse_ai_FUN_00418150(uint param_1, char param_2, int param_3)
 	if (bVar1 != 0) {
 		do {
 			bVar6 = (byte)last_move;
-			uVar2 = bound_check_width_FUN_00417d40(param_1, bVar6);
+			uVar2 = bound_check_height_FUN_00417d40(param_1, bVar6);
 			if ((char)uVar2 == '\0') {
 				maybe_place_piece_FUN_00417db0((int *)param_1, last_move);
 				if (param_2 == '\x01') {
@@ -826,7 +827,7 @@ int __cdecl recurse_ai_FUN_00418150(uint param_1, char param_2, int param_3)
 						goto LAB_004181ae;
 					iVar4 = recurse_ai_FUN_00418150(param_1, param_2 + -1, iVar5);
 				}
-				ai_FUN_00418010(param_1, bVar6);
+				revert_move_FUN_00418010(param_1, bVar6);
 				if (iVar4 < iVar5) {
 					iVar5 = iVar4;
 				}
@@ -842,7 +843,7 @@ int __cdecl recurse_ai_FUN_00418150(uint param_1, char param_2, int param_3)
 
 
 //uint FUN_00412a70(uint param_1, undefined4 param_2, uint param_3)
-uint FUN_00412a70(uint param_1, /*undefined4 &param_2,*/ uint &param_3)
+uint ai_FUN_00412a70(uint param_1, /*undefined4 &param_2,*/ uint &param_3)
 {
 	uint uVar1;
 	uint uVar2;
@@ -877,7 +878,7 @@ uint FUN_00412a70(uint param_1, /*undefined4 &param_2,*/ uint &param_3)
 
 
 
-uint FUN_00412b50(uint param_1, undefined4 param_2, uint param_3)
+uint ai_FUN_00412b50(uint param_1, undefined4 param_2, uint param_3)
 
 {
 	uint uVar1;
@@ -885,9 +886,9 @@ uint FUN_00412b50(uint param_1, undefined4 param_2, uint param_3)
 	//uint extraout_ECX;
 	//undefined4 extraout_EDX;
 
-	uVar1 = FUN_00412a70(param_1, /*param_2,*/ param_3);
+	uVar1 = ai_FUN_00412a70(param_1, /*param_2,*/ param_3);
 	//uVar2 = FUN_00412a70(uVar1, extraout_EDX, extraout_ECX);
-	uVar2 = FUN_00412a70(uVar1, /*param_2,*/ param_3);
+	uVar2 = ai_FUN_00412a70(uVar1, /*param_2,*/ param_3);
 	return uVar1 << 0x10 | uVar2 & 0xffff;
 }
 
@@ -923,17 +924,17 @@ uint con4_AI_FUN_00417f10(uint param_1, /*undefined4 param_2,*/ undefined4 param
 		if (bVar1 != 0) {
 			do {
 				bVar6 = (byte)unaff_EBX;
-				param_1 = bound_check_width_FUN_00417d40(param_4, bVar6);
+				param_1 = bound_check_height_FUN_00417d40(param_4, bVar6);
 				if ((char)param_1 == '\0') {
 					maybe_place_piece_FUN_00417db0((int *)param_4, unaff_EBX);
 					uVar2 = check_player_win_FUN_00417d60(param_4);
 					if ((char)uVar2 != '\0') {
-						/*uVar4 =*/ ai_FUN_00418010(param_4, bVar6);
+						/*uVar4 =*/ revert_move_FUN_00418010(param_4, bVar6);
 						//return uVar4 & 0xffffff00 | (uint)unaff_EBX & 0xff;
 						return (uint)unaff_EBX & 0xff;
 					}
 					iVar3 = recurse_ai_FUN_00418150(param_4, param_5 - 1, iVar5);
-					/*param_1 =*/ ai_FUN_00418010(param_4, bVar6);
+					/*param_1 =*/ revert_move_FUN_00418010(param_4, bVar6);
 					if (iVar3 < iVar5) {
 						local_3 = 1;
 						param_1 = param_1 & 0xffff0000;
@@ -943,7 +944,7 @@ uint con4_AI_FUN_00417f10(uint param_1, /*undefined4 param_2,*/ undefined4 param
 						if (iVar5 == iVar3) {
 							local_3 = local_3 + 1;
 							//uVar4 = FUN_00412b50(param_1, extraout_EDX, extraout_ECX);
-							uVar4 = FUN_00412b50(param_1, 0, 0);
+							uVar4 = ai_FUN_00412b50(param_1, 0, 0);
 							param_1 = (uint)local_3;
 							if ((uVar4 % 1000000) * param_1 < 1000000) {
 								local_2 = (ushort)bVar6;
@@ -995,7 +996,7 @@ void connect_four_FUN_00417c00(undefined4 param_1, undefined4 param_2, undefined
 		has_cheated_DAT_0044fafc = 1;
 		return;
 	}
-	uVar2 = bound_check_width_FUN_00417d40((uint)ptable_DAT_0044faf4, *last_move);
+	uVar2 = bound_check_height_FUN_00417d40((uint)ptable_DAT_0044faf4, *last_move);
 	if ((char)uVar2 != '\0') {
 		*last_move = 10;
 		return;
@@ -1048,7 +1049,7 @@ void run_cake_test(int a, int b, int c, const char *moves, bool player_win) {
 
 	for (int i = 0; moves[i]; i+=2) {
 		if (winner != 0) {
-			warning("early win at %d", i);
+			error("early win at %d", i);
 		}
 		last_move = moves[i] - '0';
 		byte stauf_move = moves[i + 1] - '0';
@@ -1057,23 +1058,23 @@ void run_cake_test(int a, int b, int c, const char *moves, bool player_win) {
 		
 		if (stauf_move < 8) {
 			if (winner == 2) {
-				warning("early player win at %d", i);
+				error("early player win at %d", i);
 			}
 
 			if (stauf_move != last_move) {
-				warning("incorrect Stauf move, expected: %d, got: %d", (int)stauf_move, (int)last_move);
+				error("incorrect Stauf move, expected: %d, got: %d", (int)stauf_move, (int)last_move);
 			}
 		} else if (winner != 2) {
-			warning("missing Stauf move, last_move: %d", (int)last_move);
+			error("missing Stauf move, last_move: %d", (int)last_move);
 		} else
 			break;
 	}
 
 	if (player_win && winner != 2) {
-		warning("player didn't win! winner: %d", (int)winner);
+		error("player didn't win! winner: %d", (int)winner);
 	}
 	else if (player_win == false && winner != 1) {
-		warning("Stauf didn't win! winner: %d", (int)winner);
+		error("Stauf didn't win! winner: %d", (int)winner);
 	}
 
 	debug("finished run_cake_test(%d, %d, %d, %s, %d)\n", a, b, c, moves, (int)player_win);
