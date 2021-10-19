@@ -215,8 +215,19 @@ int has_cheated_DAT_0044fafc = 0;
 // counter gets incremented on free and decremented on malloc, but nothing actually checks it, maybe was just used in debugging
 int free_mem_DAT_0045aae4 = 0;
 
+#pragma pack(push, 1)
+struct s3_0044faf0 {
+	ushort p[17];
+};
+struct s2_0044faf0 {
+	s3_0044faf0 *rows[7];
+};
+struct s1_0044faf0 {
+	s2_0044faf0 *columns[8];
+};
+#pragma pack(pop)
 // a pointer to an array of 8 pointers, each one pointing to 7 pointers, each one of those is pointing to 34 bytes, which I think is 17 shorts with the first one being an index into the array of the following 16
-int ptable_DAT_0044faf0 = NULL;
+int ptable_DAT_0044faf0 = NULL;// s_ptable_DAT_0044faf0
 
 int alloc_counter_DAT_0044faf8 = 0;// a counter for allocations?
 
@@ -396,8 +407,8 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte depth)
 
 {
 	int iVar1;
-	short *psVar2;
-	ushort *puVar3;
+	//short *psVar2;
+	//ushort *puVar3;
 	uint uVar4;
 	int *piVar5;
 	uint uVar6;
@@ -411,12 +422,14 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte depth)
 	bVar8 = 0;
 	alloc_counter_DAT_0044faf8 = 0;
 	ptable_DAT_0044faf0 = (int)allocs_FUN_00406bc0(uVar4, 4);
+	s1_0044faf0 *p = (s1_0044faf0 *)ptable_DAT_0044faf0;
 	if (width != 0) {
 		do {
 			piVar5 = allocs_FUN_00406bc0((uint)height, 4);
 			uVar6 = (uint)bVar8;
 			bVar8 = bVar8 + 1;
-			*(int **)(ptable_DAT_0044faf0 + uVar6 * 4) = piVar5;
+			//*(int **)(ptable_DAT_0044faf0 + uVar6 * 4) = piVar5;
+			p->columns[uVar6] = (s2_0044faf0 *)piVar5;
 		} while (bVar8 < width);
 	}
 	local_12 = 0;
@@ -428,7 +441,8 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte depth)
 					piVar5 = allocs_FUN_00406bc0((uint)depth * 4 + 1, 2);
 					uVar6 = (uint)local_11;
 					local_11 = local_11 + 1;
-					*(int **)(*(int *)((uint)local_12 * 4 + ptable_DAT_0044faf0) + uVar6 * 4) = piVar5;
+					//*(int **)(*(int *)((uint)local_12 * 4 + ptable_DAT_0044faf0) + uVar6 * 4) = piVar5;
+					p->columns[local_12]->rows[uVar6] = (s3_0044faf0 *)piVar5;
 				} while (local_11 < height);
 			}
 			local_12 = local_12 + 1;
@@ -445,11 +459,15 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte depth)
 						do {
 							uVar6 = (uint)bVar8;
 							bVar8 = bVar8 + 1;
-							iVar1 = (uVar6 + local_12) * 4;
-							psVar2 = *(short **)(*(int *)(iVar1 + ptable_DAT_0044faf0) + (uint)local_11 * 4);
-							*psVar2 = *psVar2 + 1;
-							puVar3 = *(ushort **)(*(int *)(iVar1 + ptable_DAT_0044faf0) + (uint)local_11 * 4);
-							puVar3[*puVar3] = alloc_counter_DAT_0044faf8;
+							//iVar1 = (uVar6 + local_12) * 4;
+							iVar1 = uVar6 + local_12;
+							//psVar2 = *(short **)(*(int *)(iVar1 + ptable_DAT_0044faf0) + (uint)local_11 * 4);
+							//*psVar2 = *psVar2 + 1;
+							ushort slot = ++p->columns[iVar1]->rows[local_11]->p[0];
+							//puVar3 = *(ushort **)(*(int *)(iVar1 + ptable_DAT_0044faf0) + (uint)local_11 * 4);
+							//puVar3 = &p->p[iVar1][local_11][0];
+							//puVar3[*puVar3] = alloc_counter_DAT_0044faf8;
+							p->columns[iVar1]->rows[local_11]->p[slot] = alloc_counter_DAT_0044faf8;
 						} while (bVar8 < depth);
 					}
 					alloc_counter_DAT_0044faf8 = alloc_counter_DAT_0044faf8 + 1;
@@ -469,11 +487,14 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte depth)
 						uVar6 = 0;
 						do {
 							bVar8 = (char)uVar6 + 1;
-							iVar1 = (uVar6 + local_11) * 4;
-							psVar2 = *(short **)(*(int *)((uint)local_12 * 4 + ptable_DAT_0044faf0) + iVar1);
-							*psVar2 = *psVar2 + 1;
-							puVar3 = *(ushort **)(*(int *)((uint)local_12 * 4 + ptable_DAT_0044faf0) + iVar1);
-							puVar3[*puVar3] = alloc_counter_DAT_0044faf8;
+							//iVar1 = (uVar6 + local_11) * 4;
+							iVar1 = uVar6 + local_11;
+							//psVar2 = *(short **)(*(int *)((uint)local_12 * 4 + ptable_DAT_0044faf0) + iVar1);
+							//*psVar2 = *psVar2 + 1;
+							ushort slot = ++p->columns[local_12]->rows[iVar1]->p[0];
+							//puVar3 = *(ushort **)(*(int *)((uint)local_12 * 4 + ptable_DAT_0044faf0) + iVar1);
+							//puVar3[*puVar3] = alloc_counter_DAT_0044faf8;
+							p->columns[local_12]->rows[iVar1]->p[slot] = alloc_counter_DAT_0044faf8;
 							uVar6 = (uint)bVar8;
 						} while (bVar8 < depth);
 					}
@@ -495,12 +516,16 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte depth)
 						uVar7 = 0;
 						do {
 							bVar8 = (char)uVar7 + 1;
-							iVar9 = (local_12 + uVar7) * 4;
-							iVar1 = (uVar7 + local_11) * 4;
-							psVar2 = *(short **)(*(int *)(iVar9 + ptable_DAT_0044faf0) + iVar1);
-							*psVar2 = *psVar2 + 1;
-							puVar3 = *(ushort **)(*(int *)(iVar9 + ptable_DAT_0044faf0) + iVar1);
-							puVar3[*puVar3] = alloc_counter_DAT_0044faf8;
+							//iVar9 = (local_12 + uVar7) * 4;
+							iVar9 = local_12 + uVar7;
+							//iVar1 = (uVar7 + local_11) * 4;
+							iVar1 = uVar7 + local_11;
+							//psVar2 = *(short **)(*(int *)(iVar9 + ptable_DAT_0044faf0) + iVar1);
+							//*psVar2 = *psVar2 + 1;
+							ushort slot = ++p->columns[iVar9]->rows[iVar1]->p[0];
+							//puVar3 = *(ushort **)(*(int *)(iVar9 + ptable_DAT_0044faf0) + iVar1);
+							//puVar3[*puVar3] = alloc_counter_DAT_0044faf8;
+							p->columns[iVar9]->rows[iVar1]->p[slot] = alloc_counter_DAT_0044faf8;
 							uVar7 = (uint)bVar8;
 						} while (bVar8 < depth);
 					}
@@ -521,12 +546,16 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte depth)
 						uVar7 = 0;
 						do {
 							bVar8 = (char)uVar7 + 1;
-							iVar9 = (uVar7 + local_12) * 4;
-							iVar1 = (local_11 - uVar7) * 4;
-							psVar2 = *(short **)(*(int *)(iVar9 + ptable_DAT_0044faf0) + iVar1);
-							*psVar2 = *psVar2 + 1;
-							puVar3 = *(ushort **)(*(int *)(iVar9 + ptable_DAT_0044faf0) + iVar1);
-							puVar3[*puVar3] = alloc_counter_DAT_0044faf8;
+							//iVar9 = (uVar7 + local_12) * 4;
+							iVar9 = uVar7 + local_12;
+							//iVar1 = (local_11 - uVar7) * 4;
+							iVar1 = local_11 - uVar7;
+							//psVar2 = *(short **)(*(int *)(iVar9 + ptable_DAT_0044faf0) + iVar1);
+							//*psVar2 = *psVar2 + 1;
+							ushort slot = ++p->columns[iVar9]->rows[iVar1]->p[0];
+							//puVar3 = *(ushort **)(*(int *)(iVar9 + ptable_DAT_0044faf0) + iVar1);
+							//puVar3[*puVar3] = alloc_counter_DAT_0044faf8;
+							p->columns[iVar9]->rows[iVar1]->p[slot] = alloc_counter_DAT_0044faf8;
 							uVar7 = (uint)bVar8;
 						} while (bVar8 < depth);
 					}
