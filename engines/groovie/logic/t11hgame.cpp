@@ -186,16 +186,18 @@ struct s_ptable_DAT_0044faf4 {
 	// 40 bytes long, every member has their starting byte at the end of the name
 	void *p0;// starts at byte 0
 	void *p4;// starts at byte 4
-	void *p8;// starts at byte 8
-	void *u12;// starts at byte 12
+	int maybe_player_score_i8;// starts at byte 8
+	int maybe_stauf_score_i12;// starts at byte 12
 	//void *u4;
 	ushort s16;// starts at byte 16
 	ushort s18;// starts at byte 18
 	byte **board_state_20;// 2d array of bytes, starts at byte 20
-	char c24[2]; //starts at byte 24
-	ushort us0x1a_26;//starts at byte 26
+	char width_24; //starts at byte 24
+	char height_25;
+	ushort width_height_26;//starts at byte 26
 	//char padding[4];//starts at byte 28?
-	ushort us0x1c_28; //starts at byte 28?
+	char depth_28; //starts at byte 28?
+	char padding_29;
 	ushort us0x1e_30;//starts at byte 30?
 	byte *column_heights_32;   //starts at byte 32? maybe the height of each column
 	ushort move_count_36;//starts at byte 36?
@@ -216,9 +218,9 @@ int free_mem_DAT_0045aae4 = 0;
 // a pointer to an array of 8 pointers, each one pointing to 7 pointers, each one of those is pointing to 34 bytes, which I think is 17 shorts with the first one being an index into the array of the following 16
 int ptable_DAT_0044faf0 = NULL;
 
-int DAT_0044faf8 = 0;// a counter for allocations?
+int alloc_counter_DAT_0044faf8 = 0;// a counter for allocations?
 
-int DAT_0043df84 = 0;// length of DAT_0044e614?
+//int len_DAT_0043df84 = 0;// length of DAT_0044e614?
 
 // an offset, but it seems to always be 0?
 int DAT_00448398 = 0;
@@ -305,7 +307,7 @@ void __cdecl frees_FUN_004186f0(byte param_1, byte param_2)
 	}
 	free_FUN_00406c80((int)ptable_DAT_0044faf0);
 	ptable_DAT_0044faf0 = 0;
-	DAT_0044faf8 = 0;
+	alloc_counter_DAT_0044faf8 = 0;
 	return;
 }
 
@@ -390,7 +392,7 @@ int *__cdecl allocs_FUN_00406bc0(int param_1, int param_2)
 
 
 
-void __cdecl init_FUN_00418360(byte width, byte height, byte param_3)
+void __cdecl init_FUN_00418360(byte width, byte height, byte depth)
 
 {
 	int iVar1;
@@ -407,7 +409,7 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte param_3)
 
 	uVar4 = (uint)width;
 	bVar8 = 0;
-	DAT_0044faf8 = 0;
+	alloc_counter_DAT_0044faf8 = 0;
 	ptable_DAT_0044faf0 = (int)allocs_FUN_00406bc0(uVar4, 4);
 	if (width != 0) {
 		do {
@@ -423,7 +425,7 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte param_3)
 			local_11 = 0;
 			if (height != 0) {
 				do {
-					piVar5 = allocs_FUN_00406bc0((uint)param_3 * 4 + 1, 2);
+					piVar5 = allocs_FUN_00406bc0((uint)depth * 4 + 1, 2);
 					uVar6 = (uint)local_11;
 					local_11 = local_11 + 1;
 					*(int **)(*(int *)((uint)local_12 * 4 + ptable_DAT_0044faf0) + uVar6 * 4) = piVar5;
@@ -436,10 +438,10 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte param_3)
 	if (height != 0) {
 		do {
 			local_12 = 0;
-			if (-1 < (int)(uVar4 - param_3)) {
+			if (-1 < (int)(uVar4 - depth)) {
 				do {
 					bVar8 = 0;
-					if (param_3 != 0) {
+					if (depth != 0) {
 						do {
 							uVar6 = (uint)bVar8;
 							bVar8 = bVar8 + 1;
@@ -447,12 +449,12 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte param_3)
 							psVar2 = *(short **)(*(int *)(iVar1 + ptable_DAT_0044faf0) + (uint)local_11 * 4);
 							*psVar2 = *psVar2 + 1;
 							puVar3 = *(ushort **)(*(int *)(iVar1 + ptable_DAT_0044faf0) + (uint)local_11 * 4);
-							puVar3[*puVar3] = DAT_0044faf8;
-						} while (bVar8 < param_3);
+							puVar3[*puVar3] = alloc_counter_DAT_0044faf8;
+						} while (bVar8 < depth);
 					}
-					DAT_0044faf8 = DAT_0044faf8 + 1;
+					alloc_counter_DAT_0044faf8 = alloc_counter_DAT_0044faf8 + 1;
 					local_12 = local_12 + 1;
-				} while ((int)(uint)local_12 <= (int)(uVar4 - param_3));
+				} while ((int)(uint)local_12 <= (int)(uVar4 - depth));
 			}
 			local_11 = local_11 + 1;
 		} while (local_11 < height);
@@ -461,9 +463,9 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte param_3)
 	if (width != 0) {
 		do {
 			local_11 = 0;
-			if (-1 < (int)((uint)height - (uint)param_3)) {
+			if (-1 < (int)((uint)height - (uint)depth)) {
 				do {
-					if (param_3 != 0) {
+					if (depth != 0) {
 						uVar6 = 0;
 						do {
 							bVar8 = (char)uVar6 + 1;
@@ -471,25 +473,25 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte param_3)
 							psVar2 = *(short **)(*(int *)((uint)local_12 * 4 + ptable_DAT_0044faf0) + iVar1);
 							*psVar2 = *psVar2 + 1;
 							puVar3 = *(ushort **)(*(int *)((uint)local_12 * 4 + ptable_DAT_0044faf0) + iVar1);
-							puVar3[*puVar3] = DAT_0044faf8;
+							puVar3[*puVar3] = alloc_counter_DAT_0044faf8;
 							uVar6 = (uint)bVar8;
-						} while (bVar8 < param_3);
+						} while (bVar8 < depth);
 					}
-					DAT_0044faf8 = DAT_0044faf8 + 1;
+					alloc_counter_DAT_0044faf8 = alloc_counter_DAT_0044faf8 + 1;
 					local_11 = local_11 + 1;
-				} while ((int)(uint)local_11 <= (int)((uint)height - (uint)param_3));
+				} while ((int)(uint)local_11 <= (int)((uint)height - (uint)depth));
 			}
 			local_12 = local_12 + 1;
 		} while (local_12 < width);
 	}
 	local_11 = 0;
-	uVar6 = (uint)param_3;
+	uVar6 = (uint)depth;
 	if (-1 < (int)(height - uVar6)) {
 		do {
 			local_12 = 0;
 			if (-1 < (int)(uVar4 - uVar6)) {
 				do {
-					if (param_3 != 0) {
+					if (depth != 0) {
 						uVar7 = 0;
 						do {
 							bVar8 = (char)uVar7 + 1;
@@ -498,24 +500,24 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte param_3)
 							psVar2 = *(short **)(*(int *)(iVar9 + ptable_DAT_0044faf0) + iVar1);
 							*psVar2 = *psVar2 + 1;
 							puVar3 = *(ushort **)(*(int *)(iVar9 + ptable_DAT_0044faf0) + iVar1);
-							puVar3[*puVar3] = DAT_0044faf8;
+							puVar3[*puVar3] = alloc_counter_DAT_0044faf8;
 							uVar7 = (uint)bVar8;
-						} while (bVar8 < param_3);
+						} while (bVar8 < depth);
 					}
-					DAT_0044faf8 = DAT_0044faf8 + 1;
+					alloc_counter_DAT_0044faf8 = alloc_counter_DAT_0044faf8 + 1;
 					local_12 = local_12 + 1;
 				} while ((int)(uint)local_12 <= (int)(uVar4 - uVar6));
 			}
 			local_11 = local_11 + 1;
 		} while ((int)(uint)local_11 <= (int)(height - uVar6));
 	}
-	local_11 = param_3 - 1;
+	local_11 = depth - 1;
 	if (local_11 < height) {
 		do {
 			local_12 = 0;
 			if (-1 < (int)(uVar4 - uVar6)) {
 				do {
-					if (param_3 != 0) {
+					if (depth != 0) {
 						uVar7 = 0;
 						do {
 							bVar8 = (char)uVar7 + 1;
@@ -524,11 +526,11 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte param_3)
 							psVar2 = *(short **)(*(int *)(iVar9 + ptable_DAT_0044faf0) + iVar1);
 							*psVar2 = *psVar2 + 1;
 							puVar3 = *(ushort **)(*(int *)(iVar9 + ptable_DAT_0044faf0) + iVar1);
-							puVar3[*puVar3] = DAT_0044faf8;
+							puVar3[*puVar3] = alloc_counter_DAT_0044faf8;
 							uVar7 = (uint)bVar8;
-						} while (bVar8 < param_3);
+						} while (bVar8 < depth);
 					}
-					DAT_0044faf8 = DAT_0044faf8 + 1;
+					alloc_counter_DAT_0044faf8 = alloc_counter_DAT_0044faf8 + 1;
 					local_12 = local_12 + 1;
 				} while ((int)(uint)local_12 <= (int)(uVar4 - uVar6));
 			}
@@ -541,7 +543,7 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte param_3)
 
 
 
-int **__cdecl init_FUN_004181f0(byte width, byte height, byte param_3)
+int **__cdecl init_FUN_004181f0(byte width, byte height, byte depth)
 
 {
 	int **ppiVar1;
@@ -549,33 +551,47 @@ int **__cdecl init_FUN_004181f0(byte width, byte height, byte param_3)
 	uint uVar3;
 	byte bVar4;
 
-	ppiVar1 = (int **)allocs_FUN_00406bc0(1, 0x28);
-	*(byte *)(ppiVar1 + 6) = width;
-	*(byte *)((int)ppiVar1 + 0x19) = height;
-	*(ushort *)((int)ppiVar1 + 0x1a) = (ushort)width * (ushort)height;
+	ppiVar1 = (int **)allocs_FUN_00406bc0(1, 40);
+	s_ptable_DAT_0044faf4 *p = (s_ptable_DAT_0044faf4 *)ppiVar1;
+
+	//*(byte *)(ppiVar1 + 6) = width;
+	p->width_24 = width;
+	//*(byte *)((int)ppiVar1 + 0x19) = height;
+	p->height_25 = height;
+	//*(ushort *)((int)ppiVar1 + 0x1a) = (ushort)width * (ushort)height;
+	p->width_height_26 = (ushort)width * (ushort)height;
 	bVar4 = 0;
-	*(byte *)(ppiVar1 + 7) = param_3;
+	//*(byte *)(ppiVar1 + 7) = param_3;
+	p->depth_28 = depth;
 	piVar2 = allocs_FUN_00406bc0((uint)width, 4);
-	ppiVar1[5] = piVar2;
+	//ppiVar1[5] = piVar2;
+	p->board_state_20 = (byte **)piVar2;
 	if (width != 0) {
 		do {
 			piVar2 = allocs_FUN_00406bc0((uint)(ushort)height, 1);
 			uVar3 = (uint)bVar4;
 			bVar4 = bVar4 + 1;
-			ppiVar1[5][uVar3] = (int)piVar2;
+			//ppiVar1[5][uVar3] = (int)piVar2;
+			p->board_state_20[uVar3] = (byte *)piVar2;
 		} while (bVar4 < width);
 	}
 	piVar2 = allocs_FUN_00406bc0((uint)width, 4);
-	ppiVar1[8] = piVar2;
-	init_FUN_00418360(width, height, param_3);
-	*(ushort *)(ppiVar1 + 4) = DAT_0044faf8;
-	piVar2 = allocs_FUN_00406bc0((uint)DAT_0044faf8, 4);
-	*ppiVar1 = piVar2;
-	piVar2 = allocs_FUN_00406bc0((uint)DAT_0044faf8, 4);
-	ppiVar1[1] = piVar2;
-	piVar2 = (int *)(uint)DAT_0044faf8;
-	ppiVar1[3] = piVar2;
-	ppiVar1[2] = piVar2;
+	//ppiVar1[8] = piVar2;
+	p->column_heights_32 = (byte *)piVar2;
+	init_FUN_00418360(width, height, depth);
+	//*(ushort *)(ppiVar1 + 4) = alloc_counter_DAT_0044faf8;
+	p->s16 = alloc_counter_DAT_0044faf8;
+	piVar2 = allocs_FUN_00406bc0((uint)alloc_counter_DAT_0044faf8, 4);
+	//*ppiVar1 = piVar2;
+	p->p0 = piVar2;
+	piVar2 = allocs_FUN_00406bc0((uint)alloc_counter_DAT_0044faf8, 4);
+	//ppiVar1[1] = piVar2;
+	p->p4 = piVar2;
+	//piVar2 = (int *)(uint)alloc_counter_DAT_0044faf8;
+	//ppiVar1[3] = piVar2;
+	p->maybe_stauf_score_i12 = alloc_counter_DAT_0044faf8;
+	//ppiVar1[2] = piVar2;
+	p->maybe_player_score_i8 = alloc_counter_DAT_0044faf8;
 	return ppiVar1;
 }
 
@@ -592,7 +608,7 @@ bool __cdecl bound_check_height_FUN_00417d40(uint param_1, byte x)
 	//byte a = *(byte *)((uint)param_2 + *(int *)(param_1 + 0x20));
 	byte a = p->column_heights_32[x];
 	//byte b = *(byte *)(param_1 + 0x19);
-	byte b = p->c24[1];
+	byte b = p->height_25;
 	return a >= b;
 }
 
@@ -619,29 +635,33 @@ void __cdecl FUN_00417e00(int param_1, byte last_move)
 	byte local_9;
 
 	s_ptable_DAT_0044faf4 *p = (s_ptable_DAT_0044faf4 *)param_1;
+	ushort ***table = (ushort ***)ptable_DAT_0044faf0;
 
 	_last_move = (uint)last_move;
 	//uVar3 = *(ushort *)(param_1 + 0x24);
 	move_num_uVar3 = p->move_count_36;
 	//last_move_slot = (uint)(byte)(*(char *)(*(int *)(param_1 + 0x20) + _last_move) - 1) * 4;
-	last_move_slot = (p->column_heights_32[_last_move] - 1) * 4;
+	//last_move_slot = (p->column_heights_32[_last_move] - 1) * 4;
+	last_move_slot = p->column_heights_32[_last_move] - 1;
 	local_9 = 1;
-	bVar2 = **(byte **)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot);
+	//bVar2 = **(byte **)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot);
+	bVar2 = table[_last_move][last_move_slot][0];
 	if (bVar2 != 0) {
 		//piVar1 = (int *)(param_1 + (uint)((byte)uVar3 & 1) * 4);
 		piVar1 = p0_or_p4(p, move_num_uVar3 & 1);
-
 		do {
-			piVar6 = (int *)((uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot) + (uint)local_9 * 2) * 4 + *piVar1);
+			//piVar6 = (int *)((uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot) + (uint)local_9 * 2) * 4 + *piVar1);
+			piVar6 = (int *)((uint) table[_last_move][last_move_slot][local_9] * 4 + *piVar1);
 			iVar4 = *piVar6;
 			*piVar6 = iVar4 + 1;
 			//if ((uint) * (byte *)(param_1 + 0x1c) - iVar4 == 1) {
-			if (p->us0x1c_28 - iVar4 == 1) {
+			if (p->depth_28 - iVar4 == 1) {
 				piVar1[2] = piVar1[2] + 1000000;
 			} else {
 				//piVar6 = (int *)(param_1 + (uint)((uVar3 & 1) == 0) * 4);
 				piVar6 = p0_or_p4(p, (move_num_uVar3 & 1) == 0);
-				uint offset = (uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot) + (uint)local_9 * 2) * 4;
+				//uint offset = (uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot) + (uint)local_9 * 2) * 4;
+				uint offset = (uint)table[_last_move][last_move_slot][local_9] * 4;
 				iVar5 = *(int *)(*piVar6 + offset);
 				if (iVar4 == 0) {
 					piVar6 = piVar6 + 2;
@@ -700,9 +720,9 @@ byte __cdecl check_player_win_FUN_00417d60(int param_1)
 	}
 	return uVar1;*/
 
-	if (999999 < (int)p->p8)
+	if (999999 < p->maybe_player_score_i8)
 		return 89;
-	if ((int)p->u12 < 1000000)
+	if (p->maybe_stauf_score_i12 < 1000000)
 		return 0;
 	return 83;
 }
