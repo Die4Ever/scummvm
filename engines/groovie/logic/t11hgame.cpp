@@ -658,7 +658,7 @@ void __cdecl FUN_00417e00(int param_1, byte last_move)
 }
 
 
-// 83 and 89 are magic numbers for this function and the next one, I think one is for Stauf the other is for the player
+// 83 is Stauf and 89 is the player
 void __cdecl maybe_place_piece_FUN_00417db0(int *param_1, byte move)
 
 {
@@ -1032,24 +1032,69 @@ void connect_four_FUN_00417c00(undefined4 param_1, undefined4 param_2, undefined
 
 // end Ghidra crap
 
+void run_cake_test_no_ai(const char *moves, bool player_win, bool draw=false) {
+	byte _scriptVariables[1024];
+	byte &last_move = _scriptVariables[1];
+	byte &winner = _scriptVariables[3];
+	byte stauf_win = 0;
+
+	debug("starting run_cake_test_no_ai(%s, %d)\n", moves, (int)player_win);
+
+	last_move = 8;
+	connect_four_FUN_00417c00(0, 0, 0, _scriptVariables);
+	// do a samantha move so it just inits the board without actually making the move
+	last_move = 9;
+	connect_four_FUN_00417c00(0, 0, 0, _scriptVariables);
+
+	for (int i = 0; moves[i]; i++) {
+		byte win = check_player_win_FUN_00417d60((int)ptable_DAT_0044faf4);
+		if (win) {
+			error("early win at %d, winner: %d", i, (int)win);
+		}
+		stauf_win = check_stauf_win_FUN_00417d80((int)ptable_DAT_0044faf4);
+		if (stauf_win) {
+			error("early draw at %d", i);
+		}
+		byte move = moves[i] - '0';
+		maybe_place_piece_FUN_00417db0((int *)ptable_DAT_0044faf4, move);
+	}
+
+	winner = check_player_win_FUN_00417d60((int)ptable_DAT_0044faf4);
+	stauf_win = check_stauf_win_FUN_00417d80((int)ptable_DAT_0044faf4);
+	if (draw) {
+		if(winner != 0 || !stauf_win)
+			error("wasn't a draw! winner: %d, stauf_win: %d", (int)winner, (int)stauf_win);
+	}
+	else if (player_win && winner != 89) {
+		error("player didn't win! winner: %d", (int)winner);
+	} else if (player_win == false && winner != 83) {
+		error("Stauf didn't win! winner: %d", (int)winner);
+	}
+
+	debug("finished run_cake_test_no_ai(%s, %d), winner: %d\n", moves, (int)player_win, (int)winner);
+}
+
 void run_cake_test(int a, int b, int c, const char *moves, bool player_win) {
 	byte _scriptVariables[1024];
 	byte &last_move = _scriptVariables[1];
 	byte &winner = _scriptVariables[3];
+
+	debug("\nstarting run_cake_test(%d, %d, %d, %s, %d)", a, b, c, moves, (int)player_win);
+
+	// first fill the board with the expected moves and test the win-detection function by itself without AI
+	run_cake_test_no_ai(moves, player_win);
 
 	winner = 0;
 	rng_a_DAT_0044fa94 = a;
 	rng_b_DAT_0044fa98 = b;
 	rng_c_DAT_0044fa9c = c;
 
-	debug("\nstarting run_cake_test(%d, %d, %d, %s, %d)", a, b, c, moves, (int)player_win);
-
 	last_move = 8;
 	connect_four_FUN_00417c00(0, 0, 0, _scriptVariables);
 
 	for (int i = 0; moves[i]; i+=2) {
 		if (winner != 0) {
-			error("early win at %d", i);
+			error("early win at %d, winner: %d", i, (int)winner);
 		}
 		last_move = moves[i] - '0';
 		byte stauf_move = moves[i + 1] - '0';
@@ -1081,6 +1126,9 @@ void run_cake_test(int a, int b, int c, const char *moves, bool player_win) {
 }
 
 void test_cake() {
+	// test the draw condition, grouped by column
+	run_cake_test_no_ai(/*move 1*/ "7777777" /*8*/ "6666666" /*15*/ "5555555" /*22*/ "34444444" /*30*/ "333333" /*36*/ "2222222" /*43*/ "01111111" /*51*/ "000000", false, true);
+
 	run_cake_test(5548, -468341609, 363632432, "24223233041", true);
 	run_cake_test(-8128, 65028198, -532650441, "232232432445", false);
 	run_cake_test(-21148, 732783721, -1385928214, "4453766355133466", false);
