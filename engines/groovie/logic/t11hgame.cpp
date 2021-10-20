@@ -187,8 +187,8 @@ struct s2_0044faf4 {
 };
 struct s_ptable_DAT_0044faf4 {
 	// 40 bytes long, every member has their starting byte at the end of the name
-	s2_0044faf4 *p0;          // starts at byte 0
-	s2_0044faf4 *p4;           // starts at byte 4
+	s2_0044faf4 *player_p0;          // starts at byte 0
+	s2_0044faf4 *stauf_p4;           // starts at byte 4
 	int maybe_player_score_i8;// starts at byte 8
 	int maybe_stauf_score_i12;// starts at byte 12
 	//void *u4;
@@ -616,11 +616,11 @@ int **__cdecl init_FUN_004181f0(byte width, byte height, byte depth)
 	assert(alloc_counter_DAT_0044faf8 == 107);
 	piVar2 = allocs_FUN_00406bc0((uint)alloc_counter_DAT_0044faf8, 4);
 	//*ppiVar1 = piVar2;
-	p->p0 = (s2_0044faf4 *)piVar2;
+	p->player_p0 = (s2_0044faf4 *)piVar2;
 	assert(alloc_counter_DAT_0044faf8 == 107);
 	piVar2 = allocs_FUN_00406bc0((uint)alloc_counter_DAT_0044faf8, 4);
 	//ppiVar1[1] = piVar2;
-	p->p4 = (s2_0044faf4 *)piVar2;
+	p->stauf_p4 = (s2_0044faf4 *)piVar2;
 	//piVar2 = (int *)(uint)alloc_counter_DAT_0044faf8;
 	//ppiVar1[3] = piVar2;
 	p->maybe_stauf_score_i12 = alloc_counter_DAT_0044faf8;
@@ -647,15 +647,18 @@ bool __cdecl bound_check_height_FUN_00417d40(uint param_1, byte x)
 }
 
 // player or stauf
-s2_0044faf4 **p0_or_p4(s_ptable_DAT_0044faf4 *p, bool ret_1) {
-	if (ret_1)
-		return &p->p4;
-	else
-		return &p->p0;
+int &get_player_table(s_ptable_DAT_0044faf4 *p, bool ret_stauf, s2_0044faf4 *&table_out) {
+	if (ret_stauf) {
+		table_out = p->stauf_p4;
+		return p->maybe_stauf_score_i12;
+	} else {
+		table_out = p->player_p0;
+		return p->maybe_player_score_i8;
+	}
 }
 
 
-void __cdecl FUN_00417e00(int param_1, byte last_move)
+void __cdecl place_piece_FUN_00417e00(int param_1, byte last_move)
 
 {
 	//int *piVar1;
@@ -665,41 +668,42 @@ void __cdecl FUN_00417e00(int param_1, byte last_move)
 	int iVar5;
 	int last_move_slot;
 	uint _last_move;
-	int *piVar6;
+	//int *piVar6;
 	byte local_9;
 
 	s_ptable_DAT_0044faf4 *data = (s_ptable_DAT_0044faf4 *)param_1;
-	ushort ***table = (ushort ***)ptable_DAT_0044faf0;
+	//ushort ***table = (ushort ***)ptable_DAT_0044faf0;
+	s1_0044faf0 *table = (s1_0044faf0 *)ptable_DAT_0044faf0;
 
 	_last_move = (uint)last_move;
 	//uVar3 = *(ushort *)(param_1 + 0x24);
 	move_num_uVar3 = data->move_count_36;
+	bool is_stauf = move_num_uVar3 % 2 == 1;
 	//last_move_slot = (uint)(byte)(*(char *)(*(int *)(param_1 + 0x20) + _last_move) - 1) * 4;
 	//last_move_slot = (p->column_heights_32[_last_move] - 1) * 4;
 	last_move_slot = data->column_heights_32[_last_move] - 1;
 	local_9 = 1;
 	//bVar2 = **(byte **)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot);
-	bVar2 = table[_last_move][last_move_slot][0];
+	bVar2 = table->columns[_last_move]->rows[last_move_slot]->p[0];
 	if (bVar2 != 0) {
 		//piVar1 = (int *)(param_1 + (uint)((byte)uVar3 & 1) * 4);
-		int *piVar1 = (int *)p0_or_p4(data, move_num_uVar3 & 1);
-		s2_0044faf4 *p1 = *(s2_0044faf4 **)piVar1;
-		int &score1 = piVar1[2];
+		s2_0044faf4 *p1;
+		int &score1 = get_player_table(data, is_stauf, p1);
 		do {
-			uint offset = (uint)table[_last_move][last_move_slot][local_9];//* 4;
+			uint offset = (uint)table->columns[_last_move]->rows[last_move_slot]->p[local_9];//* 4;
 			//piVar6 = (int *)((uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot) + (uint)local_9 * 2) * 4 + *piVar1);
-			piVar6 = &p1->p[offset];
+			/*piVar6 = &p1->p[offset];
 			iVar4 = *piVar6;
-			*piVar6 = iVar4 + 1;
+			*piVar6 = iVar4 + 1;*/
+			iVar4 = p1->p[offset]++;
 			//if ((uint) * (byte *)(param_1 + 0x1c) - iVar4 == 1) {
 			if (data->depth_28 - iVar4 == 1) {
 				//piVar1[2] = piVar1[2] + 1000000;
 				score1 += 1000000;
 			} else {
 				//piVar6 = (int *)(param_1 + (uint)((uVar3 & 1) == 0) * 4);
-				piVar6 = (int *)p0_or_p4(data, (move_num_uVar3 & 1) == 0);
-				s2_0044faf4 *p2 = *(s2_0044faf4 **)piVar6;
-				int &score2 = piVar6[2];
+				s2_0044faf4 *p2;
+				int &score2 = get_player_table(data, !is_stauf, p2);
 				//uint offset = (uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot) + (uint)local_9 * 2) * 4;
 				//uint offset = (uint)table[_last_move][last_move_slot][local_9] * 4;
 				//iVar5 = *(int *)(*piVar6 + offset);
@@ -707,7 +711,7 @@ void __cdecl FUN_00417e00(int param_1, byte last_move)
 				if (iVar4 == 0) {
 					/*piVar6 = piVar6 + 2;
 					*piVar6 = *piVar6 + (-1 << ((byte)iVar5 & 0x1f));*/
-					score2 += (-1 << ((byte)iVar5 & 0x1f));
+					score2 += -(1 << ((byte)iVar5 & 0x1f));
 				}
 				if (iVar5 == 0) {
 					//piVar1[2] = piVar1[2] + (1 << ((byte)iVar4 & 0x1f));
@@ -739,7 +743,7 @@ void __cdecl maybe_place_piece_FUN_00417db0(int *param_1, byte move)
 
 	//*(char *)(param_1[8] + uVar1) = *(char *)(param_1[8] + uVar1) + '\x01';
 	p->column_heights_32[move]++;
-	FUN_00417e00((int)param_1, move);
+	place_piece_FUN_00417e00((int)param_1, move);
 	//*(short *)(param_1 + 9) = *(short *)(param_1 + 9) + 1;
 	p->move_count_36++;
 	return;
@@ -771,43 +775,61 @@ byte __cdecl check_player_win_FUN_00417d60(int param_1)
 }
 
 
-void __cdecl revert_move_FUN_00418050(int param_1, byte param_2)
+void __cdecl revert_move_FUN_00418050(int param_1, byte move)
 
 {
-	int *piVar1;
-	int *piVar2;
+	//int *piVar1;
+	//int *piVar2;
 	byte bVar3;
-	ushort uVar4;
+	ushort move_num_uVar4;
 	int iVar5;
 	int iVar6;
-	uint uVar7;
+	uint _move;
 	int iVar8;
 	byte local_5;
 
-	uVar7 = (uint)param_2;
-	uVar4 = *(ushort *)(param_1 + 0x24);
-	iVar6 = (uint) * (byte *)(*(int *)(param_1 + 0x20) + uVar7) * 4;
+	s_ptable_DAT_0044faf4 *data = (s_ptable_DAT_0044faf4 *)param_1;
+	s1_0044faf0 *table = (s1_0044faf0 *)ptable_DAT_0044faf0;
+
+	_move = (uint)move;
+	//uVar4 = *(ushort *)(param_1 + 0x24);
+	move_num_uVar4 = data->move_count_36;
+	bool is_stauf = move_num_uVar4 % 2 == 1;
+	//iVar6 = (uint) * (byte *)(*(int *)(param_1 + 0x20) + uVar7) * 4;
+	iVar6 = data->column_heights_32[_move] * 4;
 	local_5 = 1;
-	bVar3 = **(byte **)(*(int *)(ptable_DAT_0044faf0 + uVar7 * 4) + iVar6);
+	//bVar3 = **(byte **)(*(int *)(ptable_DAT_0044faf0 + uVar7 * 4) + iVar6);
+	bVar3 = table->columns[_move]->rows[iVar6/4]->p[0];
 	if (bVar3 != 0) {
-		piVar1 = (int *)(param_1 + (uint)((byte)uVar4 & 1) * 4);
+		//piVar1 = (int *)(param_1 + (uint)((byte)uVar4 & 1) * 4);
+		s2_0044faf4 *p1;
+		int &score1 = get_player_table(data, is_stauf, p1);
 		do {
-			piVar2 = (int *)(*piVar1 +
-							 (uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + uVar7 * 4) + iVar6) + (uint)local_5 * 2) * 4);
-			*piVar2 = *piVar2 + -1;
-			iVar8 = (uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + uVar7 * 4) + iVar6) + (uint)local_5 * 2) * 4;
-			iVar5 = *(int *)(*piVar1 + iVar8);
+			/*piVar2 = (int *)(*piVar1 +
+							 (uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + _move * 4) + iVar6) + (uint)local_5 * 2) * 4);*/
+			uint offset = table->columns[_move]->rows[iVar6 / 4]->p[local_5];
+			//*piVar2 = *piVar2 + -1;
+			//iVar8 = (uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + _move * 4) + iVar6) + (uint)local_5 * 2) * 4;
+			//iVar5 = *(int *)(*piVar1 + iVar8);
+			iVar5 = --p1->p[offset];
 			if ((uint) * (byte *)(param_1 + 0x1c) - iVar5 == 1) {
-				piVar1[2] = piVar1[2] + -1000000;
+			//if (p->depth_28 - iVar5 == 1) {
+				//piVar1[2] = piVar1[2] + -1000000;
+				score1 -= 1000000;
 			} else {
-				piVar2 = (int *)(param_1 + (uint)((uVar4 & 1) == 0) * 4);
-				iVar8 = *(int *)(*piVar2 + iVar8);
+				//piVar2 = (int *)(param_1 + (uint)((uVar4 & 1) == 0) * 4);
+				s2_0044faf4 *p2;
+				int &score2 = get_player_table(data, !is_stauf, p2);
+				//iVar8 = *(int *)(*piVar2 + iVar8);
+				iVar8 = p2->p[offset];
 				if (iVar5 == 0) {
-					piVar2 = piVar2 + 2;
-					*piVar2 = *piVar2 + (1 << ((byte)iVar8 & 0x1f));
+					//piVar2 = piVar2 + 2;
+					//*piVar2 = *piVar2 + (1 << ((byte)iVar8 & 0x1f));
+					score2 += (1 << ((byte)iVar8 & 0x1f));
 				}
 				if (iVar8 == 0) {
-					piVar1[2] = piVar1[2] + (-1 << ((byte)iVar5 & 0x1f));
+					//piVar1[2] = piVar1[2] + (-1 << ((byte)iVar5 & 0x1f));
+					score1 += -(1 << ((byte)iVar5 & 0x1f));
 				}
 			}
 			local_5 = local_5 + 1;
