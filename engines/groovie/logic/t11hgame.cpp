@@ -407,46 +407,8 @@ private:
 		return -best_score;
 	}
 
-	uint rng_a_DAT_0044fa94 = 0;
-	uint rng_b_DAT_0044fa98 = 0;
-	uint rng_c_DAT_0044fa9c = 0;
-	unsigned short ai_rng_FUN_00412a70() {
-		uint uVar1;
-		unsigned short uVar2;
-		unsigned short uVar3;
-		unsigned short uVar4;
-		unsigned short uVar5 = 0;
-		//short local_4;
-
-		//uVar2 = param_1 & 0xffff0000 | (uint)rng_a_DAT_0044fa94;
-		uVar2 = (uint)rng_a_DAT_0044fa94;
-		if (((rng_a_DAT_0044fa94 == 0) && (rng_b_DAT_0044fa98 == 0)) && (rng_c_DAT_0044fa9c == 0)) {
-			rng_c_DAT_0044fa9c = 0xc;
-			//uVar2 = CONCAT22((short)((param_1 & 0xffff0000) >> 0x10), 0xe6);
-			uVar2 = 230;
-			rng_b_DAT_0044fa98 = 0x1c;
-		}
-		for (short i = 16; i > 0; i--) {
-			uVar3 = (uVar2 >> 1) + uVar5;
-			uVar5 = uVar2 & 1;
-			uVar4 = rng_c_DAT_0044fa9c & 0x80;
-			rng_c_DAT_0044fa9c = ((uVar3 >> 2 ^ rng_b_DAT_0044fa98) & 1) + rng_c_DAT_0044fa9c * 2;
-			uVar1 = rng_b_DAT_0044fa98;
-			rng_b_DAT_0044fa98 = (uVar4 >> 7) + rng_b_DAT_0044fa98 * 2;
-			//param_3 = param_3 & 0xffff0000 | (uVar1 & 0x80) >> 7;
-			uint param_3 = ((uVar1 & 0x80) >> 7);
-			uVar2 = param_3 + uVar2 * 2;
-		}
-		rng_a_DAT_0044fa94 = uVar2;
-		//return uVar2 & 0xffff0000 | (uint)(ushort)((short)uVar2 << 8 | rng_b_DAT_0044fa98);
-		return (uVar2 << 8 | rng_b_DAT_0044fa98);
-	}
-
 	uint rng() {
-		//return _random.getRandomNumber(UINT_MAX);
-		uint uVar1 = ai_rng_FUN_00412a70();
-		uint uVar2 = ai_rng_FUN_00412a70();
-		return uVar1 << 16 | uVar2 & 0xffff;
+		return _random.getRandomNumber(UINT_MAX);
 	}
 
 	byte ai(int search_depth) {
@@ -514,8 +476,8 @@ private:
 		debug("finished run_cake_test_no_ai(%s, %d), winner: %d\n", moves, (int)player_win, (int)winner);
 	}
 
-	void run_cake_test(int a, int b, int c, const char *moves, bool player_win) {
-		debug("\nstarting run_cake_test(%d, %d, %d, %s, %d)", a, b, c, moves, (int)player_win);
+	void run_cake_test(uint seed, const char *moves, bool player_win) {
+		debug("\nstarting run_cake_test(%u, %s, %d)", seed, moves, (int)player_win);
 
 		// first fill the board with the expected moves and test the win-detection function by itself without AI
 		run_cake_test_no_ai(moves, player_win);
@@ -526,9 +488,8 @@ private:
 		byte last_move = 8;
 		winner = opConnectFour(last_move);
 
-		rng_a_DAT_0044fa94 = a;
-		rng_b_DAT_0044fa98 = b;
-		rng_c_DAT_0044fa9c = c;
+		uint old_seed = _random.getSeed();
+		_random.setSeed(seed);
 
 		for (int i = 0; moves[i]; i += 2) {
 			if (winner != 0) {
@@ -559,7 +520,9 @@ private:
 			error("Stauf didn't win! winner: %d", (int)winner);
 		}
 
-		debug("finished run_cake_test(%d, %d, %d, %s, %d)\n", a, b, c, moves, (int)player_win);
+		_random.setSeed(old_seed);
+
+		debug("finished run_cake_test(%u, %s, %d)\n", seed, moves, (int)player_win);
 	}
 
 public:
@@ -567,9 +530,9 @@ public:
 		// test the draw condition, grouped by column
 		run_cake_test_no_ai(/*move 1*/ "7777777" /*8*/ "6666666" /*15*/ "5555555" /*22*/ "34444444" /*30*/ "333333" /*36*/ "2222222" /*43*/ "01111111" /*51*/ "000000", false, true);
 
-		run_cake_test(5548, -468341609, 363632432, "24223233041", true);
-		run_cake_test(-8128, 65028198, -532650441, "232232432445", false);
-		run_cake_test(-21148, 732783721, -1385928214, "4453766355133466", false);
+		run_cake_test(9, "24223233041", true);
+		run_cake_test(1, "232232432445", false);
+		run_cake_test(123, "4453766355133466", false);
 	}
 
 };
