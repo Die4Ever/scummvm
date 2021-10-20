@@ -718,7 +718,7 @@ int &get_player_table(s_ptable_DAT_0044faf4 *p, bool ret_stauf, s2_0044faf4 *&ta
 }
 
 
-void __cdecl place_piece_FUN_00417e00(int param_1, byte last_move)
+void __cdecl _place_piece_FUN_00417e00(int param_1, byte last_move)
 
 {
 	//int *piVar1;
@@ -786,7 +786,7 @@ void __cdecl place_piece_FUN_00417e00(int param_1, byte last_move)
 
 
 // 83 is Stauf and 89 is the player
-void __cdecl maybe_place_piece_FUN_00417db0(int *param_1, byte move)
+void __cdecl place_piece_FUN_00417db0(int *param_1, byte move)
 
 {
 	s_ptable_DAT_0044faf4 *p = (s_ptable_DAT_0044faf4 *)param_1;
@@ -803,7 +803,7 @@ void __cdecl maybe_place_piece_FUN_00417db0(int *param_1, byte move)
 
 	//*(char *)(param_1[8] + uVar1) = *(char *)(param_1[8] + uVar1) + '\x01';
 	p->column_heights_32[move]++;
-	place_piece_FUN_00417e00((int)param_1, move);
+	_place_piece_FUN_00417e00((int)param_1, move);
 	//*(short *)(param_1 + 9) = *(short *)(param_1 + 9) + 1;
 	p->move_count_36++;
 	return;
@@ -856,10 +856,10 @@ void __cdecl revert_move_FUN_00418050(int param_1, byte move)
 	move_num_uVar4 = data->move_count_36;
 	bool is_stauf = move_num_uVar4 % 2 == 1;
 	//iVar6 = (uint) * (byte *)(*(int *)(param_1 + 0x20) + uVar7) * 4;
-	iVar6 = data->column_heights_32[_move] * 4;
+	iVar6 = data->column_heights_32[_move];
 	local_5 = 1;
 	//bVar3 = **(byte **)(*(int *)(ptable_DAT_0044faf0 + uVar7 * 4) + iVar6);
-	bVar3 = table->columns[_move]->rows[iVar6/4]->p[0];
+	bVar3 = table->columns[_move]->rows[iVar6]->p[0];
 	if (bVar3 != 0) {
 		//piVar1 = (int *)(param_1 + (uint)((byte)uVar4 & 1) * 4);
 		s2_0044faf4 *p1;
@@ -867,7 +867,7 @@ void __cdecl revert_move_FUN_00418050(int param_1, byte move)
 		do {
 			/*piVar2 = (int *)(*piVar1 +
 							 (uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + _move * 4) + iVar6) + (uint)local_5 * 2) * 4);*/
-			uint offset = table->columns[_move]->rows[iVar6 / 4]->p[local_5];
+			uint offset = table->columns[_move]->rows[iVar6]->p[local_5];
 			//*piVar2 = *piVar2 + -1;
 			//iVar8 = (uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + _move * 4) + iVar6) + (uint)local_5 * 2) * 4;
 			//iVar5 = *(int *)(*piVar1 + iVar8);
@@ -918,112 +918,161 @@ void __cdecl revert_move_FUN_00418010(int param_1, byte move)
 }
 
 
-uint __cdecl check_stauf_win_FUN_00417d80(int param_1)
+bool __cdecl check_game_ended_FUN_00417d80(int param_1)
 
 {
-	ushort uVar1;
-	uint uVar2;
-	uint uVar3;
+	byte winner;
 
-	uVar3 = check_player_win_FUN_00417d60(param_1);
-	if (((char)uVar3 == '\0') &&
-		(uVar1 = *(ushort *)(param_1 + 0x1a), uVar2 = uVar3 & 0xffff0000, uVar3 = uVar2 | uVar1,
-		 *(ushort *)(param_1 + 0x24) != uVar1)) {
-		return uVar2 | uVar1 & 0xffffff00;
+	s_ptable_DAT_0044faf4 *p = (s_ptable_DAT_0044faf4 *)param_1;
+
+	winner = check_player_win_FUN_00417d60(param_1);
+	if (winner == 0 && p->move_count_36 != p->width_height_26) {
+		//return uVar2 | uVar1 & 0xffffff00;
+		return 0;
 	}
 	//return CONCAT31((int3)(uVar3 >> 8), 1);
-	return CONCAT31((uVar3 >> 8), 1);
+	//return CONCAT31((uVar3 >> 8), 1);
+	return 1;
 }
 
 
+int get_score_diff(s_ptable_DAT_0044faf4 &p) {
+	if (p.move_count_36 % 2 == 0) {
+		//iVar4 = *(int *)(param_1 + 8) - *(int *)(param_1 + 0xc);
+		return p.maybe_player_score_i8 - p.maybe_stauf_score_i12;
+	} else {
+		//iVar4 = *(int *)(param_1 + 0xc) - *(int *)(param_1 + 8);
+		return p.maybe_stauf_score_i12 - p.maybe_player_score_i8;
+	}
+}
 
-int __cdecl recurse_ai_FUN_00418150(uint param_1, char param_2, int param_3)
+int __cdecl recurse_ai_FUN_00418150(uint param_1, char search_depth, int parent_score)
 
 {
-	byte bVar1;
-	uint uVar2;
-	undefined4 uVar3;
-	int iVar4;
+	byte width;
+	//uint uVar2;
+	//undefined4 uVar3;
+	int score;
 	//uint unaff_EBX;
 	//byte *last_move;
-	byte last_move;
-	int iVar5;
-	byte bVar6;
+	byte move;
+	int best_score;
+	//byte bVar6;
 
-	last_move = 0; //(byte *)(unaff_EBX & 0xffffff00);
-	iVar5 = 0x7fffffff;
-	bVar1 = *(byte *)(param_1 + 0x18);
-	if (bVar1 != 0) {
+	s_ptable_DAT_0044faf4 *p = (s_ptable_DAT_0044faf4 *)param_1;
+
+	move = 0; //(byte *)(unaff_EBX & 0xffffff00);
+	best_score = 0x7fffffff;
+	//bVar1 = *(byte *)(param_1 + 0x18);
+	width = p->width_24;
+	/*if (width != 0) {
 		do {
-			bVar6 = (byte)last_move;
+			bVar6 = move;
 			uVar2 = bound_check_height_FUN_00417d40(param_1, bVar6);
-			if ((char)uVar2 == '\0') {
-				maybe_place_piece_FUN_00417db0((int *)param_1, last_move);
-				if (param_2 == '\x01') {
+			if ((char)uVar2 == 0) {
+				maybe_place_piece_FUN_00417db0((int *)param_1, move);
+				if (search_depth == 1) {
 				LAB_004181ae:
-					if ((*(byte *)(param_1 + 0x24) & 1) == 0) {
-						iVar4 = *(int *)(param_1 + 8) - *(int *)(param_1 + 0xc);
+					//if ((*(byte *)(param_1 + 0x24) & 1) == 0) {
+					if( p->move_count_36 % 2 == 0 ) {
+						//iVar4 = *(int *)(param_1 + 8) - *(int *)(param_1 + 0xc);
+						score = p->maybe_player_score_i8 - p->maybe_stauf_score_i12;
 					} else {
-						iVar4 = *(int *)(param_1 + 0xc) - *(int *)(param_1 + 8);
+						//iVar4 = *(int *)(param_1 + 0xc) - *(int *)(param_1 + 8);
+						score = p->maybe_stauf_score_i12 - p->maybe_player_score_i8;
 					}
 				} else {
-					uVar3 = check_stauf_win_FUN_00417d80(param_1);
-					if ((char)uVar3 != '\0')
+					uVar3 = check_game_ended_FUN_00417d80(param_1);
+					if ((char)uVar3 != 0)
 						goto LAB_004181ae;
-					iVar4 = recurse_ai_FUN_00418150(param_1, param_2 + -1, iVar5);
+					score = recurse_ai_FUN_00418150(param_1, search_depth - 1, best_score);
 				}
 				revert_move_FUN_00418010(param_1, bVar6);
-				if (iVar4 < iVar5) {
-					iVar5 = iVar4;
+				if (score < best_score) {
+					best_score = score;
 				}
-				if (-param_3 != iVar5 && param_3 <= -iVar5)
+				if (-parent_score != best_score && parent_score <= -best_score)
 					break;
 			}
 			//last_move = (byte *)((uint)last_move & 0xffffff00 | (uint)(byte)(bVar6 + 1));
-			last_move = ((uint)last_move & 0xffffff00 | (uint)(byte)(bVar6 + 1));
-		} while ((byte)(bVar6 + 1) < bVar1);
+			//move = ((uint)move & 0xffffff00 | (uint)(byte)(bVar6 + 1));
+			move = bVar6 + 1;
+		} while ((byte)(bVar6 + 1) < width);
+	}*/
+	
+	for (move = 0; move < width; move++) {
+		if (bound_check_height_FUN_00417d40(param_1, move))
+			continue;
+
+		place_piece_FUN_00417db0((int *)param_1, move);
+		score = get_score_diff(*p);
+		bool did_game_end = check_game_ended_FUN_00417d80(param_1);
+		if (search_depth != 1 && !did_game_end) {
+			score = recurse_ai_FUN_00418150(param_1, search_depth - 1, best_score);
+		}
+		revert_move_FUN_00418010(param_1, move);
+
+		if (score < best_score) {
+			best_score = score;
+		}
+		if (-parent_score != best_score && parent_score <= -best_score)
+			break;
 	}
-	return -iVar5;
+	return -best_score;
 }
 
 
 //uint FUN_00412a70(uint param_1, undefined4 param_2, uint param_3)
-uint ai_FUN_00412a70(uint param_1, /*undefined4 &param_2,*/ uint &param_3)
+ushort ai_rng_FUN_00412a70(/*uint param_1,*/ /*undefined4 &param_2,*/ /*uint &param_3*/)
 {
 	uint uVar1;
-	uint uVar2;
+	ushort uVar2;
 	ushort uVar3;
 	ushort uVar4;
-	ushort uVar5;
-	short local_4;
+	ushort uVar5 = 0;
+	//short local_4;
 
-	uVar2 = param_1 & 0xffff0000 | (uint)rng_a_DAT_0044fa94;
+	//uVar2 = param_1 & 0xffff0000 | (uint)rng_a_DAT_0044fa94;
+	uVar2 = (uint)rng_a_DAT_0044fa94;
 	if (((rng_a_DAT_0044fa94 == 0) && (rng_b_DAT_0044fa98 == 0)) && (rng_c_DAT_0044fa9c == 0)) {
 		rng_c_DAT_0044fa9c = 0xc;
-		uVar2 = CONCAT22((short)((param_1 & 0xffff0000) >> 0x10), 0xe6);
+		//uVar2 = CONCAT22((short)((param_1 & 0xffff0000) >> 0x10), 0xe6);
+		uVar2 = 230;
 		rng_b_DAT_0044fa98 = 0x1c;
 	}
-	local_4 = 0x10;
+	/*local_4 = 0x10;
 	uVar5 = 0;
 	do {
-		uVar3 = ((ushort)uVar2 >> 1) + uVar5;
-		uVar5 = (ushort)uVar2 & 1;
+		uVar3 = (uVar2 >> 1) + uVar5;
+		uVar5 = uVar2 & 1;
 		uVar4 = rng_c_DAT_0044fa9c & 0x80;
 		rng_c_DAT_0044fa9c = ((uVar3 >> 2 ^ rng_b_DAT_0044fa98) & 1) + rng_c_DAT_0044fa9c * 2;
-		uVar1 = (uint)rng_b_DAT_0044fa98;
+		uVar1 = rng_b_DAT_0044fa98;
 		rng_b_DAT_0044fa98 = (uVar4 >> 7) + rng_b_DAT_0044fa98 * 2;
 		//param_3 = param_3 & 0xffff0000 | (uVar1 & 0x80) >> 7;
 		param_3 = ((uVar1 & 0x80) >> 7);
 		local_4 = local_4 + -1;
 		uVar2 = param_3 + uVar2 * 2;
-	} while (local_4 != 0);
-	rng_a_DAT_0044fa94 = (short)uVar2;
-	return uVar2 & 0xffff0000 | (uint)(ushort)((short)uVar2 << 8 | rng_b_DAT_0044fa98);
+	} while (local_4 != 0);*/
+	for (short i = 16; i > 0; i--) {
+		uVar3 = (uVar2 >> 1) + uVar5;
+		uVar5 = uVar2 & 1;
+		uVar4 = rng_c_DAT_0044fa9c & 0x80;
+		rng_c_DAT_0044fa9c = ((uVar3 >> 2 ^ rng_b_DAT_0044fa98) & 1) + rng_c_DAT_0044fa9c * 2;
+		uVar1 = rng_b_DAT_0044fa98;
+		rng_b_DAT_0044fa98 = (uVar4 >> 7) + rng_b_DAT_0044fa98 * 2;
+		//param_3 = param_3 & 0xffff0000 | (uVar1 & 0x80) >> 7;
+		uint param_3 = ((uVar1 & 0x80) >> 7);
+		uVar2 = param_3 + uVar2 * 2;
+	}
+	rng_a_DAT_0044fa94 = uVar2;
+	//return uVar2 & 0xffff0000 | (uint)(ushort)((short)uVar2 << 8 | rng_b_DAT_0044fa98);
+	return (uVar2 << 8 | rng_b_DAT_0044fa98);
 }
 
 
 
-uint ai_FUN_00412b50(uint param_1, undefined4 param_2, uint param_3)
+uint ai_rng_FUN_00412b50(/*uint param_1, undefined4 param_2,*/ /*uint param_3*/)
 
 {
 	uint uVar1;
@@ -1031,10 +1080,10 @@ uint ai_FUN_00412b50(uint param_1, undefined4 param_2, uint param_3)
 	//uint extraout_ECX;
 	//undefined4 extraout_EDX;
 
-	uVar1 = ai_FUN_00412a70(param_1, /*param_2,*/ param_3);
+	uVar1 = ai_rng_FUN_00412a70(/*param_1,*/ /*param_2,*/ /*param_3*/);
 	//uVar2 = FUN_00412a70(uVar1, extraout_EDX, extraout_ECX);
-	uVar2 = ai_FUN_00412a70(uVar1, /*param_2,*/ param_3);
-	return uVar1 << 0x10 | uVar2 & 0xffff;
+	uVar2 = ai_rng_FUN_00412a70(/*uVar1,*/ /*param_2,*/ /*param_3*/);
+	return uVar1 << 16 | uVar2 & 0xffff;
 }
 
 
@@ -1042,26 +1091,28 @@ uint ai_FUN_00412b50(uint param_1, undefined4 param_2, uint param_3)
 
 /* WARNING: Could not reconcile some variable overlaps */
 
-uint con4_AI_FUN_00417f10(uint param_1, /*undefined4 param_2,*/ undefined4 param_3, uint param_4, byte param_5)
+byte con4_AI_FUN_00417f10(/*uint param_1, undefined4 param_2, undefined4 param_3,*/ uint param_4, byte search_depth)
 
 {
-	byte bVar1;
-	undefined4 uVar2;
-	int iVar3;
-	uint uVar4;
+	//byte bVar1;
+	//undefined4 uVar2;
+	int score;
+	//uint uVar4;
 	//uint extraout_ECX;
 	//undefined4 extraout_EDX;
 	//byte *unaff_EBX;
-	byte unaff_EBX;
-	int iVar5;
-	byte bVar6;
-	byte local_3;
-	ushort local_2;
+	//byte unaff_EBX;
+	//int iVar5;
+	//byte bVar6;
+	byte counter;
+	ushort best_move;
 
-	local_2 = 0xffff;
-	local_3 = 1;
-	iVar5 = 0x7fffffff;
-	do {
+	s_ptable_DAT_0044faf4 *p = (s_ptable_DAT_0044faf4 *)param_4;
+
+	best_move = 0xffff;
+	counter = 1;
+	//iVar5 = 0x7fffffff;
+	/*do {
 		//unaff_EBX = (byte *)((uint)unaff_EBX & 0xffffff00);
 		unaff_EBX = 0; //((uint)unaff_EBX & 0xffffff00);
 		bVar1 = *(byte *)(param_4 + 0x18);
@@ -1071,15 +1122,15 @@ uint con4_AI_FUN_00417f10(uint param_1, /*undefined4 param_2,*/ undefined4 param
 				bVar6 = (byte)unaff_EBX;
 				param_1 = bound_check_height_FUN_00417d40(param_4, bVar6);
 				if ((char)param_1 == '\0') {
-					maybe_place_piece_FUN_00417db0((int *)param_4, unaff_EBX);
+					place_piece_FUN_00417db0((int *)param_4, unaff_EBX);
 					uVar2 = check_player_win_FUN_00417d60(param_4);
 					if ((char)uVar2 != '\0') {
-						/*uVar4 =*/ revert_move_FUN_00418010(param_4, bVar6);
+						revert_move_FUN_00418010(param_4, bVar6);
 						//return uVar4 & 0xffffff00 | (uint)unaff_EBX & 0xff;
 						return (uint)unaff_EBX & 0xff;
 					}
-					iVar3 = recurse_ai_FUN_00418150(param_4, param_5 - 1, iVar5);
-					/*param_1 =*/ revert_move_FUN_00418010(param_4, bVar6);
+					iVar3 = recurse_ai_FUN_00418150(param_4, search_depth - 1, iVar5);
+					revert_move_FUN_00418010(param_4, bVar6);
 					if (iVar3 < iVar5) {
 						local_3 = 1;
 						param_1 = param_1 & 0xffff0000;
@@ -1089,7 +1140,7 @@ uint con4_AI_FUN_00417f10(uint param_1, /*undefined4 param_2,*/ undefined4 param
 						if (iVar5 == iVar3) {
 							local_3 = local_3 + 1;
 							//uVar4 = FUN_00412b50(param_1, extraout_EDX, extraout_ECX);
-							uVar4 = ai_FUN_00412b50(param_1, 0, 0);
+							uVar4 = ai_rng_FUN_00412b50();
 							param_1 = (uint)local_3;
 							if ((uVar4 % 1000000) * param_1 < 1000000) {
 								local_2 = (ushort)bVar6;
@@ -1102,8 +1153,36 @@ uint con4_AI_FUN_00417f10(uint param_1, /*undefined4 param_2,*/ undefined4 param
 				unaff_EBX = ((uint)unaff_EBX & 0xffffff00 | (uint)(byte)(bVar6 + 1));
 			} while ((byte)(bVar6 + 1) < bVar1);
 		}
-	} while ((999999 < iVar5) && (param_5 = param_5 - 1, 1 < param_5));
-	return param_1 & 0xffffff00 | (uint)(byte)local_2;
+	} while ((999999 < iVar5) && (search_depth = search_depth - 1, 1 < search_depth));*/
+
+	for (int best_score = 0x7fffffff; best_score > 999999 && search_depth > 1; search_depth--) {
+		for (int move = 0; move < p->width_24; move++) {
+			if (bound_check_height_FUN_00417d40(param_4, move))
+				continue;
+
+			place_piece_FUN_00417db0((int *)param_4, move);
+			if (check_player_win_FUN_00417d60(param_4)) {
+				revert_move_FUN_00418010(param_4, move);
+				return move;
+			}
+
+			score = recurse_ai_FUN_00418150(param_4, search_depth - 1, best_score);
+			revert_move_FUN_00418010(param_4, move);
+			if (score < best_score) {
+				counter = 1;
+				best_move = move;
+				best_score = score;
+			} else if (best_score == score) {
+				counter++;
+				uint r = ai_rng_FUN_00412b50() % 1000000;
+				if (r * (uint)counter < 1000000) {
+					best_move = move;
+				}
+			}
+		}
+	}
+
+	return best_move;
 }
 
 
@@ -1136,7 +1215,7 @@ void connect_four_FUN_00417c00(undefined4 param_1, undefined4 param_2, undefined
 		param_2 = 7; //extraout_EDX;
 	}
 	if (*last_move == 9) {
-		uVar2 = con4_AI_FUN_00417f10((uint)ptable_DAT_0044faf4, /*param_2,*/ param_3, (uint)ptable_DAT_0044faf4, 6);
+		uVar2 = con4_AI_FUN_00417f10(/*(uint)ptable_DAT_0044faf4, param_2, param_3,*/ (uint)ptable_DAT_0044faf4, 6);
 		*last_move = (byte)uVar2;
 		has_cheated_DAT_0044fafc = 1;
 		return;
@@ -1147,7 +1226,7 @@ void connect_four_FUN_00417c00(undefined4 param_1, undefined4 param_2, undefined
 		return;
 	}
 	//maybe_place_piece_FUN_00417db0((int *)ptable_DAT_0044faf4, (byte *)(uVar2 & 0xffffff00 | (uint)*last_move));
-	maybe_place_piece_FUN_00417db0((int *)ptable_DAT_0044faf4, *last_move);
+	place_piece_FUN_00417db0((int *)ptable_DAT_0044faf4, *last_move);
 	uVar2 = check_player_win_FUN_00417d60((int)ptable_DAT_0044faf4);
 	if ((char)uVar2 != '\0') {
 		vars[3] = 2;
@@ -1160,11 +1239,11 @@ void connect_four_FUN_00417c00(undefined4 param_1, undefined4 param_2, undefined
 												(undefined4)ptable_DAT_0044faf4, (uint)ptable_DAT_0044faf4, bVar1);
 	*last_move = (byte)last_move_00;
 	maybe_place_piece_FUN_00417db0((int *)ptable_DAT_0044faf4, last_move_00);*/
-	last_move_00 = con4_AI_FUN_00417f10(uVar2 & 0xffffff00 | (uint)bVar1, //extraout_EDX_00,
-												(undefined4)ptable_DAT_0044faf4, (uint)ptable_DAT_0044faf4, bVar1);
+	last_move_00 = con4_AI_FUN_00417f10(/*uVar2 & 0xffffff00 | (uint)bVar1, //extraout_EDX_00,
+												(undefined4)ptable_DAT_0044faf4,*/ (uint)ptable_DAT_0044faf4, bVar1);
 	*last_move = last_move_00;
-	maybe_place_piece_FUN_00417db0((int *)ptable_DAT_0044faf4, last_move_00);
-	uVar3 = check_stauf_win_FUN_00417d80((int)ptable_DAT_0044faf4);
+	place_piece_FUN_00417db0((int *)ptable_DAT_0044faf4, last_move_00);
+	uVar3 = check_game_ended_FUN_00417d80((int)ptable_DAT_0044faf4);
 	if ((char)uVar3 != '\0') {
 		vars[3] = 1;
 		frees_FUN_004182e0((int *)ptable_DAT_0044faf4);
@@ -1196,16 +1275,16 @@ void run_cake_test_no_ai(const char *moves, bool player_win, bool draw=false) {
 		if (win) {
 			error("early win at %d, winner: %d", i, (int)win);
 		}
-		stauf_win = check_stauf_win_FUN_00417d80((int)ptable_DAT_0044faf4);
+		stauf_win = check_game_ended_FUN_00417d80((int)ptable_DAT_0044faf4);
 		if (stauf_win) {
 			error("early draw at %d", i);
 		}
 		byte move = moves[i] - '0';
-		maybe_place_piece_FUN_00417db0((int *)ptable_DAT_0044faf4, move);
+		place_piece_FUN_00417db0((int *)ptable_DAT_0044faf4, move);
 	}
 
 	winner = check_player_win_FUN_00417d60((int)ptable_DAT_0044faf4);
-	stauf_win = check_stauf_win_FUN_00417d80((int)ptable_DAT_0044faf4);
+	stauf_win = check_game_ended_FUN_00417d80((int)ptable_DAT_0044faf4);
 	if (draw) {
 		if(winner != 0 || !stauf_win)
 			error("wasn't a draw! winner: %d, stauf_win: %d", (int)winner, (int)stauf_win);
