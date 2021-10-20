@@ -232,7 +232,7 @@ struct s1_0044faf0 {
 // a pointer to an array of 8 pointers, each one pointing to 7 pointers, each one of those is pointing to 34 bytes, which I think is 17 shorts with the first one being an index into the array of the following 16
 int ptable_DAT_0044faf0 = NULL;// s_ptable_DAT_0044faf0
 
-int alloc_counter_DAT_0044faf8 = 0;// a counter for allocations?
+int lines_counter_0044faf8 = 0;// a counter for allocations?
 
 //int len_DAT_0043df84 = 0;// length of DAT_0044e614?
 
@@ -321,7 +321,7 @@ void __cdecl frees_FUN_004186f0(byte param_1, byte param_2)
 	}
 	free_FUN_00406c80((int)ptable_DAT_0044faf0);
 	ptable_DAT_0044faf0 = 0;
-	alloc_counter_DAT_0044faf8 = 0;
+	lines_counter_0044faf8 = 0;
 	return;
 }
 
@@ -406,25 +406,25 @@ int *__cdecl allocs_FUN_00406bc0(int param_1, int param_2)
 
 
 
-void __cdecl init_FUN_00418360(byte width, byte height, byte depth)
+void __cdecl init_FUN_00418360(int width, int height, int length)
 
 {
 	int iVar1;
 	//short *psVar2;
 	//ushort *puVar3;
-	uint uVar4;
+	//uint _width;
 	int *piVar5;
 	uint uVar6;
-	uint uVar7;
+	//uint uVar7;
 	byte bVar8;
 	int iVar9;
-	byte local_12;
-	byte local_11;
+	//byte local_12;
+	//byte local_11;
 
-	uVar4 = (uint)width;
+	//_width = (uint)width;
 	bVar8 = 0;
-	alloc_counter_DAT_0044faf8 = 0;
-	ptable_DAT_0044faf0 = (int)allocs_FUN_00406bc0(uVar4, 4);
+	lines_counter_0044faf8 = 0;
+	ptable_DAT_0044faf0 = (int)allocs_FUN_00406bc0(width, 4);
 	s1_0044faf0 *p = (s1_0044faf0 *)ptable_DAT_0044faf0;
 	if (width != 0) {
 		do {
@@ -435,8 +435,9 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte depth)
 			p->columns[uVar6] = (s2_0044faf0 *)piVar5;
 		} while (bVar8 < width);
 	}
-	local_12 = 0;
-	if (width != 0) {
+
+	//local_12 = 0;
+	/*if (width != 0) {
 		do {
 			local_11 = 0;
 			if (height != 0) {
@@ -450,12 +451,21 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte depth)
 			}
 			local_12 = local_12 + 1;
 		} while (local_12 < width);
+	}*/
+
+	for (int x = 0; x < width; x++) {
+		for (int y = 0; y < height; y++) {
+			piVar5 = allocs_FUN_00406bc0((uint)length * 4 + 1, 2);
+			//*(int **)(*(int *)((uint)local_12 * 4 + ptable_DAT_0044faf0) + uVar6 * 4) = piVar5;
+			p->columns[x]->rows[y] = (s3_0044faf0 *)piVar5;
+		}
 	}
-	local_11 = 0;
+
+	/*local_11 = 0;
 	if (height != 0) {
 		do {
 			local_12 = 0;
-			if (-1 < (int)(uVar4 - depth)) {
+			if (-1 < (int)(_width - depth)) {
 				do {
 					bVar8 = 0;
 					if (depth != 0) {
@@ -475,13 +485,25 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte depth)
 					}
 					alloc_counter_DAT_0044faf8 = alloc_counter_DAT_0044faf8 + 1;
 					local_12 = local_12 + 1;
-				} while ((int)(uint)local_12 <= (int)(uVar4 - depth));
+				} while ((int)(uint)local_12 <= (int)(_width - depth));
 			}
 			local_11 = local_11 + 1;
 		} while (local_11 < height);
+	}*/
+
+	// map all the lines with slope of (1, 0)
+	for (int y = 0; y < height; y++) {
+		for (int x = 0; x <= width - length; x++) {
+			for (int z = 0; z < length; z++) {
+				iVar1 = z + x;
+				ushort slot = ++p->columns[iVar1]->rows[y]->p[0];
+				p->columns[iVar1]->rows[y]->p[slot] = lines_counter_0044faf8;
+			}
+			lines_counter_0044faf8++;
+		}
 	}
-	local_12 = 0;
-	if (width != 0) {
+	//local_12 = 0;
+	/*if (width != 0) {
 		do {
 			local_11 = 0;
 			if (-1 < (int)((uint)height - (uint)depth)) {
@@ -507,13 +529,25 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte depth)
 			}
 			local_12 = local_12 + 1;
 		} while (local_12 < width);
+	}*/
+
+	// map all the lines with slope of (0, 1)
+	for (int x = 0; x < width; x++) {
+		for (int y = 0; y <= height - length; y++) {
+			for (int z = 0; z < length; z++) {
+				iVar1 = y + z;
+				ushort slot = ++p->columns[x]->rows[iVar1]->p[0];
+				p->columns[x]->rows[iVar1]->p[slot] = lines_counter_0044faf8;
+			}
+			lines_counter_0044faf8++;
+		}
 	}
-	local_11 = 0;
-	uVar6 = (uint)depth;
-	if (-1 < (int)(height - uVar6)) {
+	//local_11 = 0;
+	//uVar6 = (uint)depth;
+	/*if (-1 < (int)(height - uVar6)) {
 		do {
 			local_12 = 0;
-			if (-1 < (int)(uVar4 - uVar6)) {
+			if (-1 < (int)(_width - uVar6)) {
 				do {
 					if (depth != 0) {
 						uVar7 = 0;
@@ -534,16 +568,29 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte depth)
 					}
 					alloc_counter_DAT_0044faf8 = alloc_counter_DAT_0044faf8 + 1;
 					local_12 = local_12 + 1;
-				} while ((int)(uint)local_12 <= (int)(uVar4 - uVar6));
+				} while ((int)(uint)local_12 <= (int)(_width - uVar6));
 			}
 			local_11 = local_11 + 1;
 		} while ((int)(uint)local_11 <= (int)(height - uVar6));
+	}*/
+
+	// map all the lines with slope of (1,1)
+	for (int y = 0; y <= height - length; y++) {
+		for (int x = 0; x <= width - length; x++) {
+			for (int z = 0; z < length; z++) {
+				iVar9 = x + z;
+				iVar1 = y + z;
+				ushort slot = ++p->columns[iVar9]->rows[iVar1]->p[0];
+				p->columns[iVar9]->rows[iVar1]->p[slot] = lines_counter_0044faf8;
+			}
+			lines_counter_0044faf8++;
+		}
 	}
-	local_11 = depth - 1;
+	/*local_11 = depth - 1;
 	if (local_11 < height) {
 		do {
 			local_12 = 0;
-			if (-1 < (int)(uVar4 - uVar6)) {
+			if (-1 < (int)(_width - uVar6)) {
 				do {
 					if (depth != 0) {
 						uVar7 = 0;
@@ -564,12 +611,25 @@ void __cdecl init_FUN_00418360(byte width, byte height, byte depth)
 					}
 					alloc_counter_DAT_0044faf8 = alloc_counter_DAT_0044faf8 + 1;
 					local_12 = local_12 + 1;
-				} while ((int)(uint)local_12 <= (int)(uVar4 - uVar6));
+				} while ((int)(uint)local_12 <= (int)(_width - uVar6));
 			}
 			local_11 = local_11 + 1;
 		} while (local_11 < height);
 	}
-	return;
+	return;*/
+
+	// map all the lines with slope of (1,-1)
+	for (int y = length - 1; y < height; y++) {
+		for (int x = 0; x <= width - length; x++) {
+			for (int z = 0; z < length; z++) {
+				iVar9 = z + x;
+				iVar1 = y - z;
+				ushort slot = ++p->columns[iVar9]->rows[iVar1]->p[0];
+				p->columns[iVar9]->rows[iVar1]->p[slot] = lines_counter_0044faf8;
+			}
+			lines_counter_0044faf8++;
+		}
+	}
 }
 
 
@@ -612,20 +672,20 @@ int **__cdecl init_FUN_004181f0(byte width, byte height, byte depth)
 	p->column_heights_32 = (byte *)piVar2;
 	init_FUN_00418360(width, height, depth);
 	//*(ushort *)(ppiVar1 + 4) = alloc_counter_DAT_0044faf8;
-	p->s16 = alloc_counter_DAT_0044faf8;
-	assert(alloc_counter_DAT_0044faf8 == 107);
-	piVar2 = allocs_FUN_00406bc0((uint)alloc_counter_DAT_0044faf8, 4);
+	p->s16 = lines_counter_0044faf8;
+	assert(lines_counter_0044faf8 == 107);
+	piVar2 = allocs_FUN_00406bc0((uint)lines_counter_0044faf8, 4);
 	//*ppiVar1 = piVar2;
 	p->player_p0 = (s2_0044faf4 *)piVar2;
-	assert(alloc_counter_DAT_0044faf8 == 107);
-	piVar2 = allocs_FUN_00406bc0((uint)alloc_counter_DAT_0044faf8, 4);
+	assert(lines_counter_0044faf8 == 107);
+	piVar2 = allocs_FUN_00406bc0((uint)lines_counter_0044faf8, 4);
 	//ppiVar1[1] = piVar2;
 	p->stauf_p4 = (s2_0044faf4 *)piVar2;
 	//piVar2 = (int *)(uint)alloc_counter_DAT_0044faf8;
 	//ppiVar1[3] = piVar2;
-	p->maybe_stauf_score_i12 = alloc_counter_DAT_0044faf8;
+	p->maybe_stauf_score_i12 = lines_counter_0044faf8;
 	//ppiVar1[2] = piVar2;
-	p->maybe_player_score_i8 = alloc_counter_DAT_0044faf8;
+	p->maybe_player_score_i8 = lines_counter_0044faf8;
 	return ppiVar1;
 }
 
