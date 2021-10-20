@@ -30,6 +30,10 @@ namespace Groovie {
 
 class GroovieEngine;
 
+#ifdef ENABLE_GROOVIE2
+class T11hCake;
+#endif
+
 class T11hGame {
 public:
 #ifdef ENABLE_GROOVIE2
@@ -56,13 +60,9 @@ private:
 	void inline setScriptVar16(uint16 var, uint16 value);
 	uint16 inline getScriptVar16(uint16 var);
 
-	bool isCakeFull();
-	byte cakeGetWinner();
-	void clearCake();
-	void cakePlaceBonBon(int x, byte team);
-	byte cakeGetOpponent(byte team);
-	int cakeGetLineLen(int start_x, int start_y, int slope_x, int slope_y, byte team);
+	void clearAIs();
 
+	T11hCake *_cake;
 	byte *_scriptVariables;
 
 	static const int CAKE_BOARD_WIDTH = 8;

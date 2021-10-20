@@ -83,6 +83,9 @@ Script::Script(GroovieEngine *vm, EngineVersion version) :
 		_opcodes = _opcodesV2;
 	}
 
+	if (version == kGroovieT11H)
+		_t11hGame = new T11hGame(_variables);
+
 	// Prepare the variables
 	_bitflags = 0;
 	for (int i = 0; i < 0x400; i++) {
