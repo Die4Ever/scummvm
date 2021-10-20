@@ -182,10 +182,13 @@ struct int24 {
 typedef int24 undefined3;
 
 #pragma pack(push, 1)
+struct s2_0044faf4 {
+	int p[107];
+};
 struct s_ptable_DAT_0044faf4 {
 	// 40 bytes long, every member has their starting byte at the end of the name
-	void *p0;// starts at byte 0
-	void *p4;// starts at byte 4
+	s2_0044faf4 *p0;          // starts at byte 0
+	s2_0044faf4 *p4;           // starts at byte 4
 	int maybe_player_score_i8;// starts at byte 8
 	int maybe_stauf_score_i12;// starts at byte 12
 	//void *u4;
@@ -610,12 +613,14 @@ int **__cdecl init_FUN_004181f0(byte width, byte height, byte depth)
 	init_FUN_00418360(width, height, depth);
 	//*(ushort *)(ppiVar1 + 4) = alloc_counter_DAT_0044faf8;
 	p->s16 = alloc_counter_DAT_0044faf8;
+	assert(alloc_counter_DAT_0044faf8 == 107);
 	piVar2 = allocs_FUN_00406bc0((uint)alloc_counter_DAT_0044faf8, 4);
 	//*ppiVar1 = piVar2;
-	p->p0 = piVar2;
+	p->p0 = (s2_0044faf4 *)piVar2;
+	assert(alloc_counter_DAT_0044faf8 == 107);
 	piVar2 = allocs_FUN_00406bc0((uint)alloc_counter_DAT_0044faf8, 4);
 	//ppiVar1[1] = piVar2;
-	p->p4 = piVar2;
+	p->p4 = (s2_0044faf4 *)piVar2;
 	//piVar2 = (int *)(uint)alloc_counter_DAT_0044faf8;
 	//ppiVar1[3] = piVar2;
 	p->maybe_stauf_score_i12 = alloc_counter_DAT_0044faf8;
@@ -642,18 +647,18 @@ bool __cdecl bound_check_height_FUN_00417d40(uint param_1, byte x)
 }
 
 // player or stauf
-int *p0_or_p4(s_ptable_DAT_0044faf4 *p, bool ret_1) {
+s2_0044faf4 **p0_or_p4(s_ptable_DAT_0044faf4 *p, bool ret_1) {
 	if (ret_1)
-		return (int *)&p->p4;
+		return &p->p4;
 	else
-		return (int *)&p->p0;
+		return &p->p0;
 }
 
 
 void __cdecl FUN_00417e00(int param_1, byte last_move)
 
 {
-	int *piVar1;
+	//int *piVar1;
 	byte bVar2;
 	ushort move_num_uVar3;
 	int iVar4;
@@ -663,41 +668,50 @@ void __cdecl FUN_00417e00(int param_1, byte last_move)
 	int *piVar6;
 	byte local_9;
 
-	s_ptable_DAT_0044faf4 *p = (s_ptable_DAT_0044faf4 *)param_1;
+	s_ptable_DAT_0044faf4 *data = (s_ptable_DAT_0044faf4 *)param_1;
 	ushort ***table = (ushort ***)ptable_DAT_0044faf0;
 
 	_last_move = (uint)last_move;
 	//uVar3 = *(ushort *)(param_1 + 0x24);
-	move_num_uVar3 = p->move_count_36;
+	move_num_uVar3 = data->move_count_36;
 	//last_move_slot = (uint)(byte)(*(char *)(*(int *)(param_1 + 0x20) + _last_move) - 1) * 4;
 	//last_move_slot = (p->column_heights_32[_last_move] - 1) * 4;
-	last_move_slot = p->column_heights_32[_last_move] - 1;
+	last_move_slot = data->column_heights_32[_last_move] - 1;
 	local_9 = 1;
 	//bVar2 = **(byte **)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot);
 	bVar2 = table[_last_move][last_move_slot][0];
 	if (bVar2 != 0) {
 		//piVar1 = (int *)(param_1 + (uint)((byte)uVar3 & 1) * 4);
-		piVar1 = p0_or_p4(p, move_num_uVar3 & 1);
+		int *piVar1 = (int *)p0_or_p4(data, move_num_uVar3 & 1);
+		s2_0044faf4 *p1 = *(s2_0044faf4 **)piVar1;
+		int &score1 = piVar1[2];
 		do {
+			uint offset = (uint)table[_last_move][last_move_slot][local_9];//* 4;
 			//piVar6 = (int *)((uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot) + (uint)local_9 * 2) * 4 + *piVar1);
-			piVar6 = (int *)((uint) table[_last_move][last_move_slot][local_9] * 4 + *piVar1);
+			piVar6 = &p1->p[offset];
 			iVar4 = *piVar6;
 			*piVar6 = iVar4 + 1;
 			//if ((uint) * (byte *)(param_1 + 0x1c) - iVar4 == 1) {
-			if (p->depth_28 - iVar4 == 1) {
-				piVar1[2] = piVar1[2] + 1000000;
+			if (data->depth_28 - iVar4 == 1) {
+				//piVar1[2] = piVar1[2] + 1000000;
+				score1 += 1000000;
 			} else {
 				//piVar6 = (int *)(param_1 + (uint)((uVar3 & 1) == 0) * 4);
-				piVar6 = p0_or_p4(p, (move_num_uVar3 & 1) == 0);
+				piVar6 = (int *)p0_or_p4(data, (move_num_uVar3 & 1) == 0);
+				s2_0044faf4 *p2 = *(s2_0044faf4 **)piVar6;
+				int &score2 = piVar6[2];
 				//uint offset = (uint) * (ushort *)(*(int *)(*(int *)(ptable_DAT_0044faf0 + _last_move * 4) + last_move_slot) + (uint)local_9 * 2) * 4;
-				uint offset = (uint)table[_last_move][last_move_slot][local_9] * 4;
-				iVar5 = *(int *)(*piVar6 + offset);
+				//uint offset = (uint)table[_last_move][last_move_slot][local_9] * 4;
+				//iVar5 = *(int *)(*piVar6 + offset);
+				iVar5 = p2->p[offset];
 				if (iVar4 == 0) {
-					piVar6 = piVar6 + 2;
-					*piVar6 = *piVar6 + (-1 << ((byte)iVar5 & 0x1f));
+					/*piVar6 = piVar6 + 2;
+					*piVar6 = *piVar6 + (-1 << ((byte)iVar5 & 0x1f));*/
+					score2 += (-1 << ((byte)iVar5 & 0x1f));
 				}
 				if (iVar5 == 0) {
-					piVar1[2] = piVar1[2] + (1 << ((byte)iVar4 & 0x1f));
+					//piVar1[2] = piVar1[2] + (1 << ((byte)iVar4 & 0x1f));
+					score1 += (1 << ((byte)iVar4 & 0x1f));
 				}
 			}
 			local_9 = local_9 + 1;
