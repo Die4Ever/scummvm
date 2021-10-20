@@ -47,7 +47,6 @@ private:
 
 	void opMouseTrap();
 	void opConnectFour();
-	byte connectFourAI();
 	void opBeehive();
 	void opPente();
 	void opGallery();
@@ -64,14 +63,6 @@ private:
 
 	T11hCake *_cake;
 	byte *_scriptVariables;
-
-	static const int CAKE_BOARD_WIDTH = 8;
-	static const int CAKE_BOARD_HEIGHT = 7;
-	// (0, 0) is the bottom left of the board
-	byte cake_board[CAKE_BOARD_WIDTH][CAKE_BOARD_HEIGHT];
-	static const byte CAKE_TEAM_STAUF = 1;
-	static const byte CAKE_TEAM_PLAYER = 2;
-	static const int CAKE_GOAL_LEN = 4;
 
 	int8 _beehiveHexagons[61];
 

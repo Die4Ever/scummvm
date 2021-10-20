@@ -33,6 +33,13 @@
 
 namespace Groovie {
 
+T11hGame::T11hGame(byte *scriptVariables)
+	: _random("GroovieT11hGame"), _scriptVariables(scriptVariables), _cake(NULL), _beehiveHexagons() {
+}
+
+T11hGame::~T11hGame() {
+}
+
 void T11hGame::handleOp(uint8 op) {
 	switch (op) {
 	case 1:
@@ -150,19 +157,6 @@ void T11hGame::opMouseTrap() {
 class T11hCake {
 /*
 * Connect Four puzzle, the cake in the dining room
-* T11hCake() constructor
-*	- Each spot on the board is part of multiple potential victory lines
-*	- The first x and y dimensions of the loops select the origin point of the line
-*	- The z is for the distance along that line
-*	- Then we push_back the id number of the line into the array at _map.indecies[x][y]
-*	.
-* UpdateScores()
-*	- Each PlayerProgress has an array of ints, _linesCounters[], where each entry maps to the ID of a line
-*	- When a bon bon is added to the board, we look up _map.lengths[x][y] and then loop through all the indecies for that point
-*		- Increment the PlayerProgress._linesCounters[id]
-*		- Calculate the scores proportional to the PlayerProgress._linesCounters[id]
-*		.
-*	.
 */
 public:
 	Common::RandomSource &_random;
@@ -485,97 +479,6 @@ private:
 
 		return best_move;
 	}
-
-
-	void RunCakeTestNoAi(const char *moves, bool player_win, bool draw = false) {
-		debug("starting run_cake_test_no_ai(%s, %d)\n", moves, (int)player_win);
-
-		Restart();
-
-		for (int i = 0; moves[i]; i++) {
-			byte win = GetWinner();
-			if (win) {
-				error("early win at %d, winner: %d", i, (int)win);
-			}
-			if (GameEnded()) {
-				error("early draw at %d", i);
-			}
-			byte move = moves[i] - '0';
-			PlaceBonBon(move);
-		}
-
-		byte winner = GetWinner();
-		if (draw) {
-			if (winner != 0 || !GameEnded())
-				error("wasn't a draw! winner: %d, gameover: %d", (int)winner, (int)GameEnded());
-		} else if (player_win && winner != PLAYER) {
-			error("player didn't win! winner: %d", (int)winner);
-		} else if (player_win == false && winner != STAUF) {
-			error("Stauf didn't win! winner: %d", (int)winner);
-		}
-
-		debug("finished run_cake_test_no_ai(%s, %d), winner: %d\n", moves, (int)player_win, (int)winner);
-	}
-
-	void RunCakeTest(uint seed, const char *moves, bool player_win) {
-		debug("\nstarting run_cake_test(%u, %s, %d)", seed, moves, (int)player_win);
-
-		// first fill the board with the expected moves and test the win-detection function by itself without AI
-		RunCakeTestNoAi(moves, player_win);
-
-		Restart();
-		byte winner = 0;
-
-		byte last_move = 8;
-		winner = OpConnectFour(last_move);
-
-		uint old_seed = _random.getSeed();
-		_random.setSeed(seed);
-
-		for (int i = 0; moves[i]; i += 2) {
-			if (winner != 0) {
-				error("early win at %d, winner: %d", i, (int)winner);
-			}
-			last_move = moves[i] - '0';
-			byte stauf_move = moves[i + 1] - '0';
-
-			winner = OpConnectFour(last_move);
-
-			if (stauf_move < 8) {
-				if (winner == 2) {
-					error("early player win at %d", i);
-				}
-
-				if (stauf_move != last_move) {
-					error("incorrect Stauf move, expected: %d, got: %d", (int)stauf_move, (int)last_move);
-				}
-			} else if (winner != 2) {
-				error("missing Stauf move, last_move: %d", (int)last_move);
-			} else
-				break;
-		}
-
-		if (player_win && winner != 2) {
-			error("player didn't win! winner: %d", (int)winner);
-		} else if (player_win == false && winner != 1) {
-			error("Stauf didn't win! winner: %d", (int)winner);
-		}
-
-		_random.setSeed(old_seed);
-
-		debug("finished run_cake_test(%u, %s, %d)\n", seed, moves, (int)player_win);
-	}
-
-public:
-	void TestCake() {
-		// test the draw condition, grouped by column
-		RunCakeTestNoAi(/*move 1*/ "7777777" /*8*/ "6666666" /*15*/ "5555555" /*22*/ "34444444" /*30*/ "333333" /*36*/ "2222222" /*43*/ "01111111" /*51*/ "000000", false, true);
-
-		RunCakeTest(9, "24223233041", true);
-		RunCakeTest(1, "232232432445", false);
-		RunCakeTest(123, "4453766355133466", false);
-	}
-
 };
 
 void T11hGame::opConnectFour() {
@@ -853,17 +756,6 @@ uint16 inline T11hGame::getScriptVar16(uint16 var) {
 	value += _scriptVariables[var + 1] << 8;
 
 	return value;
-}
-
-T11hGame::T11hGame(byte *scriptVariables) : _random("GroovieT11hGame"), _scriptVariables(scriptVariables), _cake(NULL) {
-#ifndef RELEASE_BUILD
-	_cake = new T11hCake(_random);
-	_cake->TestCake();
-	clearAIs();
-#endif
-}
-
-T11hGame::~T11hGame() {
 }
 
 } // End of Namespace Groovie
