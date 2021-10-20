@@ -33,13 +33,6 @@
 
 namespace Groovie {
 
-T11hGame::T11hGame(byte *scriptVariables) :
-	_random("GroovieT11hGame"), _scriptVariables(scriptVariables) {
-}
-
-T11hGame::~T11hGame() {
-}
-
 void T11hGame::handleOp(uint8 op) {
 	switch (op) {
 	case 1:
@@ -157,125 +150,454 @@ void T11hGame::opMouseTrap() {
 /*
 * Connect Four puzzle, the cake in the dining room
 */
+class T11HCake {
+public:
+	Common::RandomSource &_random;
+
+	T11HCake(Common::RandomSource &rng) : _random(rng) {
+		restart();
+		map = {};
+		int num_lines = 0;
+
+		// map all the lines with slope of (1, 0)
+		for (int y = 0; y < HEIGHT; y++) {
+			for (int x = 0; x <= WIDTH - GOAL_LEN; x++) {
+				for (int z = 0; z < GOAL_LEN; z++) {
+					set_line_num(x + z, y, num_lines);
+				}
+				num_lines++;
+			}
+		}
+
+		// map all the lines with slope of (0, 1)
+		for (int x = 0; x < WIDTH; x++) {
+			for (int y = 0; y <= HEIGHT - GOAL_LEN; y++) {
+				for (int z = 0; z < GOAL_LEN; z++) {
+					set_line_num(x, y + z, num_lines);
+				}
+				num_lines++;
+			}
+		}
+
+		// map all the lines with slope of (1,1)
+		for (int y = 0; y <= HEIGHT - GOAL_LEN; y++) {
+			for (int x = 0; x <= WIDTH - GOAL_LEN; x++) {
+				for (int z = 0; z < GOAL_LEN; z++) {
+					set_line_num(x + z, y + z, num_lines);
+				}
+				num_lines++;
+			}
+		}
+
+		// map all the lines with slope of (1,-1)
+		for (int y = GOAL_LEN - 1; y < HEIGHT; y++) {
+			for (int x = 0; x <= WIDTH - GOAL_LEN; x++) {
+				for (int z = 0; z < GOAL_LEN; z++) {
+					set_line_num(x + z, y - z, num_lines);
+				}
+				num_lines++;
+			}
+		}
+	}
+
+	byte opConnectFour(byte &last_move) {
+		if (last_move == 8) {
+			restart();
+			return 0;
+		}
+
+		if (last_move == 9) {
+			// samantha makes a move
+			// TODO: fix graphical bug when samantha makes a move
+			last_move = ai(6);
+			has_cheated = true;
+			return 0;
+		}
+
+		if (is_column_full(last_move)) {
+			warning("player tried to place a bon bon in a full column, last_move: %d", (int)last_move);
+			last_move = 10;
+			return 0;
+		}
+
+		placeBonBon(last_move);
+		byte winner = get_winner();
+		if (winner) {
+			return winner;
+		}
+
+		last_move = ai(4 + (has_cheated == false));
+		placeBonBon(last_move);
+		if (game_ended())
+			return STAUF;
+
+		return 0;
+	}
+
+private:
+	static const int WIDTH = 8;
+	static const int HEIGHT = 7;
+	// (0, 0) is the bottom left of the board
+	static const int GOAL_LEN = 4;
+	static const int WIN_SCORE = 1000000;
+	static const byte STAUF = 1;
+	static const byte PLAYER = 2;
+	static const int NUM_LINES = 107;
+
+	struct lines_mappings {
+		byte lengths[WIDTH][HEIGHT];
+		byte indecies[WIDTH][HEIGHT][GOAL_LEN * GOAL_LEN];
+	};
+
+	struct player_progress {
+		int score;
+		int lines_counters[NUM_LINES];
+	};
+
+	player_progress player_lines;
+	player_progress stauf_lines;
+
+	byte board_state[WIDTH][HEIGHT];
+	byte column_heights[WIDTH];
+
+	int move_count;
+	bool has_cheated;
+
+	lines_mappings map;
+
+
+	void restart() {
+		player_lines = {};
+		stauf_lines = {};
+		memset(board_state, 0, sizeof(board_state));
+		memset(column_heights, 0, sizeof(column_heights));
+		move_count = 0;
+		has_cheated = false;
+
+		player_lines.score = NUM_LINES;
+		stauf_lines.score = NUM_LINES;
+	}
+
+	void set_line_num(uint x, uint y, uint index) {
+		assert(x < WIDTH);
+		assert(y < HEIGHT);
+		byte slot = map.lengths[x][y]++;
+		assert(slot < GOAL_LEN * GOAL_LEN);
+		assert(index < NUM_LINES);
+		map.indecies[x][y][slot] = index;
+	}
+
+	bool is_column_full(byte column) {
+		return column_heights[column] >= HEIGHT;
+	}
+
+	player_progress &get_player_progress(bool stauf) {
+		if (stauf)
+			return stauf_lines;
+		else
+			return player_lines;
+	}
+
+	void _placeBonBon(byte x, bool revert=false) {
+		bool stauf = move_count % 2;
+		player_progress &pp = get_player_progress(stauf);
+
+		byte y = column_heights[x] - 1;
+		int num_lines = map.lengths[x][y];
+
+		for (int line = 0; line < num_lines; line++) {
+			int index = map.indecies[x][y][line];
+			int len = pp.lines_counters[index];
+
+			int mult = 1;
+			if (!revert)
+				pp.lines_counters[index]++;
+			else {
+				len = --pp.lines_counters[index];
+				mult = -1;
+			}
+
+			if (GOAL_LEN == len + 1) {
+				// that's a bingo
+				pp.score += WIN_SCORE * mult;
+			}
+			else {
+				player_progress &pp2 = get_player_progress(!stauf);
+				int len2 = pp2.lines_counters[index];
+				if (len == 0) {
+					// we started a new line
+					pp2.score -= (1 << (len2 & 31)) * mult;
+				}
+				if (len2 == 0) {
+					// the opponent doesn't have any spots in this line
+					pp.score += (1 << (len & 31)) * mult;
+				}
+			}
+		}
+	}
+
+	void placeBonBon(byte x) {
+		byte y = column_heights[x]++;
+		if (move_count % 2)
+			board_state[x][y] = STAUF;
+		else
+			board_state[x][y] = PLAYER;
+
+		_placeBonBon(x);
+
+		move_count++;
+	}
+
+	void revert_move(byte x) {
+		move_count--;
+
+		_placeBonBon(x, true);
+
+		byte y = --column_heights[x];
+		board_state[x][y] = 0;
+	}
+
+	byte get_winner() {
+		if (player_lines.score >= WIN_SCORE)
+			return PLAYER;
+
+		if (stauf_lines.score >= WIN_SCORE)
+			return STAUF;
+
+		return 0;
+	}
+
+	bool game_ended() {
+		if (get_winner())
+			return true;
+
+		if (move_count >= WIDTH * HEIGHT)
+			return true;
+
+		return false;
+	}
+
+	int get_score_diff() {
+		if (move_count % 2)
+			return stauf_lines.score - player_lines.score;
+		else
+			return player_lines.score - stauf_lines.score;
+	}
+
+	int recurse_ai(int search_depth, int parent_score) {
+		int best_score = 0x7fffffff;
+
+		for (byte move = 0; move < WIDTH; move++) {
+			if (is_column_full(move))
+				continue;
+
+			placeBonBon(move);
+			int score = get_score_diff();
+			if (search_depth > 1 && !game_ended())
+				score = recurse_ai(search_depth - 1, best_score);
+			revert_move(move);
+
+			if (score < best_score)
+				best_score = score;
+
+			if (-parent_score != best_score && parent_score <= -best_score)
+				break;
+		}
+
+		return -best_score;
+	}
+
+	uint rng_a_DAT_0044fa94 = 0;
+	uint rng_b_DAT_0044fa98 = 0;
+	uint rng_c_DAT_0044fa9c = 0;
+	unsigned short ai_rng_FUN_00412a70() {
+		uint uVar1;
+		unsigned short uVar2;
+		unsigned short uVar3;
+		unsigned short uVar4;
+		unsigned short uVar5 = 0;
+		//short local_4;
+
+		//uVar2 = param_1 & 0xffff0000 | (uint)rng_a_DAT_0044fa94;
+		uVar2 = (uint)rng_a_DAT_0044fa94;
+		if (((rng_a_DAT_0044fa94 == 0) && (rng_b_DAT_0044fa98 == 0)) && (rng_c_DAT_0044fa9c == 0)) {
+			rng_c_DAT_0044fa9c = 0xc;
+			//uVar2 = CONCAT22((short)((param_1 & 0xffff0000) >> 0x10), 0xe6);
+			uVar2 = 230;
+			rng_b_DAT_0044fa98 = 0x1c;
+		}
+		for (short i = 16; i > 0; i--) {
+			uVar3 = (uVar2 >> 1) + uVar5;
+			uVar5 = uVar2 & 1;
+			uVar4 = rng_c_DAT_0044fa9c & 0x80;
+			rng_c_DAT_0044fa9c = ((uVar3 >> 2 ^ rng_b_DAT_0044fa98) & 1) + rng_c_DAT_0044fa9c * 2;
+			uVar1 = rng_b_DAT_0044fa98;
+			rng_b_DAT_0044fa98 = (uVar4 >> 7) + rng_b_DAT_0044fa98 * 2;
+			//param_3 = param_3 & 0xffff0000 | (uVar1 & 0x80) >> 7;
+			uint param_3 = ((uVar1 & 0x80) >> 7);
+			uVar2 = param_3 + uVar2 * 2;
+		}
+		rng_a_DAT_0044fa94 = uVar2;
+		//return uVar2 & 0xffff0000 | (uint)(ushort)((short)uVar2 << 8 | rng_b_DAT_0044fa98);
+		return (uVar2 << 8 | rng_b_DAT_0044fa98);
+	}
+
+	uint rng() {
+		//return _random.getRandomNumber(UINT_MAX);
+		uint uVar1 = ai_rng_FUN_00412a70();
+		uint uVar2 = ai_rng_FUN_00412a70();
+		return uVar1 << 16 | uVar2 & 0xffff;
+	}
+
+	byte ai(int search_depth) {
+		int best_move = 0xffff;
+		uint counter = 1;
+
+		for (int best_score = 0x7fffffff; best_score > 999999 && search_depth > 1; search_depth--) {
+			for (byte move = 0; move < WIDTH; move++) {
+				if (is_column_full(move))
+					continue;
+
+				placeBonBon(move);
+				if (get_winner()) {
+					revert_move(move);
+					return move;
+				}
+
+				int score = recurse_ai(search_depth - 1, best_score);
+				revert_move(move);
+				if (score < best_score) {
+					counter = 1;
+					best_move = move;
+					best_score = score;
+				} else if (best_score == score) {
+					counter++;
+					uint r = rng() % 1000000;
+					if (r * counter < 1000000) {
+						best_move = move;
+					}
+				}
+			}
+		}
+
+		return best_move;
+	}
+
+
+	void run_cake_test_no_ai(const char *moves, bool player_win, bool draw = false) {
+		debug("starting run_cake_test_no_ai(%s, %d)\n", moves, (int)player_win);
+
+		restart();
+
+		for (int i = 0; moves[i]; i++) {
+			byte win = get_winner();
+			if (win) {
+				error("early win at %d, winner: %d", i, (int)win);
+			}
+			if (game_ended()) {
+				error("early draw at %d", i);
+			}
+			byte move = moves[i] - '0';
+			placeBonBon(move);
+		}
+
+		byte winner = get_winner();
+		if (draw) {
+			if (winner != 0 || !game_ended())
+				error("wasn't a draw! winner: %d, gameover: %d", (int)winner, (int)game_ended());
+		} else if (player_win && winner != PLAYER) {
+			error("player didn't win! winner: %d", (int)winner);
+		} else if (player_win == false && winner != STAUF) {
+			error("Stauf didn't win! winner: %d", (int)winner);
+		}
+
+		debug("finished run_cake_test_no_ai(%s, %d), winner: %d\n", moves, (int)player_win, (int)winner);
+	}
+
+	void run_cake_test(int a, int b, int c, const char *moves, bool player_win) {
+		debug("\nstarting run_cake_test(%d, %d, %d, %s, %d)", a, b, c, moves, (int)player_win);
+
+		// first fill the board with the expected moves and test the win-detection function by itself without AI
+		run_cake_test_no_ai(moves, player_win);
+
+		restart();
+		byte winner = 0;
+
+		byte last_move = 8;
+		winner = opConnectFour(last_move);
+
+		rng_a_DAT_0044fa94 = a;
+		rng_b_DAT_0044fa98 = b;
+		rng_c_DAT_0044fa9c = c;
+
+		for (int i = 0; moves[i]; i += 2) {
+			if (winner != 0) {
+				error("early win at %d, winner: %d", i, (int)winner);
+			}
+			last_move = moves[i] - '0';
+			byte stauf_move = moves[i + 1] - '0';
+
+			winner = opConnectFour(last_move);
+
+			if (stauf_move < 8) {
+				if (winner == 2) {
+					error("early player win at %d", i);
+				}
+
+				if (stauf_move != last_move) {
+					error("incorrect Stauf move, expected: %d, got: %d", (int)stauf_move, (int)last_move);
+				}
+			} else if (winner != 2) {
+				error("missing Stauf move, last_move: %d", (int)last_move);
+			} else
+				break;
+		}
+
+		if (player_win && winner != 2) {
+			error("player didn't win! winner: %d", (int)winner);
+		} else if (player_win == false && winner != 1) {
+			error("Stauf didn't win! winner: %d", (int)winner);
+		}
+
+		debug("finished run_cake_test(%d, %d, %d, %s, %d)\n", a, b, c, moves, (int)player_win);
+	}
+
+public:
+	void test_cake() {
+		// test the draw condition, grouped by column
+		run_cake_test_no_ai(/*move 1*/ "7777777" /*8*/ "6666666" /*15*/ "5555555" /*22*/ "34444444" /*30*/ "333333" /*36*/ "2222222" /*43*/ "01111111" /*51*/ "000000", false, true);
+
+		run_cake_test(5548, -468341609, 363632432, "24223233041", true);
+		run_cake_test(-8128, 65028198, -532650441, "232232432445", false);
+		run_cake_test(-21148, 732783721, -1385928214, "4453766355133466", false);
+	}
+
+};
+
 void T11hGame::opConnectFour() {
 	byte &last_move = _scriptVariables[1];
 	byte &winner = _scriptVariables[3];
+	winner = 0;
 
-	if (last_move == 8) {
-		clearCake();
-		return;
+	if (_cake == NULL) {
+		clearAIs();
+		_cake = new T11HCake(_random);
 	}
 
-	if (last_move == 9) {
-		// samantha makes a move
-		// TODO: fix graphical bug when samantha makes a move
-		last_move = connectFourAI();
-		return;
-	}
+	winner = _cake->opConnectFour(last_move);
 
-	cakePlaceBonBon(last_move, CAKE_TEAM_PLAYER);
-	winner = cakeGetWinner();
 	if (winner) {
-		return;
-	}
-
-	last_move = connectFourAI();
-	cakePlaceBonBon(last_move, CAKE_TEAM_STAUF);
-	winner = cakeGetWinner();
-}
-
-byte T11hGame::connectFourAI() {
-	// TODO: copy the AI from the game
-	// the cakeGetLineLen function returns the length of the line which should be the scoring function
-	uint slot = 0;
-	do {
-		slot = _random.getRandomNumber(7);
-	} while (cake_board[slot][CAKE_BOARD_HEIGHT - 1]);
-	return slot;
-}
-
-bool T11hGame::isCakeFull() {
-	return NULL == memchr(cake_board, 0, sizeof(cake_board));
-}
-
-byte T11hGame::cakeGetOpponent(byte team) {
-	if (team == CAKE_TEAM_PLAYER)
-		return CAKE_TEAM_STAUF;
-	else if (team == CAKE_TEAM_STAUF)
-		return CAKE_TEAM_PLAYER;
-	return 0;
-}
-
-// also use the cakeGetLineLen function as a scoring function for the AI
-int T11hGame::cakeGetLineLen(int start_x, int start_y, int slope_x, int slope_y, byte team) {
-	byte opponent = cakeGetOpponent(team);
-
-	// return 0 for worthless lines
-	if (start_x + slope_x * CAKE_GOAL_LEN > CAKE_BOARD_WIDTH)
-		return 0;
-	if (start_x + slope_x * CAKE_GOAL_LEN < 0)
-		return 0;
-	if (start_y + slope_y * CAKE_GOAL_LEN > CAKE_BOARD_HEIGHT)
-		return 0;
-	if (start_y + slope_y * CAKE_GOAL_LEN < 0)
-		return 0;
-
-	// don't loop past CAKE_GOAL_LEN because more than 4 is useless to rules and the AI
-	int x = start_x;
-	int y = start_y;
-	int len = 0;
-	for (int i = 0; i < CAKE_GOAL_LEN; i++) {
-		if (cake_board[x][y] == opponent)
-			return 0; // return 0 for worthless lines
-		if (cake_board[x][y] == team)
-			len++;
-
-		x += slope_x;
-		y += slope_y;
-	}
-	return len;
-}
-
-byte T11hGame::cakeGetWinner() {
-	// make sure to check if all columns are maxed then Stauf wins
-	if (isCakeFull())
-		return CAKE_TEAM_STAUF;
-
-	// search for lines of 4, we search up, right, up-right, and down-right
-	for (int x = 0; x < CAKE_BOARD_WIDTH; x++) {
-		for (int y = 0; y < CAKE_BOARD_HEIGHT; y++) {
-			byte team = cake_board[x][y];
-			// if this spot is team 0 then we can move on to the next column
-			if (team == 0)
-				break;
-
-			// if we find a line, then we return the team value stored in this spot
-			int line = 0;
-			line = MAX(cakeGetLineLen(x, y, 1, 0, team), line);
-			line = MAX(cakeGetLineLen(x, y, 0, 1, team), line);
-			line = MAX(cakeGetLineLen(x, y, 1, 1, team), line);
-			line = MAX(cakeGetLineLen(x, y, 1, -1, team), line);
-
-			if (line >= CAKE_GOAL_LEN)
-				return team;
-		}
-	}
-
-	return 0;
-}
-
-void T11hGame::clearCake() {
-	memset(cake_board, 0, sizeof(cake_board));
-}
-
-void T11hGame::cakePlaceBonBon(int x, byte team) {
-	for (int y = 0; y < CAKE_BOARD_HEIGHT; y++) {
-		if (cake_board[x][y] == 0) {
-			cake_board[x][y] = team;
-			return;
-		}
+		clearAIs();
 	}
 }
+
+void T11hGame::clearAIs() {
+	if (_cake != NULL) {
+		delete _cake;
+		_cake = NULL;
+	}
+}
+
 
 /*
  * Beehive puzzle
@@ -527,6 +849,17 @@ uint16 inline T11hGame::getScriptVar16(uint16 var) {
 	value += _scriptVariables[var + 1] << 8;
 
 	return value;
+}
+
+T11hGame::T11hGame(byte *scriptVariables) : _random("GroovieT11hGame"), _scriptVariables(scriptVariables), _cake(NULL) {
+#ifndef RELEASE_BUILD
+	_cake = new T11HCake(_random);
+	_cake->test_cake();
+	clearAIs();
+#endif
+}
+
+T11hGame::~T11hGame() {
 }
 
 } // End of Namespace Groovie
