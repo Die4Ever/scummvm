@@ -168,12 +168,12 @@ public:
 	*	- The first x and y dimensions of the loops select the origin point of the line
 	*	- The z is for the distance along that line
 	*	- Then we push_back the id number of the line into the array at _map.indecies[x][y]
-	*	- This is used in UpdateScores()
+	*	- This is used in updateScores()
 	*	.
-	* @see UpdateScores()
+	* @see updateScores()
 	*/
 	T11hCake(Common::RandomSource &rng) : _random(rng) {
-		Restart();
+		restart();
 
 		_map = {};
 		int numLines = 0;
@@ -182,7 +182,7 @@ public:
 		for (int y = 0; y < HEIGHT; y++) {
 			for (int x = 0; x <= WIDTH - GOAL_LEN; x++) {
 				for (int z = 0; z < GOAL_LEN; z++) {
-					SetLineNum(x + z, y, numLines);
+					setLineNum(x + z, y, numLines);
 				}
 				numLines++;
 			}
@@ -192,7 +192,7 @@ public:
 		for (int x = 0; x < WIDTH; x++) {
 			for (int y = 0; y <= HEIGHT - GOAL_LEN; y++) {
 				for (int z = 0; z < GOAL_LEN; z++) {
-					SetLineNum(x, y + z, numLines);
+					setLineNum(x, y + z, numLines);
 				}
 				numLines++;
 			}
@@ -202,7 +202,7 @@ public:
 		for (int y = 0; y <= HEIGHT - GOAL_LEN; y++) {
 			for (int x = 0; x <= WIDTH - GOAL_LEN; x++) {
 				for (int z = 0; z < GOAL_LEN; z++) {
-					SetLineNum(x + z, y + z, numLines);
+					setLineNum(x + z, y + z, numLines);
 				}
 				numLines++;
 			}
@@ -212,42 +212,42 @@ public:
 		for (int y = GOAL_LEN - 1; y < HEIGHT; y++) {
 			for (int x = 0; x <= WIDTH - GOAL_LEN; x++) {
 				for (int z = 0; z < GOAL_LEN; z++) {
-					SetLineNum(x + z, y - z, numLines);
+					setLineNum(x + z, y - z, numLines);
 				}
 				numLines++;
 			}
 		}
 	}
 
-	byte OpConnectFour(byte &lastMove) {
+	byte opConnectFour(byte &lastMove) {
 		if (lastMove == 8) {
-			Restart();
+			restart();
 			return 0;
 		}
 
 		if (lastMove == 9) {
 			// samantha makes a move
 			// TODO: fix graphical bug when samantha makes a move
-			lastMove = AiGetBestMove(6);
+			lastMove = aiGetBestMove(6);
 			_hasCheated = true;
 			return 0;
 		}
 
-		if (IsColumnFull(lastMove)) {
+		if (isColumnFull(lastMove)) {
 			warning("player tried to place a bon bon in a full column, last_move: %d", (int)lastMove);
 			lastMove = 10;
 			return 0;
 		}
 
-		PlaceBonBon(lastMove);
-		byte winner = GetWinner();
+		placeBonBon(lastMove);
+		byte winner = getWinner();
 		if (winner) {
 			return winner;
 		}
 
-		lastMove = AiGetBestMove(4 + (_hasCheated == false));
-		PlaceBonBon(lastMove);
-		if (GameEnded())
+		lastMove = aiGetBestMove(4 + (_hasCheated == false));
+		placeBonBon(lastMove);
+		if (gameEnded())
 			return STAUF;
 
 		return 0;
@@ -286,7 +286,7 @@ private:
 
 	LinesMappings _map;//!< ID numbers for all of the potential victory lines for each spot on the board
 
-	void Restart() {
+	void restart() {
 		_playerProgress = {};
 		_staufProgress = {};
 		memset(_boardState, 0, sizeof(_boardState));
@@ -298,7 +298,7 @@ private:
 		_staufProgress._score = NUM_LINES;
 	}
 
-	void SetLineNum(uint x, uint y, uint index) {
+	void setLineNum(uint x, uint y, uint index) {
 		assert(x < WIDTH);
 		assert(y < HEIGHT);
 		byte slot = _map.lengths[x][y]++;
@@ -307,11 +307,11 @@ private:
 		_map.indecies[x][y][slot] = index;
 	}
 
-	bool IsColumnFull(byte column) {
+	bool isColumnFull(byte column) {
 		return _columnHeights[column] >= HEIGHT;
 	}
 
-	PlayerProgress &GetPlayerProgress(bool stauf) {
+	PlayerProgress &getPlayerProgress(bool stauf) {
 		if (stauf)
 			return _staufProgress;
 		else
@@ -319,7 +319,7 @@ private:
 	}
 
 	/*
-	* UpdateScores()
+	* updateScores()
 	*	- Each PlayerProgress has an array of ints, _linesCounters[], where each entry maps to the ID of a line
 	*	- When a bon bon is added to the board, we look up _map.lengths[x][y] and then loop through all the indecies for that point
 	*		- Increment the PlayerProgress._linesCounters[id]
@@ -327,9 +327,9 @@ private:
 	*		.
 	*	.
 	*/
-	void UpdateScores(byte x, bool revert=false) {
+	void updateScores(byte x, bool revert=false) {
 		bool stauf = _moveCount % 2;
-		PlayerProgress &pp = GetPlayerProgress(stauf);
+		PlayerProgress &pp = getPlayerProgress(stauf);
 
 		byte y = _columnHeights[x] - 1;
 
@@ -355,7 +355,7 @@ private:
 				pp._score += WIN_SCORE * mult;
 			}
 			else {
-				PlayerProgress &pp2 = GetPlayerProgress(!stauf);
+				PlayerProgress &pp2 = getPlayerProgress(!stauf);
 				int len2 = pp2._linesCounters[index];
 				if (len == 0) {
 					// we started a new line, take away the points the opponent had from this line since we ruined it for them
@@ -369,29 +369,29 @@ private:
 		}
 	}
 
-	void PlaceBonBon(byte x) {
+	void placeBonBon(byte x) {
 		byte y = _columnHeights[x]++;
 		if (_moveCount % 2)
 			_boardState[x][y] = STAUF;
 		else
 			_boardState[x][y] = PLAYER;
 
-		UpdateScores(x);
+		updateScores(x);
 
 		_moveCount++;
 	}
 
-	void RevertMove(byte x) {
-		// PlaceBonBon in reverse, this is used for the AI's recursion rollback
+	void revertMove(byte x) {
+		// placeBonBon in reverse, this is used for the AI's recursion rollback
 		_moveCount--;
 
-		UpdateScores(x, true);
+		updateScores(x, true);
 
 		byte y = --_columnHeights[x];
 		_boardState[x][y] = 0;
 	}
 
-	byte GetWinner() {
+	byte getWinner() {
 		if (_playerProgress._score >= WIN_SCORE)
 			return PLAYER;
 
@@ -401,8 +401,8 @@ private:
 		return 0;
 	}
 
-	bool GameEnded() {
-		if (GetWinner())
+	bool gameEnded() {
+		if (getWinner())
 			return true;
 
 		if (_moveCount >= WIDTH * HEIGHT)
@@ -411,25 +411,25 @@ private:
 		return false;
 	}
 
-	int GetScoreDiff() {
+	int getScoreDiff() {
 		if (_moveCount % 2)
 			return _staufProgress._score - _playerProgress._score;
 		else
 			return _playerProgress._score - _staufProgress._score;
 	}
 
-	int AiRecurse(int search_depth, int parent_score) {
+	int aiRecurse(int search_depth, int parent_score) {
 		int best_score = 0x7fffffff;
 
 		for (byte move = 0; move < WIDTH; move++) {
-			if (IsColumnFull(move))
+			if (isColumnFull(move))
 				continue;
 
-			PlaceBonBon(move);
-			int score = GetScoreDiff();
-			if (search_depth > 1 && !GameEnded())
-				score = AiRecurse(search_depth - 1, best_score);
-			RevertMove(move);
+			placeBonBon(move);
+			int score = getScoreDiff();
+			if (search_depth > 1 && !gameEnded())
+				score = aiRecurse(search_depth - 1, best_score);
+			revertMove(move);
 
 			if (score < best_score)
 				best_score = score;
@@ -442,27 +442,27 @@ private:
 		return -best_score;
 	}
 
-	uint Rng() {
+	uint rng() {
 		return _random.getRandomNumber(UINT_MAX);
 	}
 
-	byte AiGetBestMove(int search_depth) {
+	byte aiGetBestMove(int search_depth) {
 		int best_move = 0xffff;
 		uint counter = 1;
 
 		for (int best_score = 0x7fffffff; best_score > 999999 && search_depth > 1; search_depth--) {
 			for (byte move = 0; move < WIDTH; move++) {
-				if (IsColumnFull(move))
+				if (isColumnFull(move))
 					continue;
 
-				PlaceBonBon(move);
-				if (GetWinner()) {
-					RevertMove(move);
+				placeBonBon(move);
+				if (getWinner()) {
+					revertMove(move);
 					return move;
 				}
 
-				int score = AiRecurse(search_depth - 1, best_score);
-				RevertMove(move);
+				int score = aiRecurse(search_depth - 1, best_score);
+				revertMove(move);
 				if (score < best_score) {
 					counter = 1;
 					best_move = move;
@@ -470,7 +470,7 @@ private:
 				} else if (best_score == score) {
 					// rng is only used on moves with equal scores
 					counter++;
-					uint r = Rng() % 1000000;
+					uint r = rng() % 1000000;
 					if (r * counter < 1000000) {
 						best_move = move;
 					}
@@ -492,7 +492,7 @@ void T11hGame::opConnectFour() {
 		_cake = new T11hCake(_random);
 	}
 
-	winner = _cake->OpConnectFour(last_move);
+	winner = _cake->opConnectFour(last_move);
 
 	if (winner) {
 		clearAIs();
@@ -580,10 +580,1351 @@ int8 T11hGame::opBeehiveGetTotal(int8 *hexagons) {
 	return result;
 }
 
+// Ghidra crap pente
+typedef uint16 ushort;
+typedef int undefined4;
+typedef uint16 undefined2;
+typedef byte undefined;
+
+#pragma pack(push, 1)
+struct int24 {
+	int data : 24;
+};
+#pragma pack(pop)
+typedef int24 undefined3;
+
+// these 3 control cake rng in some weird way
+int rng_a_DAT_0044fa94 = 0;
+int rng_b_DAT_0044fa98 = 0;
+int rng_c_DAT_0044fa9c = 0;
+
+// counter gets incremented on free and decremented on malloc, but nothing actually checks it, maybe was just used in debugging
+int free_mem_DAT_0045aae4 = 0;
+
+uint CONCAT31(uint a, uint b) {
+	uint ret;
+	ret = (a << 8) & 0xffffff00;
+	ret |= b & 0xff;
+	return ret;
+}
+
+uint CONCAT22(uint a, uint b) {
+	uint ret;
+	ret = (a << 16) & 0xffff0000;
+	ret |= b & 0xffff;
+	return ret;
+}
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void __cdecl free_FUN_00406c80(int param_1)
+
+{
+	free_mem_DAT_0045aae4 = free_mem_DAT_0045aae4 + *(int *)(param_1 + -4);
+	free((int *)(param_1 + -4));
+	return;
+}
+
+int *__cdecl allocs_FUN_00406bc0(int param_1, int param_2)
+
+{
+	int *piVar1;
+	//int iVar2;
+	uint uVar3;
+	uint uVar4;
+	int iVar5;
+	int *piVar6;
+	//const char *pcVar7;
+	//undefined4 local_4;
+
+	iVar5 = param_2 * param_1;
+	uVar4 = iVar5 + 4;
+	piVar1 = (int *)malloc(uVar4);
+	if (piVar1 == (int *)0x0) {
+		error("malloc failed, uVar4: %d", (int)uVar4);
+		/*iVar2 = error_FUN_0040d7b0(uVar4);
+		if (iVar2 == 1) {
+			piVar1 = (int *)malloc(uVar4);
+			if (piVar1 != (int *)0x0)
+				goto LAB_00406c49;
+			pcVar7 = "s_Out_of_memory_0043d644";
+		} else {
+			//FUN_00406a20();
+			if (error_DAT_0043d35c == 4) {
+				local_4 = 0x10;
+				error_FUN_0040e920(0, &local_4);
+				warning("s_Info : _your_configuration_has_bee_0043d5fc been reset to 16bpp to use less memory");
+			}
+			pcVar7 = "s_Out_of_memory._Info : _It's_possib_0043d51c";
+		}
+		error_FUN_0040b870(pcVar7, 2);*/
+	}
+	//LAB_00406c49:
+	if (uVar4 != 0) {
+		piVar6 = piVar1;
+		for (uVar3 = uVar4 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+			*piVar6 = 0;
+			piVar6 = piVar6 + 1;
+		}
+		for (uVar4 = uVar4 & 3; uVar4 != 0; uVar4 = uVar4 - 1) {
+			*(undefined *)piVar6 = 0;
+			piVar6 = (int *)((int)piVar6 + 1);
+		}
+	}
+	*piVar1 = iVar5 + 4;
+	free_mem_DAT_0045aae4 = free_mem_DAT_0045aae4 - (iVar5 + 4);
+	return piVar1 + 1;
+}
+
+//uint FUN_00412a70(uint param_1, undefined4 param_2, uint param_3)
+ushort ai_rng_FUN_00412a70(/*uint param_1,*/ /*undefined4 &param_2,*/ /*uint &param_3*/) {
+	uint uVar1;
+	ushort uVar2;
+	ushort uVar3;
+	ushort uVar4;
+	ushort uVar5 = 0;
+	//short local_4;
+
+	//uVar2 = param_1 & 0xffff0000 | (uint)rng_a_DAT_0044fa94;
+	uVar2 = (uint)rng_a_DAT_0044fa94;
+	if (((rng_a_DAT_0044fa94 == 0) && (rng_b_DAT_0044fa98 == 0)) && (rng_c_DAT_0044fa9c == 0)) {
+		rng_c_DAT_0044fa9c = 0xc;
+		//uVar2 = CONCAT22((short)((param_1 & 0xffff0000) >> 0x10), 0xe6);
+		uVar2 = 230;
+		rng_b_DAT_0044fa98 = 0x1c;
+	}
+	/*local_4 = 0x10;
+	uVar5 = 0;
+	do {
+		uVar3 = (uVar2 >> 1) + uVar5;
+		uVar5 = uVar2 & 1;
+		uVar4 = rng_c_DAT_0044fa9c & 0x80;
+		rng_c_DAT_0044fa9c = ((uVar3 >> 2 ^ rng_b_DAT_0044fa98) & 1) + rng_c_DAT_0044fa9c * 2;
+		uVar1 = rng_b_DAT_0044fa98;
+		rng_b_DAT_0044fa98 = (uVar4 >> 7) + rng_b_DAT_0044fa98 * 2;
+		//param_3 = param_3 & 0xffff0000 | (uVar1 & 0x80) >> 7;
+		param_3 = ((uVar1 & 0x80) >> 7);
+		local_4 = local_4 + -1;
+		uVar2 = param_3 + uVar2 * 2;
+	} while (local_4 != 0);*/
+	for (short i = 16; i > 0; i--) {
+		uVar3 = (uVar2 >> 1) + uVar5;
+		uVar5 = uVar2 & 1;
+		uVar4 = rng_c_DAT_0044fa9c & 0x80;
+		rng_c_DAT_0044fa9c = ((uVar3 >> 2 ^ rng_b_DAT_0044fa98) & 1) + rng_c_DAT_0044fa9c * 2;
+		uVar1 = rng_b_DAT_0044fa98;
+		rng_b_DAT_0044fa98 = (uVar4 >> 7) + rng_b_DAT_0044fa98 * 2;
+		//param_3 = param_3 & 0xffff0000 | (uVar1 & 0x80) >> 7;
+		uint param_3 = ((uVar1 & 0x80) >> 7);
+		uVar2 = param_3 + uVar2 * 2;
+	}
+	rng_a_DAT_0044fa94 = uVar2;
+	//return uVar2 & 0xffff0000 | (uint)(ushort)((short)uVar2 << 8 | rng_b_DAT_0044fa98);
+	return (uVar2 << 8 | rng_b_DAT_0044fa98);
+}
+
+uint ai_rng_FUN_00412b50(/*uint param_1, undefined4 param_2,*/ /*uint param_3*/)
+
+{
+	uint uVar1;
+	uint uVar2;
+	//uint extraout_ECX;
+	//undefined4 extraout_EDX;
+
+	uVar1 = ai_rng_FUN_00412a70(/*param_1,*/ /*param_2,*/ /*param_3*/);
+	//uVar2 = FUN_00412a70(uVar1, extraout_EDX, extraout_ECX);
+	uVar2 = ai_rng_FUN_00412a70(/*uVar1,*/ /*param_2,*/ /*param_3*/);
+	return uVar1 << 16 | uVar2 & 0xffff;
+}
+
+// this looks just like what connect four does, building a lookup table of potential victory lines
+void __cdecl pente_sub05_build_lookup_table_FUN_004143c0(int param_1)
+
+{
+	int iVar1;
+	byte bVar2;
+	byte bVar3;
+	short *psVar4;
+	ushort *puVar5;
+	uint uVar6;
+	int *piVar7;
+	int *piVar8;
+	uint uVar9;
+	byte bVar10;
+	uint uVar11;
+	byte bVar12;
+	byte local_14;
+	byte local_13;
+	ushort local_12;
+
+	bVar10 = *(byte *)(param_1 + 0x12);
+	bVar2 = *(byte *)(param_1 + 0x13);
+	bVar12 = 0;
+	local_12 = 0;
+	bVar3 = *(byte *)(param_1 + 0x16);
+	uVar6 = (uint)bVar10;
+	piVar7 = allocs_FUN_00406bc0(uVar6, 4);
+	if (bVar10 != 0) {
+		do {
+			piVar8 = allocs_FUN_00406bc0((uint)bVar2, 4);
+			uVar9 = (uint)bVar12;
+			bVar12 = bVar12 + 1;
+			piVar7[uVar9] = (int)piVar8;
+		} while (bVar12 < bVar10);
+	}
+	local_13 = 0;
+	if (bVar10 != 0) {
+		do {
+			bVar12 = 0;
+			if (bVar2 != 0) {
+				do {
+					piVar8 = allocs_FUN_00406bc0((uint)bVar3 * 4 + 1, 2);
+					uVar9 = (uint)bVar12;
+					bVar12 = bVar12 + 1;
+					*(int **)(piVar7[local_13] + uVar9 * 4) = piVar8;
+				} while (bVar12 < bVar2);
+			}
+			local_13 = local_13 + 1;
+		} while (local_13 < bVar10);
+	}
+	local_14 = 0;
+	if (bVar2 != 0) {
+		do {
+			local_13 = 0;
+			if (-1 < (int)(uVar6 - bVar3)) {
+				do {
+					bVar12 = 0;
+					if (bVar3 != 0) {
+						do {
+							uVar9 = (uint)bVar12;
+							bVar12 = bVar12 + 1;
+							psVar4 = *(short **)(piVar7[uVar9 + local_13] + (uint)local_14 * 4);
+							*psVar4 = *psVar4 + 1;
+							puVar5 = *(ushort **)(piVar7[uVar9 + local_13] + (uint)local_14 * 4);
+							puVar5[*puVar5] = local_12;
+						} while (bVar12 < bVar3);
+					}
+					local_12 = local_12 + 1;
+					local_13 = local_13 + 1;
+				} while ((int)(uint)local_13 <= (int)(uVar6 - bVar3));
+			}
+			local_14 = local_14 + 1;
+		} while (local_14 < bVar2);
+	}
+	local_13 = 0;
+	if (bVar10 != 0) {
+		do {
+			local_14 = 0;
+			if (-1 < (int)((uint)bVar2 - (uint)bVar3)) {
+				do {
+					if (bVar3 != 0) {
+						uVar9 = 0;
+						do {
+							bVar12 = (char)uVar9 + 1;
+							iVar1 = (uVar9 + local_14) * 4;
+							psVar4 = *(short **)(piVar7[local_13] + iVar1);
+							*psVar4 = *psVar4 + 1;
+							puVar5 = *(ushort **)(piVar7[local_13] + iVar1);
+							puVar5[*puVar5] = local_12;
+							uVar9 = (uint)bVar12;
+						} while (bVar12 < bVar3);
+					}
+					local_12 = local_12 + 1;
+					local_14 = local_14 + 1;
+				} while ((int)(uint)local_14 <= (int)((uint)bVar2 - (uint)bVar3));
+			}
+			local_13 = local_13 + 1;
+		} while (local_13 < bVar10);
+	}
+	local_14 = 0;
+	uVar9 = (uint)bVar3;
+	if (-1 < (int)(bVar2 - uVar9)) {
+		do {
+			local_13 = 0;
+			if (-1 < (int)(uVar6 - uVar9)) {
+				do {
+					if (bVar3 != 0) {
+						uVar11 = 0;
+						do {
+							bVar10 = (char)uVar11 + 1;
+							iVar1 = (uVar11 + local_14) * 4;
+							psVar4 = *(short **)(piVar7[local_13 + uVar11] + iVar1);
+							*psVar4 = *psVar4 + 1;
+							puVar5 = *(ushort **)(piVar7[local_13 + uVar11] + iVar1);
+							puVar5[*puVar5] = local_12;
+							uVar11 = (uint)bVar10;
+						} while (bVar10 < bVar3);
+					}
+					local_12 = local_12 + 1;
+					local_13 = local_13 + 1;
+				} while ((int)(uint)local_13 <= (int)(uVar6 - uVar9));
+			}
+			local_14 = local_14 + 1;
+		} while ((int)(uint)local_14 <= (int)(bVar2 - uVar9));
+	}
+	local_14 = bVar3 - 1;
+	if (local_14 < bVar2) {
+		do {
+			local_13 = 0;
+			if (-1 < (int)(uVar6 - uVar9)) {
+				do {
+					if (bVar3 != 0) {
+						uVar11 = 0;
+						do {
+							bVar10 = (char)uVar11 + 1;
+							iVar1 = (local_14 - uVar11) * 4;
+							psVar4 = *(short **)(piVar7[local_13 + uVar11] + iVar1);
+							*psVar4 = *psVar4 + 1;
+							puVar5 = *(ushort **)(piVar7[local_13 + uVar11] + iVar1);
+							puVar5[*puVar5] = local_12;
+							uVar11 = (uint)bVar10;
+						} while (bVar10 < bVar3);
+					}
+					local_12 = local_12 + 1;
+					local_13 = local_13 + 1;
+				} while ((int)(uint)local_13 <= (int)(uVar6 - uVar9));
+			}
+			local_14 = local_14 + 1;
+		} while (local_14 < bVar2);
+	}
+	*(ushort *)(param_1 + 0x20) = local_12;
+	*(int **)(param_1 + 0x24) = piVar7;
+	return;
+}
+
+int **__cdecl pente_sub01_init_FUN_00414220(byte param_1, byte param_2, undefined param_3)
+
+{
+	int **ppiVar1;
+	int *piVar2;
+	uint uVar3;
+	byte bVar4;
+	ushort local_4;
+
+	ppiVar1 = (int **)allocs_FUN_00406bc0(1, 0x30);
+	*(byte *)((int)ppiVar1 + 0x12) = param_1;
+	*(byte *)((int)ppiVar1 + 0x13) = param_2;
+	local_4 = (ushort)param_2;
+	*(ushort *)(ppiVar1 + 5) = local_4 * param_1;
+	bVar4 = 0;
+	*(undefined *)((int)ppiVar1 + 0x16) = param_3;
+	piVar2 = allocs_FUN_00406bc0((uint)param_1, 4);
+	ppiVar1[7] = piVar2;
+	if (param_1 != 0) {
+		do {
+			piVar2 = allocs_FUN_00406bc0((uint)param_2, 1);
+			uVar3 = (uint)bVar4;
+			bVar4 = bVar4 + 1;
+			ppiVar1[7][uVar3] = (int)piVar2;
+		} while (bVar4 < param_1);
+	}
+	pente_sub05_build_lookup_table_FUN_004143c0((int)ppiVar1);
+	piVar2 = allocs_FUN_00406bc0(*(ushort *)(ppiVar1 + 8) + 1, 4);
+	*ppiVar1 = piVar2;
+	piVar2 = allocs_FUN_00406bc0(*(ushort *)(ppiVar1 + 8) + 1, 4);
+	ppiVar1[1] = piVar2;
+	bVar4 = 0;
+	ppiVar1[3] = (int *)(uint) * (ushort *)(ppiVar1 + 8);
+	ppiVar1[2] = (int *)(uint) * (ushort *)(ppiVar1 + 8);
+	piVar2 = allocs_FUN_00406bc0((uint)param_1, 4);
+	ppiVar1[10] = piVar2;
+	if (param_1 != 0) {
+		do {
+			piVar2 = allocs_FUN_00406bc0((uint)param_2, 1);
+			uVar3 = (uint)bVar4;
+			bVar4 = bVar4 + 1;
+			ppiVar1[10][uVar3] = (int)piVar2;
+		} while (bVar4 < param_1);
+	}
+	*(undefined *)(ppiVar1 + 0xb) = 1;
+	return ppiVar1;
+}
+
+
+void __cdecl pente_sub06_frees_FUN_00414720(int param_1)
+
+{
+	byte bVar1;
+	byte bVar2;
+	int *piVar3;
+	uint uVar4;
+	int *piVar5;
+	int iVar6;
+	uint local_4;
+
+	piVar3 = *(int **)(param_1 + 0x24);
+	bVar1 = *(byte *)(param_1 + 0x12);
+	bVar2 = *(byte *)(param_1 + 0x13);
+	if (bVar1 != 0) {
+		local_4 = (uint)bVar1;
+		piVar5 = piVar3;
+		do {
+			if (bVar2 != 0) {
+				iVar6 = 0;
+				uVar4 = (uint)bVar2;
+				do {
+					iVar6 = iVar6 + 4;
+					free_FUN_00406c80(*(int *)(*piVar5 + -4 + iVar6));
+					uVar4 = uVar4 - 1;
+				} while (uVar4 != 0);
+			}
+			piVar5 = piVar5 + 1;
+			local_4 = local_4 - 1;
+		} while (local_4 != 0);
+	}
+	if (bVar1 != 0) {
+		uVar4 = (uint)bVar1;
+		piVar5 = piVar3;
+		do {
+			iVar6 = *piVar5;
+			piVar5 = piVar5 + 1;
+			free_FUN_00406c80(iVar6);
+			uVar4 = uVar4 - 1;
+		} while (uVar4 != 0);
+	}
+	free_FUN_00406c80((int)piVar3);
+	*(undefined4 *)(param_1 + 0x24) = 0;
+	*(undefined2 *)(param_1 + 0x20) = 0;
+	return;
+}
+
+
+
+void __cdecl pente_sub02_frees_FUN_00414330(int *param_1)
+
+{
+	uint uVar1;
+	byte bVar2;
+
+	free_FUN_00406c80(*param_1);
+	bVar2 = 0;
+	free_FUN_00406c80(param_1[1]);
+	if (*(char *)((int)param_1 + 0x12) != '\0') {
+		do {
+			uVar1 = (uint)bVar2;
+			bVar2 = bVar2 + 1;
+			free_FUN_00406c80(*(int *)(param_1[7] + uVar1 * 4));
+		} while (bVar2 <= *(byte *)((int)param_1 + 0x12) && *(byte *)((int)param_1 + 0x12) != bVar2);
+	}
+	bVar2 = 0;
+	free_FUN_00406c80(param_1[7]);
+	if (*(char *)((int)param_1 + 0x12) != '\0') {
+		do {
+			uVar1 = (uint)bVar2;
+			bVar2 = bVar2 + 1;
+			free_FUN_00406c80(*(int *)(param_1[10] + uVar1 * 4));
+		} while (bVar2 <= *(byte *)((int)param_1 + 0x12) && *(byte *)((int)param_1 + 0x12) != bVar2);
+	}
+	free_FUN_00406c80(param_1[10]);
+	pente_sub06_frees_FUN_00414720((int)param_1);
+	free_FUN_00406c80((int)param_1);
+	return;
+}
+
+
+// this looks similar to the scoring function from connect four
+void __cdecl pente_sub03_scoring_FUN_00413200(int param_1, byte param_2, byte param_3, byte param_4)
+
+{
+	int *piVar1;
+	int *piVar2;
+	char *pcVar3;
+	byte *pbVar4;
+	int iVar5;
+	int iVar6;
+	int iVar7;
+	uint uVar8;
+	byte bVar9;
+	byte bVar10;
+	uint uVar11;
+	byte bVar12;
+	byte bVar13;
+	uint uVar14;
+	int *piVar15;
+	byte local_15;
+
+	iVar5 = *(int *)(param_1 + 0x24);
+	iVar6 = *(int *)(param_1 + 0x28);
+	uVar11 = (uint)param_3;
+	uVar14 = (uint)param_2;
+	*(byte *)(*(int *)(*(int *)(param_1 + 0x1c) + uVar11 * 4) + uVar14) =
+		(-(param_4 == 0) & 0xf7U) + 0x58;
+	piVar1 = (int *)(iVar5 + uVar11 * 4);
+	local_15 = 1;
+	bVar9 = **(byte **)(*piVar1 + uVar14 * 4);
+	if (bVar9 != 0) {
+		piVar2 = (int *)(param_1 + (uint)param_4 * 4);
+		do {
+			piVar15 = (int *)((uint) * (ushort *)(*(int *)(*piVar1 + uVar14 * 4) + (uint)local_15 * 2) * 4 +
+							  *piVar2);
+			iVar5 = *piVar15;
+			*piVar15 = iVar5 + 1;
+			if ((uint) * (byte *)(param_1 + 0x16) - iVar5 == 1) {
+				piVar2[2] = piVar2[2] + 100000000;
+			} else {
+				uVar8 = (uint)(param_4 == 0);
+				iVar7 = *(int *)(*(int *)(param_1 + uVar8 * 4) +
+								 (uint) * (ushort *)(*(int *)(*piVar1 + uVar14 * 4) + (uint)local_15 * 2) * 4);
+				if ((iVar5 == 0) &&
+					(piVar15 = (int *)(param_1 + 8 + uVar8 * 4),
+					 *piVar15 = *piVar15 + (-1 << ((byte)iVar7 & 0x1f)),
+					 (uint) * (byte *)(param_1 + 0x16) - iVar7 == 1)) {
+					pcVar3 = (char *)(uVar8 + 0x10 + param_1);
+					*pcVar3 = *pcVar3 + -1;
+				}
+				if (((iVar7 == 0) &&
+					 (piVar2[2] = piVar2[2] + (1 << ((byte)iVar5 & 0x1f)),
+					  (uint) * (byte *)(param_1 + 0x16) - iVar5 == 2)) &&
+					(pbVar4 = (byte *)(param_4 + 0x10 + param_1), bVar10 = *pbVar4 + 1, *pbVar4 = bVar10,
+					 1 < bVar10)) {
+					piVar2[2] = piVar2[2] + 1000000;
+				}
+			}
+			local_15 = local_15 + 1;
+		} while (local_15 <= bVar9);
+	}
+	if (*(char *)(param_1 + 0x2c) != '\0') {
+		if (uVar11 + 1 < (uint) * (byte *)(param_1 + 0x12)) {
+			bVar9 = param_3 + 1;
+		} else {
+			bVar9 = *(byte *)(param_1 + 0x12) - 1;
+		}
+		if (uVar14 + 1 < (uint) * (byte *)(param_1 + 0x13)) {
+			bVar10 = param_2 + 1;
+		} else {
+			bVar10 = *(byte *)(param_1 + 0x13) - 1;
+		}
+		bVar13 = 0;
+		if (1 < param_3) {
+			bVar13 = param_3 - 1;
+		}
+		for (; bVar13 <= bVar9; bVar13 = bVar13 + 1) {
+			bVar12 = 0;
+			if (1 < param_2) {
+				bVar12 = param_2 - 1;
+			}
+			if (bVar12 <= bVar10) {
+				do {
+					uVar11 = (uint)bVar12;
+					bVar12 = bVar12 + 1;
+					pcVar3 = (char *)(uVar11 + *(int *)(iVar6 + (uint)bVar13 * 4));
+					*pcVar3 = *pcVar3 + '\x01';
+				} while (bVar12 <= bVar10);
+			}
+		}
+	}
+	*(short *)(param_1 + 0x18) = *(short *)(param_1 + 0x18) + 1;
+	return;
+}
+
+
+// this looks like the revert score function from connect four
+void __cdecl pente_sub07_revert_score_FUN_004133e0(int param_1, byte param_2, byte param_3)
+
+{
+	int *piVar1;
+	int *piVar2;
+	int *piVar3;
+	byte *pbVar4;
+	char cVar5;
+	int iVar6;
+	int iVar7;
+	uint uVar8;
+	byte bVar9;
+	uint uVar10;
+	uint uVar11;
+	byte bVar12;
+	byte bVar13;
+	char *pcVar14;
+	uint uVar15;
+	byte bVar16;
+	int iVar17;
+	bool bVar18;
+	byte local_11;
+
+	uVar10 = (uint)param_3;
+	uVar15 = (uint)param_2;
+	pcVar14 = (char *)(*(int *)(*(int *)(param_1 + 0x1c) + uVar10 * 4) + uVar15);
+	iVar6 = *(int *)(param_1 + 0x24);
+	iVar7 = *(int *)(param_1 + 0x28);
+	cVar5 = *pcVar14;
+	*pcVar14 = '\0';
+	bVar18 = cVar5 == 'X';
+	*(short *)(param_1 + 0x18) = *(short *)(param_1 + 0x18) + -1;
+	piVar1 = (int *)(iVar6 + uVar10 * 4);
+	local_11 = 1;
+	bVar12 = **(byte **)(*piVar1 + uVar15 * 4);
+	if (bVar12 != 0) {
+		uVar11 = (uint)bVar18;
+		piVar2 = (int *)(param_1 + uVar11 * 4);
+		do {
+			piVar3 = (int *)(*piVar2 +
+							 (uint) * (ushort *)(*(int *)(*piVar1 + uVar15 * 4) + (uint)local_11 * 2) * 4);
+			*piVar3 = *piVar3 + -1;
+			iVar17 = (uint) * (ushort *)(*(int *)(*piVar1 + uVar15 * 4) + (uint)local_11 * 2) * 4;
+			iVar6 = *(int *)(*piVar2 + iVar17);
+			if ((uint) * (byte *)(param_1 + 0x16) - iVar6 == 1) {
+				piVar2[2] = piVar2[2] + -100000000;
+			} else {
+				uVar8 = (uint)!bVar18;
+				iVar17 = *(int *)(*(int *)(param_1 + uVar8 * 4) + iVar17);
+				if ((iVar6 == 0) &&
+					(piVar3 = (int *)(param_1 + 8 + uVar8 * 4),
+					 *piVar3 = *piVar3 + (1 << ((byte)iVar17 & 0x1f)),
+					 (uint) * (byte *)(param_1 + 0x16) - iVar17 == 1)) {
+					pcVar14 = (char *)(param_1 + 0x10 + uVar8);
+					*pcVar14 = *pcVar14 + '\x01';
+				}
+				if (((iVar17 == 0) &&
+					 (piVar2[2] = piVar2[2] + (-1 << ((byte)iVar6 & 0x1f)),
+					  (uint) * (byte *)(param_1 + 0x16) - iVar6 == 2)) &&
+					(pbVar4 = (byte *)(param_1 + 0x10 + uVar11), bVar16 = *pbVar4, *pbVar4 = bVar16 - 1,
+					 1 < bVar16)) {
+					piVar2[2] = piVar2[2] + -1000000;
+				}
+			}
+			local_11 = local_11 + 1;
+		} while (local_11 <= bVar12);
+	}
+	if (*(char *)(param_1 + 0x2c) != '\0') {
+		if (uVar10 + 1 < (uint) * (byte *)(param_1 + 0x12)) {
+			bVar12 = param_3 + 1;
+		} else {
+			bVar12 = *(byte *)(param_1 + 0x12) - 1;
+		}
+		if (uVar15 + 1 < (uint) * (byte *)(param_1 + 0x13)) {
+			bVar16 = param_2 + 1;
+		} else {
+			bVar16 = *(byte *)(param_1 + 0x13) - 1;
+		}
+		bVar13 = 0;
+		if (1 < param_3) {
+			bVar13 = param_3 - 1;
+		}
+		for (; bVar13 <= bVar12; bVar13 = bVar13 + 1) {
+			bVar9 = 0;
+			if (1 < param_2) {
+				bVar9 = param_2 - 1;
+			}
+			if (bVar9 <= bVar16) {
+				do {
+					uVar10 = (uint)bVar9;
+					bVar9 = bVar9 + 1;
+					pcVar14 = (char *)(uVar10 + *(int *)(iVar7 + (uint)bVar13 * 4));
+					*pcVar14 = *pcVar14 + -1;
+				} while (bVar9 <= bVar16);
+			}
+		}
+	}
+	return;
+}
+
+
+// this might be for capturing pieces, looks like it does a bunch of checks for a double revert (2 pieces being removed)
+// at the end it checks if it's the 5th capture and adds the winning score if it is, otherwise adds a score proportional to how many captures you have
+uint __cdecl pente_sub04_score_capture_FUN_004135c0(int param_1, byte param_2, byte param_3)
+
+{
+	int *piVar1;
+	int iVar2;
+	int *piVar3;
+	byte bVar4;
+	char cVar5;
+	uint uVar6;
+	byte bVar7;
+	char cVar8;
+	int iVar9;
+	int iVar10;
+	char cVar11;
+	byte bVar12;
+	uint local_8;
+
+	cVar11 = '\0';
+	bVar4 = *(byte *)(param_1 + 0x13);
+	local_8 = (uint)param_3;
+	piVar1 = (int *)(*(int *)(param_1 + 0x1c) + local_8 * 4);
+	uVar6 = (uint)param_2;
+	cVar5 = *(char *)(*piVar1 + uVar6);
+	bVar7 = -(cVar5 == 'O') & 9;
+	cVar8 = bVar7 + 0x4f;
+	iVar9 = *(byte *)(param_1 + 0x12) - 4;
+	if ((int)local_8 <= iVar9) {
+		if (*(char *)(piVar1[3] + uVar6) == cVar5) {
+			if ((*(char *)(piVar1[2] + uVar6) == cVar8) && (*(char *)(piVar1[1] + uVar6) == cVar8)) {
+				pente_sub07_revert_score_FUN_004133e0(param_1, param_2, param_3 + 2);
+				cVar11 = '\x01';
+				pente_sub07_revert_score_FUN_004133e0(param_1, param_2, param_3 + 1);
+			}
+		}
+	}
+	bVar12 = cVar11 * '\x02';
+	if (((int)local_8 <= iVar9) && ((int)uVar6 <= (int)(bVar4 - 4))) {
+		if (*(char *)(piVar1[3] + 3 + uVar6) == cVar5) {
+			if ((*(char *)(piVar1[2] + 2 + uVar6) == cVar8) && (*(char *)(piVar1[1] + 1 + uVar6) == cVar8)) {
+				pente_sub07_revert_score_FUN_004133e0(param_1, param_2 + 2, param_3 + 2);
+				bVar12 = bVar12 | 1;
+				pente_sub07_revert_score_FUN_004133e0(param_1, param_2 + 1, param_3 + 1);
+			}
+		}
+	}
+	bVar12 = bVar12 * '\x02';
+	iVar10 = bVar4 - 4;
+	if ((int)uVar6 <= iVar10) {
+		iVar2 = *piVar1 + uVar6;
+		if (*(char *)(iVar2 + 3) == cVar5) {
+			if ((*(char *)(iVar2 + 2) == cVar8) && (*(char *)(iVar2 + 1) == cVar8)) {
+				pente_sub07_revert_score_FUN_004133e0(param_1, param_2 + 2, param_3);
+				bVar12 = bVar12 | 1;
+				pente_sub07_revert_score_FUN_004133e0(param_1, param_2 + 1, param_3);
+			}
+		}
+	}
+	bVar12 = bVar12 * '\x02';
+	if ((2 < param_3) && ((int)uVar6 <= iVar10)) {
+		if (*(char *)(piVar1[-3] + 3 + uVar6) == cVar5) {
+			if ((*(char *)(piVar1[-2] + 2 + uVar6) == cVar8) &&
+				(*(char *)(piVar1[-1] + 1 + uVar6) == cVar8)) {
+				pente_sub07_revert_score_FUN_004133e0(param_1, param_2 + 2, param_3 - 2);
+				bVar12 = bVar12 | 1;
+				pente_sub07_revert_score_FUN_004133e0(param_1, param_2 + 1, param_3 - 1);
+			}
+		}
+	}
+	bVar12 = bVar12 * '\x02';
+	if (2 < param_3) {
+		if (*(char *)(piVar1[-3] + uVar6) == cVar5) {
+			if ((*(char *)(piVar1[-2] + uVar6) == cVar8) && (*(char *)(piVar1[-1] + uVar6) == cVar8)) {
+				pente_sub07_revert_score_FUN_004133e0(param_1, param_2, param_3 - 2);
+				bVar12 = bVar12 | 1;
+				pente_sub07_revert_score_FUN_004133e0(param_1, param_2, param_3 - 1);
+			}
+		}
+	}
+	bVar12 = bVar12 * '\x02';
+	if ((2 < param_3) && (2 < param_2)) {
+		if (*(char *)(piVar1[-3] + -3 + uVar6) == cVar5) {
+			if ((*(char *)(piVar1[-2] + -2 + uVar6) == cVar8) &&
+				(*(char *)(piVar1[-1] + -1 + uVar6) == cVar8)) {
+				pente_sub07_revert_score_FUN_004133e0(param_1, param_2 - 2, param_3 - 2);
+				bVar12 = bVar12 | 1;
+				pente_sub07_revert_score_FUN_004133e0(param_1, param_2 - 1, param_3 - 1);
+			}
+		}
+	}
+	bVar12 = bVar12 * '\x02';
+	if ((((2 < param_2) && (iVar10 = uVar6 + *piVar1, *(char *)(iVar10 + -3) == cVar5)) &&
+		 (*(char *)(iVar10 + -2) == cVar8)) &&
+		(*(char *)(iVar10 + -1) == cVar8)) {
+		pente_sub07_revert_score_FUN_004133e0(param_1, param_2 - 2, param_3);
+		bVar12 = bVar12 | 1;
+		pente_sub07_revert_score_FUN_004133e0(param_1, param_2 - 1, param_3);
+	}
+	bVar12 = bVar12 * '\x02';
+	if (((int)local_8 <= iVar9) && (2 < param_2)) {
+		local_8 = 0;
+		if (*(char *)(piVar1[3] + -3 + uVar6) == cVar5) {
+			local_8 = 0;
+			if ((*(char *)(piVar1[2] + -2 + uVar6) == cVar8) &&
+				(*(char *)(piVar1[1] + -1 + uVar6) == cVar8)) {
+				pente_sub07_revert_score_FUN_004133e0(param_1, param_2 - 2, param_3 + 2);
+				bVar12 = bVar12 | 1;
+				/*local_8 = */pente_sub07_revert_score_FUN_004133e0(param_1, param_2 - 1, param_3 + 1);
+			}
+		}
+	}
+	if (bVar12 != 0) {
+		local_8 = local_8 & 0xffffff00 | (uint)bVar12;
+		do {
+			if ((local_8 & 1) != 0) {
+				piVar1 = (int *)(param_1 + (uint)(bVar7 == 0) * 4);
+				piVar3 = (int *)(*piVar1 + (uint) * (ushort *)(param_1 + 0x20) * 4);
+				*piVar3 = *piVar3 + 1;
+				uVar6 = *(uint *)(*piVar1 + (uint) * (ushort *)(param_1 + 0x20) * 4);
+				if (*(byte *)(param_1 + 0x16) == uVar6) {
+					piVar1[2] = piVar1[2] + 100000000;
+				} else {
+					piVar1[2] = piVar1[2] + (1 << ((char)uVar6 - 1U & 0x1f));
+				}
+			}
+			uVar6 = local_8 >> 1 & 0x7f;
+			local_8 = local_8 & 0xffffff00 | uVar6;
+		} while ((char)uVar6 != '\0');
+	}
+	return local_8 & 0xffffff00 | (uint)bVar12;
+}
+
+
+void __cdecl pente_sub08_idk_FUN_00412ff0(short param_1, byte *param_2, short *param_3, short *param_4)
+
+{
+	byte bVar1;
+	byte bVar2;
+	byte bVar3;
+	short sVar4;
+	byte bVar5;
+
+	bVar1 = (byte)((int)param_1 / 0xf);
+	bVar5 = *param_2;
+	bVar2 = 0xe - (char)((int)param_1 % 0xf);
+	bVar3 = 0;
+	do {
+		if ((bVar5 & 1) != 0) {
+			*param_2 = '\x01' << (bVar3 & 0x1f) ^ *param_2;
+			break;
+		}
+		bVar5 = bVar5 >> 1;
+		bVar3 = bVar3 + 1;
+	} while (bVar3 < 8);
+	switch (bVar3) {
+	case 0:
+		*param_3 = (bVar1 + 2) * 0xf - (ushort)bVar2;
+		*param_4 = ((ushort)bVar1 * 0xf - (ushort)bVar2) + 0x2e;
+		return;
+	case 1:
+		*param_3 = (bVar1 + 1) * 0xf - (ushort)bVar2;
+		*param_4 = ((ushort)bVar1 * 0xf - (ushort)bVar2) + 0x10;
+		return;
+	case 2:
+		sVar4 = (ushort)bVar1 * 0xf - (ushort)bVar2;
+		*param_3 = sVar4;
+		*param_4 = sVar4 + -0xe;
+		return;
+	case 3:
+		sVar4 = (ushort)bVar1 * 0xf - (ushort)bVar2;
+		*param_3 = sVar4 + -1;
+		*param_4 = sVar4 + -0x10;
+		return;
+	case 4:
+		sVar4 = (ushort)bVar1 * 0xf - (ushort)bVar2;
+		*param_3 = sVar4 + -2;
+		*param_4 = sVar4 + -0x12;
+		return;
+	case 5:
+		sVar4 = (ushort)bVar1 * 0xf - (ushort)bVar2;
+		*param_3 = sVar4 + 0xd;
+		*param_4 = sVar4 + 0xc;
+		return;
+	case 6:
+		sVar4 = (ushort)bVar1 * 0xf - (ushort)bVar2;
+		*param_3 = sVar4 + 0x1c;
+		*param_4 = sVar4 + 0x2a;
+		return;
+	case 7:
+		sVar4 = (ushort)bVar1 * 0xf - (ushort)bVar2;
+		*param_3 = sVar4 + 0x1d;
+		*param_4 = sVar4 + 0x2c;
+	}
+	return;
+}
+
+
+// this MIGHT be for reverting a capture
+void __cdecl pente_sub11_revert_capture_FUN_00413990(int param_1, byte param_2, byte param_3, byte param_4)
+
+{
+	int *piVar1;
+	int *piVar2;
+	int iVar3;
+	uint uVar4;
+	bool bVar5;
+
+	bVar5 = *(char *)(*(int *)(*(int *)(param_1 + 0x1c) + (uint)param_3 * 4) + (uint)param_2) == 'O';
+	if (param_4 != 0) {
+		uVar4 = (uint)param_4;
+		do {
+			if ((uVar4 & 1) != 0) {
+				piVar1 = (int *)(param_1 + (uint)!bVar5 * 4);
+				piVar2 = (int *)(*piVar1 + (uint) * (ushort *)(param_1 + 0x20) * 4);
+				*piVar2 = *piVar2 + -1;
+				iVar3 = *(int *)(*piVar1 + (uint) * (ushort *)(param_1 + 0x20) * 4);
+				if ((uint) * (byte *)(param_1 + 0x16) - iVar3 == 1) {
+					piVar1[2] = piVar1[2] + -100000000;
+				} else {
+					piVar1[2] = piVar1[2] + (-1 << ((byte)iVar3 & 0x1f));
+				}
+			}
+			uVar4 = uVar4 >> 1;
+		} while ((char)uVar4 != '\0');
+	}
+	if ((param_4 & 1) != 0) {
+		pente_sub03_scoring_FUN_00413200(param_1, param_2 - 2, param_3 + 2, bVar5);
+		pente_sub03_scoring_FUN_00413200(param_1, param_2 - 1, param_3 + 1, bVar5);
+	}
+	if ((param_4 >> 1 & 1) != 0) {
+		pente_sub03_scoring_FUN_00413200(param_1, param_2 - 2, param_3, bVar5);
+		pente_sub03_scoring_FUN_00413200(param_1, param_2 - 1, param_3, bVar5);
+	}
+	if ((param_4 >> 2 & 1) != 0) {
+		pente_sub03_scoring_FUN_00413200(param_1, param_2 - 2, param_3 - 2, bVar5);
+		pente_sub03_scoring_FUN_00413200(param_1, param_2 - 1, param_3 - 1, bVar5);
+	}
+	if ((param_4 >> 3 & 1) != 0) {
+		pente_sub03_scoring_FUN_00413200(param_1, param_2, param_3 - 2, bVar5);
+		pente_sub03_scoring_FUN_00413200(param_1, param_2, param_3 - 1, bVar5);
+	}
+	if ((param_4 >> 4 & 1) != 0) {
+		pente_sub03_scoring_FUN_00413200(param_1, param_2 + 2, param_3 - 2, bVar5);
+		pente_sub03_scoring_FUN_00413200(param_1, param_2 + 1, param_3 - 1, bVar5);
+	}
+	if ((param_4 >> 5 & 1) != 0) {
+		pente_sub03_scoring_FUN_00413200(param_1, param_2 + 2, param_3, bVar5);
+		pente_sub03_scoring_FUN_00413200(param_1, param_2 + 1, param_3, bVar5);
+	}
+	if ((param_4 >> 6 & 1) != 0) {
+		pente_sub03_scoring_FUN_00413200(param_1, param_2 + 2, param_3 + 2, bVar5);
+		pente_sub03_scoring_FUN_00413200(param_1, param_2 + 1, param_3 + 1, bVar5);
+	}
+	if ((char)param_4 < '\0') {
+		pente_sub03_scoring_FUN_00413200(param_1, param_2, param_3 + 2, bVar5);
+		pente_sub03_scoring_FUN_00413200(param_1, param_2, param_3 + 1, bVar5);
+	}
+	return;
+}
+
+
+
+/* WARNING: Could not reconcile some variable overlaps */
+
+int __cdecl pente_sub10_ai_recurse_FUN_00413be0(int param_1, char param_2, int param_3)
+
+{
+	byte bVar1;
+	int iVar2;
+	int iVar3;
+	int iVar4;
+	bool bVar5;
+	ushort uVar6;
+	uint uVar7;
+	int iVar8;
+	short sVar9;
+	byte bVar10;
+	int iVar11;
+	//undefined4 local_970;
+	short local_970;
+	int local_964;
+	undefined4 local_960;
+	int local_95c[599];
+
+	local_964 = 0x7fffffff;
+	if (param_2 == '\x01') {
+		bVar1 = 0;
+		*(undefined *)(param_1 + 0x2c) = 0;
+		if (*(char *)(param_1 + 0x12) != '\0') {
+			do {
+				bVar10 = 0;
+				if (*(char *)(param_1 + 0x13) != '\0') {
+					do {
+						if ((*(char *)(*(int *)(*(int *)(param_1 + 0x1c) + (uint)bVar1 * 4) + (uint)bVar10) ==
+							 '\0') &&
+							(*(char *)(*(int *)(*(int *)(param_1 + 0x28) + (uint)bVar1 * 4) + (uint)bVar10) !=
+							 '\0')) {
+							pente_sub03_scoring_FUN_00413200(param_1, bVar10, bVar1, (byte) * (undefined2 *)(param_1 + 0x18) & 1);
+							uVar7 = pente_sub04_score_capture_FUN_004135c0(param_1, bVar10, bVar1);
+							if ((*(byte *)(param_1 + 0x18) & 1) == 0) {
+								iVar11 = *(int *)(param_1 + 8) - *(int *)(param_1 + 0xc);
+							} else {
+								iVar11 = *(int *)(param_1 + 0xc) - *(int *)(param_1 + 8);
+							}
+							if ((byte)uVar7 != 0) {
+								pente_sub11_revert_capture_FUN_00413990(param_1, bVar10, bVar1, (byte)uVar7);
+							}
+							pente_sub07_revert_score_FUN_004133e0(param_1, bVar10, bVar1);
+							if (iVar11 < local_964) {
+								local_964 = iVar11;
+							}
+							if (-param_3 != local_964 && param_3 <= -local_964) {
+								*(undefined *)(param_1 + 0x2c) = 1;
+								return -local_964;
+							}
+						}
+						bVar10 = bVar10 + 1;
+					} while (bVar10 <= *(byte *)(param_1 + 0x13) && *(byte *)(param_1 + 0x13) != bVar10);
+				}
+				bVar1 = bVar1 + 1;
+			} while (bVar1 <= *(byte *)(param_1 + 0x12) && *(byte *)(param_1 + 0x12) != bVar1);
+		}
+		*(undefined *)(param_1 + 0x2c) = 1;
+	} else {
+		local_970 = 0;
+		bVar1 = 0;
+		if (*(char *)(param_1 + 0x12) != '\0') {
+			do {
+				bVar10 = 0;
+				if (*(char *)(param_1 + 0x13) != '\0') {
+					do {
+						if ((*(char *)(*(int *)(*(int *)(param_1 + 0x1c) + (uint)bVar1 * 4) + (uint)bVar10) ==
+							 '\0') &&
+							(*(char *)(*(int *)(*(int *)(param_1 + 0x28) + (uint)bVar1 * 4) + (uint)bVar10) !=
+							 '\0')) {
+							pente_sub03_scoring_FUN_00413200(param_1, bVar10, bVar1, (byte) * (undefined2 *)(param_1 + 0x18) & 1);
+							uVar7 = pente_sub04_score_capture_FUN_004135c0(param_1, bVar10, bVar1);
+							if ((*(byte *)(param_1 + 0x18) & 1) == 0) {
+								iVar11 = *(int *)(param_1 + 8) - *(int *)(param_1 + 0xc);
+							} else {
+								iVar11 = *(int *)(param_1 + 0xc) - *(int *)(param_1 + 8);
+							}
+							if ((byte)uVar7 != 0) {
+								pente_sub11_revert_capture_FUN_00413990(param_1, bVar10, bVar1, (byte)uVar7);
+							}
+							pente_sub07_revert_score_FUN_004133e0(param_1, bVar10, bVar1);
+							//iVar8 = (int)local_970._2_2_;
+							iVar8 = (int)local_970;
+							//local_970 = (uint)(ushort)(local_970._2_2_ + 1) << 0x10;
+							local_970 = (uint)(ushort)(local_970 + 1) << 0x10;
+							local_95c[iVar8 * 2] = iVar11;
+							*(byte *)(local_95c + iVar8 * 2 + -1) = bVar10;
+							*(byte *)((int)local_95c + iVar8 * 8 + -3) = bVar1;
+						}
+						bVar10 = bVar10 + 1;
+					} while (bVar10 <= *(byte *)(param_1 + 0x13) && *(byte *)(param_1 + 0x13) != bVar10);
+				}
+				bVar1 = bVar1 + 1;
+			} while (bVar1 <= *(byte *)(param_1 + 0x12) && *(byte *)(param_1 + 0x12) != bVar1);
+		}
+		uVar6 = 1;
+		//if (0 < local_970._2_2_) {
+		if (0 < local_970) {
+			do {
+				uVar6 = uVar6 * 3 + 1;
+				//} while ((short)uVar6 <= local_970._2_2_);
+			} while ((short)uVar6 <= local_970);
+		}
+		while (2 < (short)uVar6) {
+			uVar6 = (short)uVar6 / 3;
+			uVar7 = local_970 & 0xffff0000;
+			local_970 = uVar7 | uVar6;
+			//local_970._2_2_ = (short)(uVar7 >> 0x10);
+			local_970 = (short)(uVar7 >> 0x10);
+			//if ((short)uVar6 < local_970._2_2_) {
+			if ((short)uVar6 < local_970) {
+				do {
+					bVar5 = false;
+					sVar9 = (short)local_970 - uVar6;
+					while ((-1 < sVar9 && (!bVar5))) {
+						iVar8 = (int)sVar9;
+						iVar11 = (short)uVar6 + iVar8;
+						if (local_95c[iVar11 * 2] < local_95c[iVar8 * 2]) {
+							sVar9 = sVar9 - uVar6;
+							iVar2 = local_95c[iVar11 * 2];
+							iVar3 = local_95c[iVar11 * 2 + -1];
+							iVar4 = local_95c[iVar8 * 2];
+							local_95c[iVar11 * 2 + -1] = local_95c[iVar8 * 2 + -1];
+							local_95c[iVar11 * 2] = iVar4;
+							local_95c[iVar8 * 2 + -1] = iVar3;
+							local_95c[iVar8 * 2] = iVar2;
+						} else {
+							bVar5 = true;
+						}
+					}
+					//uVar7 = local_970 & 0xffff0000;
+					uVar7 = 0;
+					local_970 = uVar7 | (ushort)((short)local_970 + 1U);
+					//local_970._2_2_ = (short)(uVar7 >> 0x10);
+					local_970 = (short)(uVar7 >> 0x10);
+					//} while ((short)((short)local_970 + 1U) < local_970._2_2_);
+				} while ((short)((short)local_970 + 1U) < local_970);
+			}
+		}
+		sVar9 = 0;
+		//local_970._2_2_ = (short)(local_970 >> 0x10);
+		local_970 = (short)(local_970 >> 0x10);
+		//if (0 < local_970._2_2_) {
+		if (0 < local_970) {
+			do {
+				bVar1 = *(byte *)(local_95c + sVar9 * 2 + -1);
+				bVar10 = *(byte *)((int)local_95c + sVar9 * 8 + -3);
+				local_970 = local_970 & 0xffffff00;
+				pente_sub03_scoring_FUN_00413200(param_1, bVar1, bVar10, (byte) * (undefined2 *)(param_1 + 0x18) & 1);
+				uVar7 = pente_sub04_score_capture_FUN_004135c0(param_1, bVar1, bVar10);
+				iVar11 = *(int *)(param_1 + 8);
+				if (((iVar11 < 100000000) && (*(int *)(param_1 + 0xc) < 100000000)) &&
+					(*(short *)(param_1 + 0x14) != *(short *)(param_1 + 0x18))) {
+					iVar11 = pente_sub10_ai_recurse_FUN_00413be0(param_1, param_2 + -1, local_964);
+				} else {
+					if ((*(byte *)(param_1 + 0x18) & 1) == 0) {
+						iVar11 = iVar11 - *(int *)(param_1 + 0xc);
+					} else {
+						iVar11 = *(int *)(param_1 + 0xc) - iVar11;
+					}
+				}
+				if ((byte)uVar7 != 0) {
+					pente_sub11_revert_capture_FUN_00413990(param_1, bVar1, bVar10, (byte)uVar7);
+				}
+				pente_sub07_revert_score_FUN_004133e0(param_1, bVar1, bVar10);
+				if (iVar11 < local_964) {
+					local_964 = iVar11;
+				}
+				if (-param_3 != local_964 && param_3 <= -local_964)
+					break;
+				sVar9 = sVar9 + 1;
+				//local_970._2_2_ = (short)(local_970 >> 0x10);
+				local_970 = (short)(local_970 >> 0x10);
+				//} while (sVar9 < local_970._2_2_);
+			} while (sVar9 < local_970);
+		}
+	}
+	return -local_964;
+}
+
+
+
+
+uint pente_sub09_ai_FUN_00413fa0(uint param_1, undefined4 param_2, undefined4 param_3, int param_4, byte param_5)
+
+{
+	bool bVar1;
+	uint uVar2;
+	uint uVar3;
+	uint uVar4;
+	int iVar5;
+	uint extraout_ECX;
+	undefined4 extraout_EDX;
+	byte bVar6;
+	int iVar7;
+	ushort uVar8;
+	byte bStack18;
+	byte bStack17;
+	ushort local_c;
+	short local_4;
+
+	bStack18 = 1;
+	bStack17 = 0;
+	uVar8 = 0xffff;
+	iVar7 = 0x7fffffff;
+	if (*(char *)(param_4 + 0x12) != '\0') {
+		do {
+			bVar6 = 0;
+			if (*(char *)(param_4 + 0x13) != '\0') {
+				do {
+					param_1 = (uint)bVar6;
+					if ((*(char *)(*(int *)(*(int *)(param_4 + 0x1c) + (uint)bStack17 * 4) + param_1) == '\0') && (*(char *)(*(int *)(*(int *)(param_4 + 0x28) + (uint)bStack17 * 4) + param_1) !=
+																												   '\0')) {
+						pente_sub03_scoring_FUN_00413200(param_4, bVar6, bStack17, (byte) * (undefined2 *)(param_4 + 0x18) & 1);
+						uVar2 = pente_sub04_score_capture_FUN_004135c0(param_4, bVar6, bStack17);
+						if ((*(int *)(param_4 + 8) < 100000000) && (*(int *)(param_4 + 0xc) < 100000000)) {
+							bVar1 = false;
+						} else {
+							bVar1 = true;
+						}
+						if ((byte)uVar2 != 0) {
+							pente_sub11_revert_capture_FUN_00413990(param_4, bVar6, bStack17, (byte)uVar2);
+						}
+						/*param_1 =*/ pente_sub07_revert_score_FUN_004133e0(param_4, bVar6, bStack17);
+						if (bVar1) {
+							return param_1 & 0xffff0000 | (uint)(ushort)((ushort)bVar6 + (ushort)bStack17 * 100);
+						}
+					}
+					bVar6 = bVar6 + 1;
+				} while (bVar6 <= *(byte *)(param_4 + 0x13) && *(byte *)(param_4 + 0x13) != bVar6);
+			}
+			bStack17 = bStack17 + 1;
+			param_1 = param_1 & 0xffffff00;
+		} while (bStack17 <= *(byte *)(param_4 + 0x12) && *(byte *)(param_4 + 0x12) != bStack17);
+	}
+	do {
+		bStack17 = 0;
+		if (*(char *)(param_4 + 0x12) != '\0') {
+			do {
+				uVar2 = 0;
+				if (*(char *)(param_4 + 0x13) != '\0') {
+					uVar3 = (uint)bStack17 * 4;
+					do {
+						bVar6 = (byte)uVar2;
+						param_1 = uVar3;
+						if ((*(char *)(*(int *)(*(int *)(param_4 + 0x1c) + uVar3) + uVar2) == '\0') &&
+							(*(char *)(*(int *)(*(int *)(param_4 + 0x28) + uVar3) + uVar2) != '\0')) {
+							pente_sub03_scoring_FUN_00413200(param_4, bVar6, bStack17, (byte) * (undefined2 *)(param_4 + 0x18) & 1);
+							uVar4 = pente_sub04_score_capture_FUN_004135c0(param_4, bVar6, bStack17);
+							iVar5 = pente_sub10_ai_recurse_FUN_00413be0(param_4, param_5 - 1, iVar7);
+							if ((byte)uVar4 != 0) {
+								pente_sub11_revert_capture_FUN_00413990(param_4, bVar6, bStack17, (byte)uVar4);
+							}
+							/*param_1 =*/ pente_sub07_revert_score_FUN_004133e0(param_4, bVar6, bStack17);
+							local_c = (ushort)bStack17;
+							local_4 = (short)uVar2;
+							if (iVar5 < iVar7) {
+								bStack18 = 1;
+								uVar8 = local_c * 100 + local_4;
+								iVar7 = iVar5;
+							} else {
+								if (iVar5 == iVar7) {
+									bStack18 = bStack18 + 1;
+									uVar2 = ai_rng_FUN_00412b50(/*param_1, extraout_EDX, extraout_ECX*/);
+									param_1 = (uint)bStack18;
+									if ((uVar2 % 1000000) * param_1 < 1000000) {
+										uVar8 = local_c * 100 + local_4;
+									}
+								}
+							}
+						}
+						bVar6 = bVar6 + 1;
+						uVar2 = (uint)bVar6;
+					} while (bVar6 <= *(byte *)(param_4 + 0x13) && *(byte *)(param_4 + 0x13) != bVar6);
+				}
+				bStack17 = bStack17 + 1;
+				param_1 = param_1 & 0xffffff00;
+			} while (bStack17 <= *(byte *)(param_4 + 0x12) && *(byte *)(param_4 + 0x12) != bStack17);
+		}
+	} while ((99999999 < iVar7) && (param_5 = param_5 - 1, 1 < param_5));
+	return param_1 & 0xffff0000 | (uint)uVar8;
+}
+
+
+
+int **DAT_00457fdc = 0;
+short DAT_0044faac = 0;
+byte DAT_0044faa4 = 0;
+byte DAT_0044faa0 = 0;
+/*undefined*/ char DAT_0044faa8 = 0;
+short DAT_00442460 = 0;
+//
+void pente_FUN_00412c10(undefined4 param_1, undefined4 param_2, undefined4 param_3, char *param_4)
+
+{
+	char cVar1;
+	ushort uVar2;
+	int *piVar3;
+	int iVar4;
+	uint uVar5;
+	ushort extraout_var;
+	undefined4 extraout_ECX;
+	undefined4 extraout_EDX;
+	short sVar6;
+	byte bVar7;
+	short local_2;
+
+	if ((DAT_00457fdc == (int **)0x0) && (param_4[4] != '\0')) {
+		DAT_00457fdc = pente_sub01_init_FUN_00414220(0x14, 0xf, 5);
+		//param_3 = extraout_ECX;
+		//param_2 = extraout_EDX;
+	}
+	//uVar5 = SEXT14(param_4[4]);
+	uVar5 = param_4[4];
+	switch (uVar5) {
+	case 0:
+		if (DAT_00457fdc != (int **)0x0) {
+			/*uVar5 =*/ pente_sub02_frees_FUN_00414330((int *)DAT_00457fdc);
+		}
+		DAT_00457fdc = (int **)0x0;
+		//return uVar5;
+		return;
+	case 1:
+		DAT_0044faac = (*param_4 * 10 + (short)param_4[1]) * 10 + (short)param_4[2];
+		DAT_0044faa4 = (byte)(DAT_0044faac / 0xf);
+		DAT_0044faa0 = 0xe - (char)((int)DAT_0044faac % 0xf);
+		pente_sub03_scoring_FUN_00413200((int)DAT_00457fdc, DAT_0044faa0, DAT_0044faa4,
+								 (byte) * (undefined2 *)(DAT_00457fdc + 6) & 1);
+		uVar5 = pente_sub04_score_capture_FUN_004135c0((int)DAT_00457fdc, DAT_0044faa0, DAT_0044faa4);
+		DAT_0044faa8 = (char)uVar5;
+		//return uVar5;
+		return;
+	case 2:
+	case 4:
+		if (DAT_0044faa8 != '\0') {
+			if (DAT_00442460 < 0) {
+				pente_sub08_idk_FUN_00412ff0(DAT_0044faac, (byte *)&DAT_0044faa8, &local_2, &DAT_00442460);
+				*param_4 = (char)((int)local_2 / 100);
+				param_4[5] = '\x01';
+				param_4[1] = (char)((int)(local_2 % 100) / 10);
+				param_4[2] = (char)((int)local_2 % 10);
+				//return (uint)extraout_var << 0x10 | (int)local_2 / 10 & 0xffffU;
+				return;
+			}
+		LAB_00412da4:
+			*param_4 = (char)((int)DAT_00442460 / 100);
+			param_4[1] = (char)((int)(DAT_00442460 % 100) / 10);
+			iVar4 = (int)DAT_00442460;
+			param_4[2] = (char)(iVar4 % 10);
+			DAT_00442460 = 0xffff;
+			param_4[5] = '\x01';
+			//return (uint)(ushort)(param_4[4] >> 7) << 0x10 | iVar4 / 10 & 0xffffU;
+			return;
+		}
+		if (-1 < DAT_00442460)
+			goto LAB_00412da4;
+		if ((int)DAT_00457fdc[2] < 100000000) {
+			if (((int)DAT_00457fdc[3] < 100000000) &&
+				(uVar2 = *(ushort *)(DAT_00457fdc + 6), uVar5 = (uint)DAT_00457fdc & 0xffff0000,
+				 *(ushort *)(DAT_00457fdc + 5) != uVar2)) {
+				param_4[5] = '\0';
+				//return uVar5 | uVar2;
+				return;
+			}
+			if ((int)DAT_00457fdc[2] < 100000000) {
+				piVar3 = DAT_00457fdc[3];
+				param_4[5] = '\x02';
+				if ((int)piVar3 < 100000000) {
+					param_4[5] = '\x04';
+				}
+				goto LAB_00412d7a;
+			}
+		}
+		param_4[5] = '\x03';
+	LAB_00412d7a:
+		/*uVar5 =*/ pente_sub02_frees_FUN_00414330((int *)DAT_00457fdc);
+		DAT_00457fdc = (int **)0x0;
+		//return uVar5;
+		return;
+	case 3:
+		break;
+	case 5:
+		sVar6 = (*param_4 * 10 + (short)param_4[1]) * 10 + (short)param_4[2];
+		uVar5 = (uint)(byte)(0xe - (char)((int)sVar6 % 0xf));
+		cVar1 = *(char *)(DAT_00457fdc[7][(int)sVar6 / 0xf & 0xff] + uVar5);
+		if (cVar1 == '\0') {
+			param_4[3] = '\0';
+			//return uVar5;
+			return;
+		}
+		if (cVar1 == 'O') {
+			param_4[3] = '\x02';
+			//return uVar5;
+			return;
+		}
+		if (cVar1 != 'X') {
+			//return uVar5;
+			return;
+		}
+		param_4[3] = '\x01';
+	default:
+		//return uVar5;
+		return;
+	}
+	cVar1 = param_4[6];
+	if (cVar1 == '\0') {
+		bVar7 = 3;
+	} else {
+		if (cVar1 == '\x01') {
+			bVar7 = 4;
+		} else {
+			if (cVar1 != '\x02')
+				goto LAB_00412e85;
+			bVar7 = 5;
+		}
+	}
+	uVar5 = pente_sub09_ai_FUN_00413fa0((uint)DAT_00457fdc, param_2, param_3, (int)DAT_00457fdc, bVar7);
+	DAT_0044faac = (short)uVar5;
+LAB_00412e85:
+	DAT_0044faa4 = (byte)((int)DAT_0044faac / 100);
+	DAT_0044faa0 = (byte)((int)DAT_0044faac % 100);
+	pente_sub03_scoring_FUN_00413200((int)DAT_00457fdc, DAT_0044faa0, DAT_0044faa4, (byte) * (undefined2 *)(DAT_00457fdc + 6) & 1);
+	uVar5 = pente_sub04_score_capture_FUN_004135c0((int)DAT_00457fdc, DAT_0044faa0, DAT_0044faa4);
+	DAT_0044faa8 = (char)uVar5;
+	DAT_0044faac = ((ushort)DAT_0044faa4 * 0xf - (ushort)DAT_0044faa0) + 0xe;
+	*param_4 = (char)((int)DAT_0044faac / 100);
+	param_4[1] = (char)((int)(DAT_0044faac % 100) / 10);
+	iVar4 = (int)DAT_0044faac;
+	param_4[2] = (char)(iVar4 % 10);
+	//return uVar5 & 0xffff0000 | iVar4 / 10 & 0xffffU;
+}
+
+//end Ghidra crap pente
+
 void T11hGame::opPente() {
 	// FIXME: properly implement Pente game (the final puzzle)
 	// for now just auto-solve the puzzle so the player can continue
-	_scriptVariables[5] = 4;
+	//_scriptVariables[5] = 4;
+	pente_FUN_00412c10(0, 0, 0, (char *)_scriptVariables);
 }
 
 /*
@@ -667,7 +2008,7 @@ void T11hGame::opGallery() {
 	byte status1[kPieceCount];
 	byte status2[kPieceCount];
 
-	memcpy(pieceStatus, _scriptVariables + 25, kPieceCount);
+	memcpy(pieceStatus, _scriptVariables + 26, kPieceCount);
 
 	int selectedPieces = 0;
 	for (int i = 0; i < kPieceCount; i++) {
