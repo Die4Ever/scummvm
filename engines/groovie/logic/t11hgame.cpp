@@ -19,7 +19,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 *
 */
-
+#include <array>
 #include <limits.h>
 #include "groovie/logic/t11hgame.h"
 #include "groovie/groovie.h"
@@ -1042,7 +1042,7 @@ void pente_sub03_scoring_FUN_00413200(int param_1, byte param_2, byte param_3, b
 	uint uVar14;
 	int *piVar15;
 	byte local_15;
-
+	
 	iVar5 = *(int *)(param_1 + 0x24);
 	iVar6 = *(int *)(param_1 + 0x28);
 	uVar11 = (uint)param_3;
@@ -1485,6 +1485,24 @@ void pente_sub11_revert_capture_FUN_00413990(int param_1, byte param_2, byte par
 
 /* WARNING: Could not reconcile some variable overlaps */
 
+union u_local_970 {
+	int i;
+	short _2_[2];
+};
+
+// I could do this with just a pointer that's offset and use it as the array, but std::array is way better for debugging
+template<class _Ty, size_t _Size>
+class offset_array : public std::array<_Ty, _Size> {
+public:
+	offset_array(size_t offset) {
+		_offset = offset;
+	}
+	_Ty &operator[](size_t index) {
+		return ::std::array<_Ty, _Size>::operator[](index + _offset);
+	}
+	size_t _offset;
+};
+
 int pente_sub10_ai_recurse_FUN_00413be0(int param_1, char param_2, int param_3)
 
 {
@@ -1500,10 +1518,11 @@ int pente_sub10_ai_recurse_FUN_00413be0(int param_1, char param_2, int param_3)
 	byte bVar10;
 	int iVar11;
 	//undefined4 local_970;
-	short local_970;
+	u_local_970 local_970;
 	int local_964;
 	undefined4 local_960;
-	int local_95c[599];
+	//int local_95c[599];
+	offset_array<int, 600> local_95c(1);// need to be able to access local_95c[-1]
 
 	local_964 = 0x7fffffff;
 	if (param_2 == '\x01') {
@@ -1545,7 +1564,7 @@ int pente_sub10_ai_recurse_FUN_00413be0(int param_1, char param_2, int param_3)
 		}
 		*(undefined *)(param_1 + 0x2c) = 1;
 	} else {
-		local_970 = 0;
+		local_970.i = 0;
 		bVar1 = 0;
 		if (*(char *)(param_1 + 0x12) != '\0') {
 			do {
@@ -1568,12 +1587,14 @@ int pente_sub10_ai_recurse_FUN_00413be0(int param_1, char param_2, int param_3)
 							}
 							pente_sub07_revert_score_FUN_004133e0(param_1, bVar10, bVar1);
 							//iVar8 = (int)local_970._2_2_;
-							iVar8 = (int)local_970;
+							iVar8 = (int)local_970._2_[1];
 							//local_970 = (uint)(ushort)(local_970._2_2_ + 1) << 0x10;
-							local_970 = (uint)(ushort)(local_970 + 1) << 0x10;
+							local_970.i = (uint)(ushort)(local_970._2_[1] + 1) << 0x10;
 							local_95c[iVar8 * 2] = iVar11;
-							*(byte *)(local_95c + iVar8 * 2 + -1) = bVar10;
-							*(byte *)((int)local_95c + iVar8 * 8 + -3) = bVar1;
+							//*(byte *)(local_95c + iVar8 * 2 + -1) = bVar10;
+							*(byte *)&local_95c[iVar8 * 2 - 1] = bVar10;
+							//*(byte *)((int)local_95c + iVar8 * 8 + -3) = bVar1;
+							*((byte *)&local_95c[iVar8 * 8] - 3) = bVar1;
 						}
 						bVar10 = bVar10 + 1;
 					} while (bVar10 <= *(byte *)(param_1 + 0x13) && *(byte *)(param_1 + 0x13) != bVar10);
@@ -1583,23 +1604,23 @@ int pente_sub10_ai_recurse_FUN_00413be0(int param_1, char param_2, int param_3)
 		}
 		uVar6 = 1;
 		//if (0 < local_970._2_2_) {
-		if (0 < local_970) {
+		if (0 < local_970._2_[1]) {
 			do {
 				uVar6 = uVar6 * 3 + 1;
 				//} while ((short)uVar6 <= local_970._2_2_);
-			} while ((short)uVar6 <= local_970);
+			} while ((short)uVar6 <= local_970._2_[1]);
 		}
 		while (2 < (short)uVar6) {
 			uVar6 = (short)uVar6 / 3;
-			uVar7 = local_970 & 0xffff0000;
-			local_970 = uVar7 | uVar6;
+			uVar7 = local_970.i & 0xffff0000;
+			local_970.i = uVar7 | uVar6;
 			//local_970._2_2_ = (short)(uVar7 >> 0x10);
-			local_970 = (short)(uVar7 >> 0x10);
+			local_970._2_[1] = (short)(uVar7 >> 0x10);
 			//if ((short)uVar6 < local_970._2_2_) {
-			if ((short)uVar6 < local_970) {
+			if ((short)uVar6 < local_970._2_[1]) {
 				do {
 					bVar5 = false;
-					sVar9 = (short)local_970 - uVar6;
+					sVar9 = (short)local_970.i - uVar6;
 					while ((-1 < sVar9 && (!bVar5))) {
 						iVar8 = (int)sVar9;
 						iVar11 = (short)uVar6 + iVar8;
@@ -1618,22 +1639,24 @@ int pente_sub10_ai_recurse_FUN_00413be0(int param_1, char param_2, int param_3)
 					}
 					//uVar7 = local_970 & 0xffff0000;
 					uVar7 = 0;
-					local_970 = uVar7 | (ushort)((short)local_970 + 1U);
+					local_970.i = uVar7 | (ushort)((short)local_970.i + 1U);
 					//local_970._2_2_ = (short)(uVar7 >> 0x10);
-					local_970 = (short)(uVar7 >> 0x10);
+					local_970._2_[1] = (short)(uVar7 >> 0x10);
 					//} while ((short)((short)local_970 + 1U) < local_970._2_2_);
-				} while ((short)((short)local_970 + 1U) < local_970);
+				} while ((short)((short)local_970.i + 1U) < local_970._2_[1]);
 			}
 		}
 		sVar9 = 0;
 		//local_970._2_2_ = (short)(local_970 >> 0x10);
-		local_970 = (short)(local_970 >> 0x10);
+		local_970._2_[1] = (short)(local_970.i >> 0x10);
 		//if (0 < local_970._2_2_) {
-		if (0 < local_970) {
+		if (0 < local_970._2_[1]) {
 			do {
-				bVar1 = *(byte *)(local_95c + sVar9 * 2 + -1);
-				bVar10 = *(byte *)((int)local_95c + sVar9 * 8 + -3);
-				local_970 = local_970 & 0xffffff00;
+				//bVar1 = *(byte *)(local_95c + sVar9 * 2 + -1);
+				bVar1 = *(byte *)&local_95c[sVar9 * 2 - 1];
+				//bVar10 = *(byte *)((int)local_95c + sVar9 * 8 + -3);
+				bVar10 = *((byte *)&local_95c[sVar9 * 8] - 3);
+				local_970.i = local_970.i & 0xffffff00;
 				pente_sub03_scoring_FUN_00413200(param_1, bVar1, bVar10, (byte) * (undefined2 *)(param_1 + 0x18) & 1);
 				uVar7 = pente_sub04_score_capture_FUN_004135c0(param_1, bVar1, bVar10);
 				iVar11 = *(int *)(param_1 + 8);
@@ -1658,9 +1681,9 @@ int pente_sub10_ai_recurse_FUN_00413be0(int param_1, char param_2, int param_3)
 					break;
 				sVar9 = sVar9 + 1;
 				//local_970._2_2_ = (short)(local_970 >> 0x10);
-				local_970 = (short)(local_970 >> 0x10);
+				local_970._2_[1] = (short)(local_970.i >> 0x10);
 				//} while (sVar9 < local_970._2_2_);
-			} while (sVar9 < local_970);
+			} while (sVar9 < local_970._2_[1]);
 		}
 	}
 	return -local_964;
@@ -1793,13 +1816,16 @@ void pente_FUN_00412c10(undefined4 param_1, undefined4 param_2, undefined4 param
 	byte bVar7;
 	short local_2;
 
-	if ((DAT_00457fdc == (int **)0x0) && (param_4[4] != '\0')) {
+	char vars[1024];
+	memcpy(vars, param_4, sizeof(vars));
+
+	if ((DAT_00457fdc == (int **)0x0) && (vars[4] != '\0')) {
 		DAT_00457fdc = pente_sub01_init_FUN_00414220(0x14, 0xf, 5);
 		//param_3 = extraout_ECX;
 		//param_2 = extraout_EDX;
 	}
-	//uVar5 = SEXT14(param_4[4]);
-	uVar5 = param_4[4];
+	//uVar5 = SEXT14(vars[4]);
+	uVar5 = vars[4];
 	switch (uVar5) {
 	case 0:
 		if (DAT_00457fdc != (int **)0x0) {
@@ -1809,7 +1835,7 @@ void pente_FUN_00412c10(undefined4 param_1, undefined4 param_2, undefined4 param
 		//return uVar5;
 		return;
 	case 1:
-		DAT_0044faac = (*param_4 * 10 + (short)param_4[1]) * 10 + (short)param_4[2];
+		DAT_0044faac = (*vars * 10 + (short)vars[1]) * 10 + (short)vars[2];
 		DAT_0044faa4 = (byte)(DAT_0044faac / 0xf);
 		DAT_0044faa0 = 0xe - (char)((int)DAT_0044faac % 0xf);
 		pente_sub03_scoring_FUN_00413200((int)DAT_00457fdc, DAT_0044faa0, DAT_0044faa4,
@@ -1823,21 +1849,21 @@ void pente_FUN_00412c10(undefined4 param_1, undefined4 param_2, undefined4 param
 		if (DAT_0044faa8 != '\0') {
 			if (DAT_00442460 < 0) {
 				pente_sub08_idk_FUN_00412ff0(DAT_0044faac, (byte *)&DAT_0044faa8, &local_2, &DAT_00442460);
-				*param_4 = (char)((int)local_2 / 100);
-				param_4[5] = '\x01';
-				param_4[1] = (char)((int)(local_2 % 100) / 10);
-				param_4[2] = (char)((int)local_2 % 10);
+				*vars = (char)((int)local_2 / 100);
+				vars[5] = '\x01';
+				vars[1] = (char)((int)(local_2 % 100) / 10);
+				vars[2] = (char)((int)local_2 % 10);
 				//return (uint)extraout_var << 0x10 | (int)local_2 / 10 & 0xffffU;
 				return;
 			}
 		LAB_00412da4:
-			*param_4 = (char)((int)DAT_00442460 / 100);
-			param_4[1] = (char)((int)(DAT_00442460 % 100) / 10);
+			*vars = (char)((int)DAT_00442460 / 100);
+			vars[1] = (char)((int)(DAT_00442460 % 100) / 10);
 			iVar4 = (int)DAT_00442460;
-			param_4[2] = (char)(iVar4 % 10);
+			vars[2] = (char)(iVar4 % 10);
 			DAT_00442460 = 0xffff;
-			param_4[5] = '\x01';
-			//return (uint)(ushort)(param_4[4] >> 7) << 0x10 | iVar4 / 10 & 0xffffU;
+			vars[5] = '\x01';
+			//return (uint)(ushort)(vars[4] >> 7) << 0x10 | iVar4 / 10 & 0xffffU;
 			return;
 		}
 		if (-1 < DAT_00442460)
@@ -1846,20 +1872,20 @@ void pente_FUN_00412c10(undefined4 param_1, undefined4 param_2, undefined4 param
 			if (((int)DAT_00457fdc[3] < 100000000) &&
 				(uVar2 = *(ushort *)(DAT_00457fdc + 6), uVar5 = (uint)DAT_00457fdc & 0xffff0000,
 				 *(ushort *)(DAT_00457fdc + 5) != uVar2)) {
-				param_4[5] = '\0';
+				vars[5] = '\0';
 				//return uVar5 | uVar2;
 				return;
 			}
 			if ((int)DAT_00457fdc[2] < 100000000) {
 				piVar3 = DAT_00457fdc[3];
-				param_4[5] = '\x02';
+				vars[5] = '\x02';
 				if ((int)piVar3 < 100000000) {
-					param_4[5] = '\x04';
+					vars[5] = '\x04';
 				}
 				goto LAB_00412d7a;
 			}
 		}
-		param_4[5] = '\x03';
+		vars[5] = '\x03';
 	LAB_00412d7a:
 		/*uVar5 =*/ pente_sub02_frees_FUN_00414330((int *)DAT_00457fdc);
 		DAT_00457fdc = (int **)0x0;
@@ -1868,16 +1894,16 @@ void pente_FUN_00412c10(undefined4 param_1, undefined4 param_2, undefined4 param
 	case 3:
 		break;
 	case 5:
-		sVar6 = (*param_4 * 10 + (short)param_4[1]) * 10 + (short)param_4[2];
+		sVar6 = (*vars * 10 + (short)vars[1]) * 10 + (short)vars[2];
 		uVar5 = (uint)(byte)(0xe - (char)((int)sVar6 % 0xf));
 		cVar1 = *(char *)(DAT_00457fdc[7][(int)sVar6 / 0xf & 0xff] + uVar5);
 		if (cVar1 == '\0') {
-			param_4[3] = '\0';
+			vars[3] = '\0';
 			//return uVar5;
 			return;
 		}
 		if (cVar1 == 'O') {
-			param_4[3] = '\x02';
+			vars[3] = '\x02';
 			//return uVar5;
 			return;
 		}
@@ -1885,12 +1911,12 @@ void pente_FUN_00412c10(undefined4 param_1, undefined4 param_2, undefined4 param
 			//return uVar5;
 			return;
 		}
-		param_4[3] = '\x01';
+		vars[3] = '\x01';
 	default:
 		//return uVar5;
 		return;
 	}
-	cVar1 = param_4[6];
+	cVar1 = vars[6];
 	if (cVar1 == '\0') {
 		bVar7 = 3;
 	} else {
@@ -1911,10 +1937,10 @@ LAB_00412e85:
 	uVar5 = pente_sub04_score_capture_FUN_004135c0((int)DAT_00457fdc, DAT_0044faa0, DAT_0044faa4);
 	DAT_0044faa8 = (char)uVar5;
 	DAT_0044faac = ((ushort)DAT_0044faa4 * 0xf - (ushort)DAT_0044faa0) + 0xe;
-	*param_4 = (char)((int)DAT_0044faac / 100);
-	param_4[1] = (char)((int)(DAT_0044faac % 100) / 10);
+	*vars = (char)((int)DAT_0044faac / 100);
+	vars[1] = (char)((int)(DAT_0044faac % 100) / 10);
 	iVar4 = (int)DAT_0044faac;
-	param_4[2] = (char)(iVar4 % 10);
+	vars[2] = (char)(iVar4 % 10);
 	//return uVar5 & 0xffff0000 | iVar4 / 10 & 0xffffU;
 }
 
@@ -1924,7 +1950,7 @@ void T11hGame::opPente() {
 	// FIXME: properly implement Pente game (the final puzzle)
 	// for now just auto-solve the puzzle so the player can continue
 	//_scriptVariables[5] = 4;
-	pente_FUN_00412c10(0, 0, 0, (char *)_scriptVariables);
+	pente_FUN_00412c10(0, 0, 5, (char *)_scriptVariables);
 }
 
 /*

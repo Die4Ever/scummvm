@@ -279,6 +279,7 @@ void Script::step() {
 	// Prepare the base debug string
 	_debugString = _scriptFile + Common::String::format("@0x%04X: ", _currentInstruction);
 
+	auto oldAddr = _currentInstruction;
 	// Get the current opcode
 	byte opcode = readScript8bits();
 	_firstbit = ((opcode & 0x80) != 0);
@@ -2344,7 +2345,7 @@ Script::OpcodeFunc Script::_opcodesV2[NUM_OPCODES] = {
 	&Script::o2_setscriptend,
 	&Script::o2_playsound,
 	&Script::o_invalid,
-	&Script::o_invalid, // 0x58
+	&Script::o_invalid, // 0x58 // TODO: this is actually supposed to output an error, like in PT.grv Op58 , 62, 69, 64, 55, 52Arr1D, 0Arr1D, 1Arr1D, 2; unknown pvdx style
 	&Script::o2_check_sounds_overlays,
 	&Script::o2_preview_loadgame
 };
