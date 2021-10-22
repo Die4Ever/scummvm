@@ -617,7 +617,7 @@ uint CONCAT22(uint a, uint b) {
 
 /* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
 
-void __cdecl free_FUN_00406c80(int param_1)
+void free_FUN_00406c80(int param_1)
 
 {
 	free_mem_DAT_0045aae4 = free_mem_DAT_0045aae4 + *(int *)(param_1 + -4);
@@ -625,7 +625,7 @@ void __cdecl free_FUN_00406c80(int param_1)
 	return;
 }
 
-int *__cdecl allocs_FUN_00406bc0(int param_1, int param_2)
+int *allocs_FUN_00406bc0(int param_1, int param_2)
 
 {
 	int *piVar1;
@@ -738,7 +738,7 @@ uint ai_rng_FUN_00412b50(/*uint param_1, undefined4 param_2,*/ /*uint param_3*/)
 }
 
 // this looks just like what connect four does, building a lookup table of potential victory lines
-void __cdecl pente_sub05_build_lookup_table_FUN_004143c0(int param_1)
+void pente_sub05_build_lookup_table_FUN_004143c0(int param_1)
 
 {
 	int iVar1;
@@ -892,7 +892,7 @@ void __cdecl pente_sub05_build_lookup_table_FUN_004143c0(int param_1)
 	return;
 }
 
-int **__cdecl pente_sub01_init_FUN_00414220(byte param_1, byte param_2, undefined param_3)
+int **pente_sub01_init_FUN_00414220(byte param_1, byte param_2, undefined param_3)
 
 {
 	int **ppiVar1;
@@ -941,7 +941,7 @@ int **__cdecl pente_sub01_init_FUN_00414220(byte param_1, byte param_2, undefine
 }
 
 
-void __cdecl pente_sub06_frees_FUN_00414720(int param_1)
+void pente_sub06_frees_FUN_00414720(int param_1)
 
 {
 	byte bVar1;
@@ -990,7 +990,7 @@ void __cdecl pente_sub06_frees_FUN_00414720(int param_1)
 
 
 
-void __cdecl pente_sub02_frees_FUN_00414330(int *param_1)
+void pente_sub02_frees_FUN_00414330(int *param_1)
 
 {
 	uint uVar1;
@@ -1023,7 +1023,7 @@ void __cdecl pente_sub02_frees_FUN_00414330(int *param_1)
 
 
 // this looks similar to the scoring function from connect four
-void __cdecl pente_sub03_scoring_FUN_00413200(int param_1, byte param_2, byte param_3, byte param_4)
+void pente_sub03_scoring_FUN_00413200(int param_1, byte param_2, byte param_3, byte param_4)
 
 {
 	int *piVar1;
@@ -1119,7 +1119,7 @@ void __cdecl pente_sub03_scoring_FUN_00413200(int param_1, byte param_2, byte pa
 
 
 // this looks like the revert score function from connect four
-void __cdecl pente_sub07_revert_score_FUN_004133e0(int param_1, byte param_2, byte param_3)
+void pente_sub07_revert_score_FUN_004133e0(int param_1, byte param_2, byte param_3)
 
 {
 	int *piVar1;
@@ -1222,7 +1222,7 @@ void __cdecl pente_sub07_revert_score_FUN_004133e0(int param_1, byte param_2, by
 
 // this might be for capturing pieces, looks like it does a bunch of checks for a double revert (2 pieces being removed)
 // at the end it checks if it's the 5th capture and adds the winning score if it is, otherwise adds a score proportional to how many captures you have
-uint __cdecl pente_sub04_score_capture_FUN_004135c0(int param_1, byte param_2, byte param_3)
+uint pente_sub04_score_capture_FUN_004135c0(int param_1, byte param_2, byte param_3)
 
 {
 	int *piVar1;
@@ -1354,7 +1354,7 @@ uint __cdecl pente_sub04_score_capture_FUN_004135c0(int param_1, byte param_2, b
 }
 
 
-void __cdecl pente_sub08_idk_FUN_00412ff0(short param_1, byte *param_2, short *param_3, short *param_4)
+void pente_sub08_idk_FUN_00412ff0(short param_1, byte *param_2, short *param_3, short *param_4)
 
 {
 	byte bVar1;
@@ -1419,7 +1419,7 @@ void __cdecl pente_sub08_idk_FUN_00412ff0(short param_1, byte *param_2, short *p
 
 
 // this MIGHT be for reverting a capture
-void __cdecl pente_sub11_revert_capture_FUN_00413990(int param_1, byte param_2, byte param_3, byte param_4)
+void pente_sub11_revert_capture_FUN_00413990(int param_1, byte param_2, byte param_3, byte param_4)
 
 {
 	int *piVar1;
@@ -1485,7 +1485,7 @@ void __cdecl pente_sub11_revert_capture_FUN_00413990(int param_1, byte param_2, 
 
 /* WARNING: Could not reconcile some variable overlaps */
 
-int __cdecl pente_sub10_ai_recurse_FUN_00413be0(int param_1, char param_2, int param_3)
+int pente_sub10_ai_recurse_FUN_00413be0(int param_1, char param_2, int param_3)
 
 {
 	byte bVar1;
