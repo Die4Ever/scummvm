@@ -20,17 +20,1381 @@
  *
  */
 
+#include <array>
 #include "groovie/groovie.h"
 #include "groovie/logic/pente.h"
 
 namespace Groovie {
+
+// Ghidra crap pente
+typedef uint16 ushort;
+typedef int undefined4;
+typedef uint16 undefined2;
+typedef byte undefined;
+
+#pragma pack(push, 1)
+struct int24 {
+	int data : 24;
+};
+
+struct s_player_table {
+	int *p0;
+	int i4;
+	int score_i8;
+};
+
+struct s_table {
+	s_player_table *player_p0;
+	s_player_table *stauf_p4;
+	uint maybe_player_score_i8;
+	uint maybe_stauf_score_i12;
+	byte b16;
+	byte b17;
+	byte width;
+	byte height;
+	ushort board_size;
+	byte line_length;
+	byte b22;
+	ushort maybe_move_counter_24;
+	byte b26;
+	byte b27;
+	byte **board_state;
+	ushort lines_counter_s20;
+	byte b34;
+	byte b35;
+	ushort ***lines_table_0x24;
+	byte **board_state2;
+	byte maybe_move_counter_44;
+	byte b45;
+	byte b46;
+	byte b47;
+};
+#pragma pack(pop)
+typedef int24 undefined3;
+
+s_table *game_state_table;
+
+// these 3 control cake rng in some weird way
+int rng_a_DAT_0044fa94 = 0;
+int rng_b_DAT_0044fa98 = 0;
+int rng_c_DAT_0044fa9c = 0;
+
+// counter gets incremented on free and decremented on malloc, but nothing actually checks it, maybe was just used in debugging
+int free_mem_DAT_0045aae4 = 0;
+
+// I could do this with just a pointer that's offset and use it as the array, but std::array is way better for debugging
+template<class _Ty, size_t _Size>
+class offset_array : public std::array<_Ty, _Size> {
+public:
+	offset_array(size_t offset) {
+		_offset = offset;
+	}
+	_Ty &operator[](size_t index) {
+		return ::std::array<_Ty, _Size>::operator[](index + _offset);
+	}
+	size_t _offset;
+};
+
+uint CONCAT31(uint a, uint b) {
+	uint ret;
+	ret = (a << 8) & 0xffffff00;
+	ret |= b & 0xff;
+	return ret;
+}
+
+uint CONCAT22(uint a, uint b) {
+	uint ret;
+	ret = (a << 16) & 0xffff0000;
+	ret |= b & 0xffff;
+	return ret;
+}
+
+/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
+
+void free_FUN_00406c80(int param_1)
+
+{
+	free_mem_DAT_0045aae4 = free_mem_DAT_0045aae4 + *(int *)(param_1 + -4);
+	free((int *)(param_1 + -4));
+	return;
+}
+
+int *allocs_FUN_00406bc0(int param_1, int param_2)
+
+{
+	int *piVar1;
+	//int iVar2;
+	uint uVar3;
+	uint uVar4;
+	int iVar5;
+	int *piVar6;
+	//const char *pcVar7;
+	//undefined4 local_4;
+
+	iVar5 = param_2 * param_1;
+	uVar4 = iVar5 + 4;
+	piVar1 = (int *)malloc(uVar4);
+	if (piVar1 == (int *)0x0) {
+		error("malloc failed, uVar4: %d", (int)uVar4);
+		/*iVar2 = error_FUN_0040d7b0(uVar4);
+		if (iVar2 == 1) {
+			piVar1 = (int *)malloc(uVar4);
+			if (piVar1 != (int *)0x0)
+				goto LAB_00406c49;
+			pcVar7 = "s_Out_of_memory_0043d644";
+		} else {
+			//FUN_00406a20();
+			if (error_DAT_0043d35c == 4) {
+				local_4 = 0x10;
+				error_FUN_0040e920(0, &local_4);
+				warning("s_Info : _your_configuration_has_bee_0043d5fc been reset to 16bpp to use less memory");
+			}
+			pcVar7 = "s_Out_of_memory._Info : _It's_possib_0043d51c";
+		}
+		error_FUN_0040b870(pcVar7, 2);*/
+	}
+	//LAB_00406c49:
+	if (uVar4 != 0) {
+		piVar6 = piVar1;
+		for (uVar3 = uVar4 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+			*piVar6 = 0;
+			piVar6 = piVar6 + 1;
+		}
+		for (uVar4 = uVar4 & 3; uVar4 != 0; uVar4 = uVar4 - 1) {
+			*(undefined *)piVar6 = 0;
+			piVar6 = (int *)((int)piVar6 + 1);
+		}
+	}
+	*piVar1 = iVar5 + 4;
+	free_mem_DAT_0045aae4 = free_mem_DAT_0045aae4 - (iVar5 + 4);
+	return piVar1 + 1;
+}
+
+//uint FUN_00412a70(uint param_1, undefined4 param_2, uint param_3)
+ushort ai_rng_FUN_00412a70(/*uint param_1,*/ /*undefined4 &param_2,*/ /*uint &param_3*/) {
+	uint uVar1;
+	ushort uVar2;
+	ushort uVar3;
+	ushort uVar4;
+	ushort uVar5 = 0;
+	//short local_4;
+
+	//uVar2 = param_1 & 0xffff0000 | (uint)rng_a_DAT_0044fa94;
+	uVar2 = (uint)rng_a_DAT_0044fa94;
+	if (((rng_a_DAT_0044fa94 == 0) && (rng_b_DAT_0044fa98 == 0)) && (rng_c_DAT_0044fa9c == 0)) {
+		rng_c_DAT_0044fa9c = 0xc;
+		//uVar2 = CONCAT22((short)((param_1 & 0xffff0000) >> 0x10), 0xe6);
+		uVar2 = 230;
+		rng_b_DAT_0044fa98 = 0x1c;
+	}
+	/*local_4 = 0x10;
+	uVar5 = 0;
+	do {
+		uVar3 = (uVar2 >> 1) + uVar5;
+		uVar5 = uVar2 & 1;
+		uVar4 = rng_c_DAT_0044fa9c & 0x80;
+		rng_c_DAT_0044fa9c = ((uVar3 >> 2 ^ rng_b_DAT_0044fa98) & 1) + rng_c_DAT_0044fa9c * 2;
+		uVar1 = rng_b_DAT_0044fa98;
+		rng_b_DAT_0044fa98 = (uVar4 >> 7) + rng_b_DAT_0044fa98 * 2;
+		//param_3 = param_3 & 0xffff0000 | (uVar1 & 0x80) >> 7;
+		param_3 = ((uVar1 & 0x80) >> 7);
+		local_4 = local_4 + -1;
+		uVar2 = param_3 + uVar2 * 2;
+	} while (local_4 != 0);*/
+	for (short i = 16; i > 0; i--) {
+		uVar3 = (uVar2 >> 1) + uVar5;
+		uVar5 = uVar2 & 1;
+		uVar4 = rng_c_DAT_0044fa9c & 0x80;
+		rng_c_DAT_0044fa9c = ((uVar3 >> 2 ^ rng_b_DAT_0044fa98) & 1) + rng_c_DAT_0044fa9c * 2;
+		uVar1 = rng_b_DAT_0044fa98;
+		rng_b_DAT_0044fa98 = (uVar4 >> 7) + rng_b_DAT_0044fa98 * 2;
+		//param_3 = param_3 & 0xffff0000 | (uVar1 & 0x80) >> 7;
+		uint param_3 = ((uVar1 & 0x80) >> 7);
+		uVar2 = param_3 + uVar2 * 2;
+	}
+	rng_a_DAT_0044fa94 = uVar2;
+	//return uVar2 & 0xffff0000 | (uint)(ushort)((short)uVar2 << 8 | rng_b_DAT_0044fa98);
+	return (uVar2 << 8 | rng_b_DAT_0044fa98);
+}
+
+uint ai_rng_FUN_00412b50(/*uint param_1, undefined4 param_2,*/ /*uint param_3*/)
+
+{
+	uint uVar1;
+	uint uVar2;
+	//uint extraout_ECX;
+	//undefined4 extraout_EDX;
+
+	uVar1 = ai_rng_FUN_00412a70(/*param_1,*/ /*param_2,*/ /*param_3*/);
+	//uVar2 = FUN_00412a70(uVar1, extraout_EDX, extraout_ECX);
+	uVar2 = ai_rng_FUN_00412a70(/*uVar1,*/ /*param_2,*/ /*param_3*/);
+	return uVar1 << 16 | uVar2 & 0xffff;
+}
+
+
+
+
+
+void __cdecl pente_sub06_frees_FUN_00414720(int param_1)
+
+{
+	byte bVar1;
+	byte bVar2;
+	int *piVar3;
+	uint uVar4;
+	int *piVar5;
+	int iVar6;
+	uint local_4;
+
+	piVar3 = *(int **)(param_1 + 0x24);
+	bVar1 = *(byte *)(param_1 + 0x12);
+	bVar2 = *(byte *)(param_1 + 0x13);
+	if (bVar1 != 0) {
+		local_4 = (uint)bVar1;
+		piVar5 = piVar3;
+		do {
+			if (bVar2 != 0) {
+				iVar6 = 0;
+				uVar4 = (uint)bVar2;
+				do {
+					iVar6 += 4;
+					free_FUN_00406c80(*(int *)(*piVar5 + -4 + iVar6));
+					uVar4 -= 1;
+				} while (uVar4 != 0);
+			}
+			piVar5 = piVar5 + 1;
+			local_4 -= 1;
+		} while (local_4 != 0);
+	}
+	if (bVar1 != 0) {
+		uVar4 = (uint)bVar1;
+		piVar5 = piVar3;
+		do {
+			iVar6 = *piVar5;
+			piVar5 = piVar5 + 1;
+			free_FUN_00406c80(iVar6);
+			uVar4 -= 1;
+		} while (uVar4 != 0);
+	}
+	free_FUN_00406c80((int)piVar3);
+	*(undefined4 *)(param_1 + 0x24) = 0;
+	*(undefined2 *)(param_1 + 0x20) = 0;
+	return;
+}
+
+
+
+void __cdecl pente_sub02_frees_FUN_00414330(s_table *param_1)
+
+{
+	uint uVar1;
+	byte bVar2;
+
+	free_FUN_00406c80((int)param_1->player_p0);
+	bVar2 = 0;
+	free_FUN_00406c80((int)param_1->stauf_p4);
+	if (param_1->width != 0) {
+		do {
+			uVar1 = (uint)bVar2;
+			bVar2 += 1;
+			free_FUN_00406c80((int)param_1->board_state[uVar1]);
+		} while (bVar2 <= param_1->width && param_1->width != bVar2);
+	}
+	bVar2 = 0;
+	free_FUN_00406c80((int)param_1->board_state);
+	if (param_1->width != 0) {
+		do {
+			uVar1 = (uint)bVar2;
+			bVar2 += 1;
+			free_FUN_00406c80((int)param_1->board_state2[uVar1]);
+		} while (bVar2 <= param_1->width && param_1->width != bVar2);
+	}
+	free_FUN_00406c80((int)param_1->board_state2);
+	pente_sub06_frees_FUN_00414720((int)param_1);
+	free_FUN_00406c80((int)param_1);
+	return;
+}
+
+
+
+
+
+void __cdecl pente_sub05_build_lookup_table_FUN_004143c0(s_table *table)
+
+{
+	ushort *puVar1;
+	uint _width;
+	ushort ***lines_table;
+	ushort **ppuVar2;
+	int *piVar3;
+	uint uVar4;
+	uint uVar5;
+	byte bVar6;
+	byte local_14;
+	byte local_13;
+	ushort lines_counter;
+	byte height;
+	byte line_length;
+	byte width;
+
+	width = table->width;
+	height = table->height;
+	bVar6 = 0;
+	lines_counter = 0;
+	line_length = table->line_length;
+	_width = (uint)width;
+	lines_table = (ushort ***)allocs_FUN_00406bc0(_width, 4);
+	if (width != 0) {
+		do {
+			ppuVar2 = (ushort **)allocs_FUN_00406bc0((uint)height, 4);
+			uVar4 = (uint)bVar6;
+			bVar6 += 1;
+			lines_table[uVar4] = ppuVar2;
+		} while (bVar6 < width);
+	}
+	local_13 = 0;
+	if (width != 0) {
+		do {
+			bVar6 = 0;
+			if (height != 0) {
+				do {
+					piVar3 = allocs_FUN_00406bc0((uint)line_length * 4 + 1, 2);
+					uVar4 = (uint)bVar6;
+					bVar6 += 1;
+					lines_table[local_13][uVar4] = (ushort *)piVar3;
+				} while (bVar6 < height);
+			}
+			local_13 += 1;
+		} while (local_13 < width);
+	}
+	local_14 = 0;
+	if (height != 0) {
+		do {
+			local_13 = 0;
+			if (-1 < (int)(_width - line_length)) {
+				do {
+					bVar6 = 0;
+					if (line_length != 0) {
+						do {
+							uVar4 = (uint)bVar6;
+							bVar6 += 1;
+							puVar1 = lines_table[uVar4 + local_13][local_14];
+							*puVar1 = *puVar1 + 1;
+							puVar1 = lines_table[uVar4 + local_13][local_14];
+							puVar1[*puVar1] = lines_counter;
+						} while (bVar6 < line_length);
+					}
+					lines_counter += 1;
+					local_13 += 1;
+				} while ((int)(uint)local_13 <= (int)(_width - line_length));
+			}
+			local_14 += 1;
+		} while (local_14 < height);
+	}
+	local_13 = 0;
+	if (width != 0) {
+		do {
+			local_14 = 0;
+			if (-1 < (int)((uint)height - (uint)line_length)) {
+				do {
+					if (line_length != 0) {
+						uVar4 = 0;
+						do {
+							bVar6 = (char)uVar4 + 1;
+							puVar1 = lines_table[local_13][uVar4 + local_14];
+							*puVar1 = *puVar1 + 1;
+							puVar1 = lines_table[local_13][uVar4 + local_14];
+							puVar1[*puVar1] = lines_counter;
+							uVar4 = (uint)bVar6;
+						} while (bVar6 < line_length);
+					}
+					lines_counter += 1;
+					local_14 += 1;
+				} while ((int)(uint)local_14 <= (int)((uint)height - (uint)line_length));
+			}
+			local_13 += 1;
+		} while (local_13 < width);
+	}
+	local_14 = 0;
+	uVar4 = (uint)line_length;
+	if (-1 < (int)(height - uVar4)) {
+		do {
+			local_13 = 0;
+			if (-1 < (int)(_width - uVar4)) {
+				do {
+					if (line_length != 0) {
+						uVar5 = 0;
+						do {
+							width = (char)uVar5 + 1;
+							puVar1 = lines_table[local_13 + uVar5][uVar5 + local_14];
+							*puVar1 = *puVar1 + 1;
+							puVar1 = lines_table[local_13 + uVar5][uVar5 + local_14];
+							puVar1[*puVar1] = lines_counter;
+							uVar5 = (uint)width;
+						} while (width < line_length);
+					}
+					lines_counter += 1;
+					local_13 += 1;
+				} while ((int)(uint)local_13 <= (int)(_width - uVar4));
+			}
+			local_14 += 1;
+		} while ((int)(uint)local_14 <= (int)(height - uVar4));
+	}
+	local_14 = line_length - 1;
+	if (local_14 < height) {
+		do {
+			local_13 = 0;
+			if (-1 < (int)(_width - uVar4)) {
+				do {
+					if (line_length != 0) {
+						uVar5 = 0;
+						do {
+							width = (char)uVar5 + 1;
+							puVar1 = lines_table[local_13 + uVar5][local_14 - uVar5];
+							*puVar1 = *puVar1 + 1;
+							puVar1 = lines_table[local_13 + uVar5][local_14 - uVar5];
+							puVar1[*puVar1] = lines_counter;
+							uVar5 = (uint)width;
+						} while (width < line_length);
+					}
+					lines_counter += 1;
+					local_13 += 1;
+				} while ((int)(uint)local_13 <= (int)(_width - uVar4));
+			}
+			local_14 += 1;
+		} while (local_14 < height);
+	}
+	table->lines_counter_s20 = lines_counter;
+	table->lines_table_0x24 = lines_table;
+	return;
+}
+
+
+
+
+s_table *__cdecl pente_sub01_init_FUN_00414220(byte width, byte height, byte length)
+
+{
+	s_table *table;
+	byte **ppbVar1;
+	int *piVar2;
+	s_player_table *psVar3;
+	uint uVar4;
+	byte bVar5;
+	ushort _height;
+
+	table = (s_table *)allocs_FUN_00406bc0(1, 0x30);
+	table->width = width;
+	table->height = height;
+	_height = (ushort)height;
+	table->board_size = _height * width;
+	bVar5 = 0;
+	table->line_length = length;
+	ppbVar1 = (byte **)allocs_FUN_00406bc0((uint)width, 4);
+	table->board_state = ppbVar1;
+	if (width != 0) {
+		do {
+			piVar2 = allocs_FUN_00406bc0((uint)height, 1);
+			uVar4 = (uint)bVar5;
+			bVar5 += 1;
+			table->board_state[uVar4] = (byte *)piVar2;
+		} while (bVar5 < width);
+	}
+	pente_sub05_build_lookup_table_FUN_004143c0(table);
+	psVar3 = (s_player_table *)allocs_FUN_00406bc0(table->lines_counter_s20 + 1, 4);
+	table->player_p0 = psVar3;
+	psVar3 = (s_player_table *)allocs_FUN_00406bc0(table->lines_counter_s20 + 1, 4);
+	table->stauf_p4 = psVar3;
+	bVar5 = 0;
+	table->maybe_stauf_score_i12 = (uint)table->lines_counter_s20;
+	table->maybe_player_score_i8 = (uint)table->lines_counter_s20;
+	ppbVar1 = (byte **)allocs_FUN_00406bc0((uint)width, 4);
+	table->board_state2 = ppbVar1;
+	if (width != 0) {
+		do {
+			piVar2 = allocs_FUN_00406bc0((uint)height, 1);
+			uVar4 = (uint)bVar5;
+			bVar5 += 1;
+			table->board_state2[uVar4] = (byte *)piVar2;
+		} while (bVar5 < width);
+	}
+	table->maybe_move_counter_44 = 1;
+	return table;
+}
+
+
+
+
+void __cdecl pente_sub03_scoring_FUN_00413200(s_table *table, byte move_y, byte move_x, bool whose_turn)
+
+{
+	ushort ***pppuVar1;
+	int iVar2;
+	int *piVar3;
+	uint uVar4;
+	byte bVar5;
+	byte bVar6;
+	uint _move_x;
+	byte bVar7;
+	byte bVar8;
+	uint _move_y;
+	byte local_15;
+	s_player_table *player_table;
+	byte **board_state2;
+
+	pppuVar1 = table->lines_table_0x24;
+	board_state2 = table->board_state2;
+	_move_x = (uint)move_x;
+	_move_y = (uint)move_y;
+	/* whose_turn ? 88 : 79 */
+	table->board_state[_move_x][_move_y] = (-(whose_turn == false) & 247U) + 88;
+	pppuVar1 = pppuVar1 + _move_x;
+	local_15 = 1;
+	bVar5 = *(byte *)(*pppuVar1)[_move_y];
+	if (bVar5 != 0) {
+		player_table = (s_player_table *)(&table->player_p0 + whose_turn);
+		do {
+			iVar2 = player_table->p0[(*pppuVar1)[_move_y][local_15]];
+			player_table->p0[(*pppuVar1)[_move_y][local_15]] = iVar2 + 1;
+			if ((uint)table->line_length - iVar2 == 1) {
+				player_table->score_i8 = player_table->score_i8 + 100000000;
+			} else {
+				uVar4 = (uint)(whose_turn == false);
+				piVar3 = (&(&table->player_p0)[uVar4]->p0)[(*pppuVar1)[_move_y][local_15]];
+				if ((iVar2 == 0) &&
+					((&table->maybe_player_score_i8)[uVar4] =
+						 (&table->maybe_player_score_i8)[uVar4] + (-1 << ((byte)(uint)piVar3 & 0x1f)),
+					 (uint)table->line_length - (int)piVar3 == 1)) {
+					(&table->b16)[uVar4] = (&table->b16)[uVar4] - 1;
+				}
+				if (((piVar3 == (int *)0x0) &&
+					 (player_table->score_i8 = player_table->score_i8 + (1 << ((byte)iVar2 & 0x1f)),
+					  (uint)table->line_length - iVar2 == 2)) &&
+					(bVar6 = (&table->b16)[whose_turn] + 1, (&table->b16)[whose_turn] = bVar6, 1 < bVar6)) {
+					player_table->score_i8 = player_table->score_i8 + 1000000;
+				}
+			}
+			local_15 += 1;
+		} while (local_15 <= bVar5);
+	}
+	if (table->maybe_move_counter_44 != 0) {
+		if (_move_x + 1 < (uint)table->width) {
+			bVar5 = move_x + 1;
+		} else {
+			bVar5 = table->width - 1;
+		}
+		if (_move_y + 1 < (uint)table->height) {
+			bVar6 = move_y + 1;
+		} else {
+			bVar6 = table->height - 1;
+		}
+		bVar8 = 0;
+		if (1 < move_x) {
+			bVar8 = move_x - 1;
+		}
+		for (; bVar8 <= bVar5; bVar8 += 1) {
+			bVar7 = 0;
+			if (1 < move_y) {
+				bVar7 = move_y - 1;
+			}
+			if (bVar7 <= bVar6) {
+				do {
+					_move_x = (uint)bVar7;
+					bVar7 += 1;
+					board_state2[bVar8][_move_x] = board_state2[bVar8][_move_x] + 1;
+				} while (bVar7 <= bVar6);
+			}
+		}
+	}
+	table->maybe_move_counter_24 = table->maybe_move_counter_24 + 1;
+	return;
+}
+
+
+
+
+void __cdecl pente_sub07_revert_score_FUN_004133e0(s_table *table_1, byte y, byte x)
+
+{
+	s_player_table **ppsVar1;
+	ushort ***pppuVar2;
+	byte **ppbVar3;
+	int *piVar4;
+	int *piVar5;
+	uint uVar6;
+	byte bVar7;
+	uint uVar8;
+	uint uVar9;
+	byte bVar10;
+	byte bVar11;
+	uint uVar12;
+	byte bVar13;
+	bool bVar14;
+	byte local_11;
+
+	uVar8 = (uint)x;
+	uVar12 = (uint)y;
+	pppuVar2 = table_1->lines_table_0x24;
+	ppbVar3 = table_1->board_state2;
+	bVar10 = table_1->board_state[uVar8][uVar12];
+	table_1->board_state[uVar8][uVar12] = 0;
+	bVar14 = bVar10 == 0x58;
+	table_1->maybe_move_counter_24 = table_1->maybe_move_counter_24 - 1;
+	pppuVar2 = pppuVar2 + uVar8;
+	local_11 = 1;
+	bVar10 = *(byte *)(*pppuVar2)[uVar12];
+	if (bVar10 != 0) {
+		uVar9 = (uint)bVar14;
+		ppsVar1 = &table_1->player_p0 + uVar9;
+		do {
+			(&(*ppsVar1)->p0)[(*pppuVar2)[uVar12][local_11]] =
+				(int *)((int)(&(*ppsVar1)->p0)[(*pppuVar2)[uVar12][local_11]] + -1);
+			piVar4 = (&(*ppsVar1)->p0)[(*pppuVar2)[uVar12][local_11]];
+			if ((uint)table_1->line_length - (int)piVar4 == 1) {
+				ppsVar1[2] = (s_player_table *)&ppsVar1[2][-0x7f2816].score_i8;
+			} else {
+				uVar6 = (uint)!bVar14;
+				piVar5 = (&(&table_1->player_p0)[uVar6]->p0)[(*pppuVar2)[uVar12][local_11]];
+				if ((piVar4 == (int *)0x0) &&
+					((&table_1->maybe_player_score_i8)[uVar6] =
+						 (&table_1->maybe_player_score_i8)[uVar6] + (1 << ((byte)(uint)piVar5 & 0x1f)),
+					 (uint)table_1->line_length - (int)piVar5 == 1)) {
+					(&table_1->b16)[uVar6] = (&table_1->b16)[uVar6] + 1;
+				}
+				if (((piVar5 == (int *)0x0) &&
+					 (ppsVar1[2] = (s_player_table *)((int)&ppsVar1[2]->p0 + (-1 << ((byte)(uint)piVar4 & 0x1f))),
+					  (uint)table_1->line_length - (int)piVar4 == 2)) &&
+					(bVar13 = (&table_1->b16)[uVar9], (&table_1->b16)[uVar9] = bVar13 - 1, 1 < bVar13)) {
+					ppsVar1[2] = (s_player_table *)&ppsVar1[2][-0x14586].score_i8;
+				}
+			}
+			local_11 += 1;
+		} while (local_11 <= bVar10);
+	}
+	if (table_1->maybe_move_counter_44 != 0) {
+		if (uVar8 + 1 < (uint)table_1->width) {
+			bVar10 = x + 1;
+		} else {
+			bVar10 = table_1->width - 1;
+		}
+		if (uVar12 + 1 < (uint)table_1->height) {
+			bVar13 = y + 1;
+		} else {
+			bVar13 = table_1->height - 1;
+		}
+		bVar11 = 0;
+		if (1 < x) {
+			bVar11 = x - 1;
+		}
+		for (; bVar11 <= bVar10; bVar11 += 1) {
+			bVar7 = 0;
+			if (1 < y) {
+				bVar7 = y - 1;
+			}
+			if (bVar7 <= bVar13) {
+				do {
+					uVar8 = (uint)bVar7;
+					bVar7 += 1;
+					ppbVar3[bVar11][uVar8] = ppbVar3[bVar11][uVar8] - 1;
+				} while (bVar7 <= bVar13);
+			}
+		}
+	}
+	return;
+}
+
+
+
+
+uint __cdecl pente_sub04_score_capture_FUN_004135c0(s_table *table, byte y, byte x)
+
+{
+	byte **ppbVar1;
+	int *piVar2;
+	byte bVar3;
+	byte bVar4;
+	uint uVar5;
+	byte bVar6;
+	byte bVar7;
+	int iVar8;
+	int iVar9;
+	byte *pbVar10;
+	char cVar11;
+	byte bVar12;
+	uint local_8;
+	int *ppsVar2;
+
+	cVar11 = '\0';
+	bVar3 = table->height;
+	local_8 = (uint)x;
+	ppbVar1 = table->board_state + local_8;
+	uVar5 = (uint)y;
+	bVar4 = (*ppbVar1)[uVar5];
+	bVar6 = -(bVar4 == 0x4f) & 9;
+	bVar7 = bVar6 + 0x4f;
+	iVar8 = table->width - 4;
+	if ((int)local_8 <= iVar8) {
+		if (ppbVar1[3][uVar5] == bVar4) {
+			if ((ppbVar1[2][uVar5] == bVar7) && (ppbVar1[1][uVar5] == bVar7)) {
+				pente_sub07_revert_score_FUN_004133e0(table, y, x + 2);
+				cVar11 = '\x01';
+				pente_sub07_revert_score_FUN_004133e0(table, y, x + 1);
+			}
+		}
+	}
+	bVar12 = cVar11 * '\x02';
+	if (((int)local_8 <= iVar8) && ((int)uVar5 <= (int)(bVar3 - 4))) {
+		if (ppbVar1[3][uVar5 + 3] == bVar4) {
+			if ((ppbVar1[2][uVar5 + 2] == bVar7) && (ppbVar1[1][uVar5 + 1] == bVar7)) {
+				pente_sub07_revert_score_FUN_004133e0(table, y + 2, x + 2);
+				bVar12 |= 1;
+				pente_sub07_revert_score_FUN_004133e0(table, y + 1, x + 1);
+			}
+		}
+	}
+	bVar12 *= '\x02';
+	iVar9 = bVar3 - 4;
+	if ((int)uVar5 <= iVar9) {
+		pbVar10 = *ppbVar1 + uVar5;
+		if (pbVar10[3] == bVar4) {
+			if ((pbVar10[2] == bVar7) && (pbVar10[1] == bVar7)) {
+				pente_sub07_revert_score_FUN_004133e0(table, y + 2, x);
+				bVar12 |= 1;
+				pente_sub07_revert_score_FUN_004133e0(table, y + 1, x);
+			}
+		}
+	}
+	bVar12 *= '\x02';
+	if ((2 < x) && ((int)uVar5 <= iVar9)) {
+		if (ppbVar1[-3][uVar5 + 3] == bVar4) {
+			if ((ppbVar1[-2][uVar5 + 2] == bVar7) && (ppbVar1[-1][uVar5 + 1] == bVar7)) {
+				pente_sub07_revert_score_FUN_004133e0(table, y + 2, x - 2);
+				bVar12 |= 1;
+				pente_sub07_revert_score_FUN_004133e0(table, y + 1, x - 1);
+			}
+		}
+	}
+	bVar12 *= '\x02';
+	if (2 < x) {
+		if (ppbVar1[-3][uVar5] == bVar4) {
+			if ((ppbVar1[-2][uVar5] == bVar7) && (ppbVar1[-1][uVar5] == bVar7)) {
+				pente_sub07_revert_score_FUN_004133e0(table, y, x - 2);
+				bVar12 |= 1;
+				pente_sub07_revert_score_FUN_004133e0(table, y, x - 1);
+			}
+		}
+	}
+	bVar12 *= '\x02';
+	if ((2 < x) && (2 < y)) {
+		if (ppbVar1[-3][uVar5 - 3] == bVar4) {
+			if ((ppbVar1[-2][uVar5 - 2] == bVar7) && (ppbVar1[-1][uVar5 - 1] == bVar7)) {
+				pente_sub07_revert_score_FUN_004133e0(table, y - 2, x - 2);
+				bVar12 |= 1;
+				pente_sub07_revert_score_FUN_004133e0(table, y - 1, x - 1);
+			}
+		}
+	}
+	bVar12 *= '\x02';
+	if ((((2 < y) && (pbVar10 = *ppbVar1 + uVar5, pbVar10[-3] == bVar4)) && (pbVar10[-2] == bVar7)) &&
+		(pbVar10[-1] == bVar7)) {
+		pente_sub07_revert_score_FUN_004133e0(table, y - 2, x);
+		bVar12 |= 1;
+		pente_sub07_revert_score_FUN_004133e0(table, y - 1, x);
+	}
+	bVar12 *= '\x02';
+	if (((int)local_8 <= iVar8) && (2 < y)) {
+		local_8 = 0;
+		if (ppbVar1[3][uVar5 - 3] == bVar4) {
+			local_8 = 0;
+			if ((ppbVar1[2][uVar5 - 2] == bVar7) && (ppbVar1[1][uVar5 - 1] == bVar7)) {
+				pente_sub07_revert_score_FUN_004133e0(table, y - 2, x + 2);
+				bVar12 |= 1;
+				/*local_8 =*/ pente_sub07_revert_score_FUN_004133e0(table, y - 1, x + 1);
+			}
+		}
+	}
+	if (bVar12 != 0) {
+		local_8 = local_8 & 0xffffff00 | (uint)bVar12;
+		do {
+			if ((local_8 & 1) != 0) {
+				ppsVar2 = (int *)(&table->player_p0 + (bVar6 == 0));
+				piVar2 = (int *)(*ppsVar2 + (uint)table->lines_counter_s20 * 4);
+				*piVar2 = *piVar2 + 1;
+				uVar5 = *(uint *)(*ppsVar2 + (uint)table->lines_counter_s20 * 4);
+				if (table->line_length == uVar5) {
+					ppsVar2[2] = ppsVar2[2] + 100000000;
+				} else {
+					ppsVar2[2] = ppsVar2[2] + (1 << ((char)uVar5 - 1U & 0x1f));
+				}
+			}
+			uVar5 = local_8 >> 1 & 0x7f;
+			local_8 = local_8 & 0xffffff00 | uVar5;
+		} while ((char)uVar5 != '\0');
+	}
+	return local_8 & 0xffffff00 | (uint)bVar12;
+}
+
+
+
+
+void __cdecl pente_sub08_idk_FUN_00412ff0(short param_1, byte *param_2, short *param_3, short *param_4)
+
+{
+	byte bVar1;
+	byte bVar2;
+	byte bVar3;
+	short sVar4;
+	byte bVar5;
+
+	bVar1 = (byte)((int)param_1 / 0xf);
+	bVar5 = *param_2;
+	bVar2 = 0xe - (char)((int)param_1 % 0xf);
+	bVar3 = 0;
+	do {
+		if ((bVar5 & 1) != 0) {
+			*param_2 = '\x01' << (bVar3 & 0x1f) ^ *param_2;
+			break;
+		}
+		bVar5 >>= 1;
+		bVar3 += 1;
+	} while (bVar3 < 8);
+	switch (bVar3) {
+	case 0:
+		*param_3 = (bVar1 + 2) * 0xf - (ushort)bVar2;
+		*param_4 = ((ushort)bVar1 * 0xf - (ushort)bVar2) + 0x2e;
+		return;
+	case 1:
+		*param_3 = (bVar1 + 1) * 0xf - (ushort)bVar2;
+		*param_4 = ((ushort)bVar1 * 0xf - (ushort)bVar2) + 0x10;
+		return;
+	case 2:
+		sVar4 = (ushort)bVar1 * 0xf - (ushort)bVar2;
+		*param_3 = sVar4;
+		*param_4 = sVar4 + -0xe;
+		return;
+	case 3:
+		sVar4 = (ushort)bVar1 * 0xf - (ushort)bVar2;
+		*param_3 = sVar4 + -1;
+		*param_4 = sVar4 + -0x10;
+		return;
+	case 4:
+		sVar4 = (ushort)bVar1 * 0xf - (ushort)bVar2;
+		*param_3 = sVar4 + -2;
+		*param_4 = sVar4 + -0x12;
+		return;
+	case 5:
+		sVar4 = (ushort)bVar1 * 0xf - (ushort)bVar2;
+		*param_3 = sVar4 + 0xd;
+		*param_4 = sVar4 + 0xc;
+		return;
+	case 6:
+		sVar4 = (ushort)bVar1 * 0xf - (ushort)bVar2;
+		*param_3 = sVar4 + 0x1c;
+		*param_4 = sVar4 + 0x2a;
+		return;
+	case 7:
+		sVar4 = (ushort)bVar1 * 0xf - (ushort)bVar2;
+		*param_3 = sVar4 + 0x1d;
+		*param_4 = sVar4 + 0x2c;
+	}
+	return;
+}
+
+
+
+
+void __cdecl pente_sub11_revert_capture_FUN_00413990(s_table *table, byte y, byte x, byte y2)
+
+{
+	s_player_table **ppsVar1;
+	uint uVar2;
+	bool whose_turn;
+
+	whose_turn = table->board_state[x][y] == 0x4f;
+	if (y2 != 0) {
+		uVar2 = (uint)y2;
+		do {
+			if ((uVar2 & 1) != 0) {
+				ppsVar1 = &table->player_p0 + !whose_turn;
+				(&(*ppsVar1)->p0)[table->lines_counter_s20] =
+					(int *)((int)(&(*ppsVar1)->p0)[table->lines_counter_s20] + -1);
+				if ((uint)table->line_length - (int)(&(*ppsVar1)->p0)[table->lines_counter_s20] == 1) {
+					ppsVar1[2] = (s_player_table *)&ppsVar1[2][-0x7f2816].score_i8;
+				} else {
+					ppsVar1[2] = (s_player_table *)((int)&ppsVar1[2]->p0 +
+													(-1 << ((byte)(uint)(&(*ppsVar1)->p0)[table->lines_counter_s20] & 0x1f)));
+				}
+			}
+			uVar2 >>= 1;
+		} while ((char)uVar2 != '\0');
+	}
+	if ((y2 & 1) != 0) {
+		pente_sub03_scoring_FUN_00413200(table, y - 2, x + 2, whose_turn);
+		pente_sub03_scoring_FUN_00413200(table, y - 1, x + 1, whose_turn);
+	}
+	if ((y2 >> 1 & 1) != 0) {
+		pente_sub03_scoring_FUN_00413200(table, y - 2, x, whose_turn);
+		pente_sub03_scoring_FUN_00413200(table, y - 1, x, whose_turn);
+	}
+	if ((y2 >> 2 & 1) != 0) {
+		pente_sub03_scoring_FUN_00413200(table, y - 2, x - 2, whose_turn);
+		pente_sub03_scoring_FUN_00413200(table, y - 1, x - 1, whose_turn);
+	}
+	if ((y2 >> 3 & 1) != 0) {
+		pente_sub03_scoring_FUN_00413200(table, y, x - 2, whose_turn);
+		pente_sub03_scoring_FUN_00413200(table, y, x - 1, whose_turn);
+	}
+	if ((y2 >> 4 & 1) != 0) {
+		pente_sub03_scoring_FUN_00413200(table, y + 2, x - 2, whose_turn);
+		pente_sub03_scoring_FUN_00413200(table, y + 1, x - 1, whose_turn);
+	}
+	if ((y2 >> 5 & 1) != 0) {
+		pente_sub03_scoring_FUN_00413200(table, y + 2, x, whose_turn);
+		pente_sub03_scoring_FUN_00413200(table, y + 1, x, whose_turn);
+	}
+	if ((y2 >> 6 & 1) != 0) {
+		pente_sub03_scoring_FUN_00413200(table, y + 2, x + 2, whose_turn);
+		pente_sub03_scoring_FUN_00413200(table, y + 1, x + 1, whose_turn);
+	}
+	if ((char)y2 < '\0') {
+		pente_sub03_scoring_FUN_00413200(table, y, x + 2, whose_turn);
+		pente_sub03_scoring_FUN_00413200(table, y, x + 1, whose_turn);
+	}
+	return;
+}
+
+
+
+
+int __cdecl pente_sub10_ai_recurse_FUN_00413be0(s_table *table_1, char param_2, int param_3)
+
+{
+	byte bVar1;
+	int iVar2;
+	int iVar3;
+	int iVar4;
+	bool bVar5;
+	ushort uVar6;
+	uint uVar7;
+	int iVar8;
+	uint uVar9;
+	short sVar10;
+	byte bVar11;
+	int iVar12;
+	ushort local_970[2];
+	int local_964;
+	undefined4 local_960;
+	//int local_95c[599];
+	offset_array<int, 600> local_95c(1);
+	//maybe some of these stack variables overlap the array, could turn them into references
+
+	local_964 = 0x7fffffff;
+	if (param_2 == '\x01') {
+		bVar1 = 0;
+		table_1->maybe_move_counter_44 = 0;
+		if (table_1->width != 0) {
+			do {
+				bVar11 = 0;
+				if (table_1->height != 0) {
+					do {
+						if ((table_1->board_state[bVar1][bVar11] == 0) &&
+							(table_1->board_state2[bVar1][bVar11] != 0)) {
+							pente_sub03_scoring_FUN_00413200(table_1, bVar11, bVar1, (bool)((byte)table_1->maybe_move_counter_24 & 1));
+							uVar7 = pente_sub04_score_capture_FUN_004135c0(table_1, bVar11, bVar1);
+							if ((*(byte *)&table_1->maybe_move_counter_24 & 1) == 0) {
+								iVar12 = table_1->maybe_player_score_i8 - table_1->maybe_stauf_score_i12;
+							} else {
+								iVar12 = table_1->maybe_stauf_score_i12 - table_1->maybe_player_score_i8;
+							}
+							if ((byte)uVar7 != 0) {
+								pente_sub11_revert_capture_FUN_00413990(table_1, bVar11, bVar1, (byte)uVar7);
+							}
+							pente_sub07_revert_score_FUN_004133e0(table_1, bVar11, bVar1);
+							if (iVar12 < local_964) {
+								local_964 = iVar12;
+							}
+							if (-param_3 != local_964 && param_3 <= -local_964) {
+								table_1->maybe_move_counter_44 = 1;
+								return -local_964;
+							}
+						}
+						bVar11 += 1;
+					} while (bVar11 <= table_1->height && table_1->height != bVar11);
+				}
+				bVar1 += 1;
+			} while (bVar1 <= table_1->width && table_1->width != bVar1);
+		}
+		table_1->maybe_move_counter_44 = 1;
+	} else {
+		*(uint *)local_970 = 0;
+		bVar1 = 0;
+		if (table_1->width != 0) {
+			do {
+				bVar11 = 0;
+				if (table_1->height != 0) {
+					do {
+						if ((table_1->board_state[bVar1][bVar11] == 0) &&
+							(table_1->board_state2[bVar1][bVar11] != 0)) {
+							pente_sub03_scoring_FUN_00413200(table_1, bVar11, bVar1, (bool)((byte)table_1->maybe_move_counter_24 & 1));
+							uVar7 = pente_sub04_score_capture_FUN_004135c0(table_1, bVar11, bVar1);
+							if ((*(byte *)&table_1->maybe_move_counter_24 & 1) == 0) {
+								iVar12 = table_1->maybe_player_score_i8 - table_1->maybe_stauf_score_i12;
+							} else {
+								iVar12 = table_1->maybe_stauf_score_i12 - table_1->maybe_player_score_i8;
+							}
+							if ((byte)uVar7 != 0) {
+								pente_sub11_revert_capture_FUN_00413990(table_1, bVar11, bVar1, (byte)uVar7);
+							}
+							pente_sub07_revert_score_FUN_004133e0(table_1, bVar11, bVar1);
+							iVar8 = (int)(short)local_970[1];
+							*(uint *)local_970 = (uint)(ushort)(local_970[1] + 1) << 0x10;
+							local_95c[iVar8 * 2] = iVar12;
+							//*(byte *)(local_95c + iVar8 * 2 + -1) = bVar11;
+							*(byte *)&local_95c[iVar8 * 2 - 1] = bVar11;
+							//*(byte *)((int)local_95c + iVar8 * 8 + -3) = bVar1;
+							*((byte *)&local_95c[iVar8 * 2 - 1] + 1) = bVar1;
+						}
+						bVar11 += 1;
+					} while (bVar11 <= table_1->height && table_1->height != bVar11);
+				}
+				bVar1 += 1;
+			} while (bVar1 <= table_1->width && table_1->width != bVar1);
+		}
+		uVar6 = 1;
+		if (0 < (short)local_970[1]) {
+			do {
+				uVar6 = uVar6 * 3 + 1;
+			} while ((short)uVar6 <= (short)local_970[1]);
+		}
+		while (2 < (short)uVar6) {
+			uVar6 = (short)uVar6 / 3;
+			uVar7 = *(uint *)local_970 & 0xffff0000;
+			*(uint *)local_970 = uVar7 | uVar6;
+			local_970[1] = (ushort)(uVar7 >> 0x10);
+			if ((short)uVar6 < (short)local_970[1]) {
+				do {
+					bVar5 = false;
+					sVar10 = local_970[0] - uVar6;
+					while ((-1 < sVar10 && (!bVar5))) {
+						iVar8 = (int)sVar10;
+						iVar12 = (short)uVar6 + iVar8;
+						if (local_95c[iVar12 * 2] < local_95c[iVar8 * 2]) {
+							sVar10 -= uVar6;
+							iVar2 = local_95c[iVar12 * 2];
+							iVar3 = local_95c[iVar12 * 2 + -1];
+							iVar4 = local_95c[iVar8 * 2];
+							local_95c[iVar12 * 2 + -1] = local_95c[iVar8 * 2 + -1];
+							local_95c[iVar12 * 2] = iVar4;
+							local_95c[iVar8 * 2 + -1] = iVar3;
+							local_95c[iVar8 * 2] = iVar2;
+						} else {
+							bVar5 = true;
+						}
+					}
+					uVar7 = *(uint *)local_970 & 0xffff0000;
+					*(uint *)local_970 = uVar7 | (ushort)(local_970[0] + 1);
+					local_970[1] = (ushort)(uVar7 >> 0x10);
+				} while ((short)(local_970[0] + 1) < (short)local_970[1]);
+			}
+		}
+		sVar10 = 0;
+		local_970[1] = (ushort)(*(uint *)local_970 >> 0x10);
+		if (0 < (short)local_970[1]) {
+			do {
+				//bVar1 = *(byte *)(local_95c + sVar10 * 2 + -1);
+				bVar1 = *(byte *)&local_95c[sVar10 * 2 - 1];
+				//bVar11 = *(byte *)((int)local_95c + sVar10 * 8 + -3);
+				bVar11 = * ((byte *)&local_95c[sVar10 * 2 - 1]+1);
+				*(uint *)local_970 &= 0xffffff00;
+				pente_sub03_scoring_FUN_00413200(table_1, bVar1, bVar11, (bool)((byte)table_1->maybe_move_counter_24 & 1));
+				uVar9 = pente_sub04_score_capture_FUN_004135c0(table_1, bVar1, bVar11);
+				uVar7 = table_1->maybe_player_score_i8;
+				if ((((int)uVar7 < 100000000) && ((int)table_1->maybe_stauf_score_i12 < 100000000)) &&
+					(table_1->board_size != table_1->maybe_move_counter_24)) {
+					iVar12 = pente_sub10_ai_recurse_FUN_00413be0(table_1, param_2 + -1, local_964);
+				} else {
+					if ((*(byte *)&table_1->maybe_move_counter_24 & 1) == 0) {
+						iVar12 = uVar7 - table_1->maybe_stauf_score_i12;
+					} else {
+						iVar12 = table_1->maybe_stauf_score_i12 - uVar7;
+					}
+				}
+				if ((byte)uVar9 != 0) {
+					pente_sub11_revert_capture_FUN_00413990(table_1, bVar1, bVar11, (byte)uVar9);
+				}
+				pente_sub07_revert_score_FUN_004133e0(table_1, bVar1, bVar11);
+				if (iVar12 < local_964) {
+					local_964 = iVar12;
+				}
+				if (-param_3 != local_964 && param_3 <= -local_964)
+					break;
+				sVar10 += 1;
+				local_970[1] = (ushort)(*(uint *)local_970 >> 0x10);
+			} while (sVar10 < (short)local_970[1]);
+		}
+	}
+	return -local_964;
+}
+
+
+
+
+uint pente_sub09_ai_FUN_00413fa0(uint y_1, undefined4 param_2, undefined4 param_3, s_table *table_4, byte param_5)
+
+{
+	bool bVar1;
+	uint uVar2;
+	int iVar3;
+	uint extraout_ECX;
+	undefined4 extraout_EDX;
+	byte _y;
+	int iVar4;
+	ushort uVar5;
+	byte bStack18;
+	byte _x;
+	ushort local_c;
+	short local_4;
+	uint _y2;
+
+	bStack18 = 1;
+	_x = 0;
+	uVar5 = 0xffff;
+	iVar4 = 0x7fffffff;
+	if (table_4->width != 0) {
+		do {
+			_y = 0;
+			if (table_4->height != 0) {
+				do {
+					y_1 = (uint)_y;
+					if ((table_4->board_state[_x][y_1] == 0) && (table_4->board_state2[_x][y_1] != 0)) {
+						pente_sub03_scoring_FUN_00413200(table_4, _y, _x, (bool)((byte)table_4->maybe_move_counter_24 & 1));
+						_y2 = pente_sub04_score_capture_FUN_004135c0(table_4, _y, _x);
+						if (((int)table_4->maybe_player_score_i8 < 100000000) &&
+							((int)table_4->maybe_stauf_score_i12 < 100000000)) {
+							bVar1 = false;
+						} else {
+							bVar1 = true;
+						}
+						if ((byte)_y2 != 0) {
+							pente_sub11_revert_capture_FUN_00413990(table_4, _y, _x, (byte)_y2);
+						}
+						/*y_1 =*/ pente_sub07_revert_score_FUN_004133e0(table_4, _y, _x);
+						if (bVar1) {
+							return y_1 & 0xffff0000 | (uint)(ushort)((ushort)_y + (ushort)_x * 100);
+						}
+					}
+					_y += 1;
+				} while (_y <= table_4->height && table_4->height != _y);
+			}
+			_x += 1;
+			y_1 &= 0xffffff00;
+		} while (_x <= table_4->width && table_4->width != _x);
+	}
+	do {
+		_x = 0;
+		if (table_4->width != 0) {
+			do {
+				_y2 = 0;
+				if (table_4->height != 0) {
+					do {
+						_y = (byte)_y2;
+						y_1 = 0;
+						if ((table_4->board_state[_x][_y2] == 0) && (table_4->board_state2[_x][_y2] != 0)) {
+							pente_sub03_scoring_FUN_00413200(table_4, _y, _x, (bool)((byte)table_4->maybe_move_counter_24 & 1));
+							uVar2 = pente_sub04_score_capture_FUN_004135c0(table_4, _y, _x);
+							iVar3 = pente_sub10_ai_recurse_FUN_00413be0(table_4, param_5 - 1, iVar4);
+							if ((byte)uVar2 != 0) {
+								pente_sub11_revert_capture_FUN_00413990(table_4, _y, _x, (byte)uVar2);
+							}
+							/*y_1 =*/ pente_sub07_revert_score_FUN_004133e0(table_4, _y, _x);
+							local_c = (ushort)_x;
+							local_4 = (short)_y2;
+							if (iVar3 < iVar4) {
+								bStack18 = 1;
+								uVar5 = local_c * 100 + local_4;
+								iVar4 = iVar3;
+							} else {
+								if (iVar3 == iVar4) {
+									bStack18 += 1;
+									_y2 = ai_rng_FUN_00412b50(/*y_1, extraout_EDX, extraout_ECX*/);
+									y_1 = (uint)bStack18;
+									if ((_y2 % 1000000) * y_1 < 1000000) {
+										uVar5 = local_c * 100 + local_4;
+									}
+								}
+							}
+						}
+						_y += 1;
+						_y2 = (uint)_y;
+					} while (_y <= table_4->height && table_4->height != _y);
+				}
+				_x += 1;
+				y_1 &= 0xffffff00;
+			} while (_x <= table_4->width && table_4->width != _x);
+		}
+	} while ((99999999 < iVar4) && (param_5 -= 1, 1 < param_5));
+	return y_1 & 0xffff0000 | (uint)uVar5;
+}
+
+
+
+
+
+byte DAT_0044faa4 = 0;
+short DAT_0044faac = 0;
+byte DAT_0044faa0 = 0;
+char DAT_0044faa8 = 0;
+//byte DAT_00442460 = 0;
+short SHORT_00442460 = 0;
+
+
+uint pente_FUN_00412c10(/*undefined4 param_1,*/ /*undefined4 param_2, undefined4 param_3,*/ byte *vars)
+
+{
+	ushort uVar1;
+	int iVar2;
+	uint uVar3;
+	ushort extraout_var;
+	undefined4 extraout_ECX;
+	undefined4 extraout_EDX;
+	short sVar4;
+	byte bVar5;
+	short local_2;
+
+	if ((game_state_table == (s_table *)0x0) && (vars[4] != 0)) {
+		game_state_table = pente_sub01_init_FUN_00414220(0x14, 0xf, 5);
+		//param_3 = extraout_ECX;
+		//param_2 = extraout_EDX;
+	}
+	//uVar3 = SEXT14((char)vars[4]);
+	uVar3 = vars[4];
+	switch (uVar3) {
+	case 0:
+		if (game_state_table != (s_table *)0x0) {
+			/*uVar3 =*/ pente_sub02_frees_FUN_00414330(game_state_table);
+		}
+		game_state_table = (s_table *)0x0;
+		return uVar3;
+	case 1:
+		DAT_0044faac = ((char)*vars * 10 + (short)(char)vars[1]) * 10 + (short)(char)vars[2];
+		DAT_0044faa4 = (byte)(DAT_0044faac / 15);
+		DAT_0044faa0 = 0xe - (char)((int)DAT_0044faac % 15);
+		pente_sub03_scoring_FUN_00413200(game_state_table, DAT_0044faa0, DAT_0044faa4,
+										 (bool)((byte)game_state_table->maybe_move_counter_24 & 1));
+		uVar3 = pente_sub04_score_capture_FUN_004135c0(game_state_table, DAT_0044faa0, DAT_0044faa4);
+		DAT_0044faa8 = (char)uVar3;
+		return uVar3;
+	case 2:
+	case 4:
+		if (DAT_0044faa8 != '\0') {
+			if (SHORT_00442460 < 0) {
+				pente_sub08_idk_FUN_00412ff0(DAT_0044faac, (byte *)&DAT_0044faa8, &local_2, &SHORT_00442460);
+				*vars = (byte)((int)local_2 / 100);
+				vars[5] = 1;
+				vars[1] = (byte)((int)(local_2 % 100) / 10);
+				vars[2] = (byte)((int)local_2 % 10);
+				//return (uint)extraout_var << 0x10 | (int)local_2 / 10 & 0xffffU;
+				return 0;
+			}
+		LAB_00412da4:
+			*vars = (byte)((int)SHORT_00442460 / 100);
+			vars[1] = (byte)((int)(SHORT_00442460 % 100) / 10);
+			iVar2 = (int)SHORT_00442460;
+			vars[2] = (byte)(iVar2 % 10);
+			SHORT_00442460 = -1;
+			vars[5] = 1;
+			return (uint)(ushort)((char)vars[4] >> 7) << 0x10 | iVar2 / 10 & 0xffffU;
+		}
+		if (-1 < SHORT_00442460)
+			goto LAB_00412da4;
+		if ((int)game_state_table->maybe_player_score_i8 < 100000000) {
+			if (((int)game_state_table->maybe_stauf_score_i12 < 100000000) &&
+				(uVar1 = game_state_table->maybe_move_counter_24,
+				 uVar3 = (uint)game_state_table & 0xffff0000, game_state_table->board_size != uVar1)) {
+				vars[5] = 0;
+				return uVar3 | uVar1;
+			}
+			if ((int)game_state_table->maybe_player_score_i8 < 100000000) {
+				uVar3 = game_state_table->maybe_stauf_score_i12;
+				vars[5] = 2;
+				if ((int)uVar3 < 100000000) {
+					vars[5] = 4;
+				}
+				goto LAB_00412d7a;
+			}
+		}
+		vars[5] = 3;
+	LAB_00412d7a:
+		/*uVar3 =*/ pente_sub02_frees_FUN_00414330(game_state_table);
+		game_state_table = (s_table *)0x0;
+		return uVar3;
+	case 3:
+		break;
+	case 5:
+		sVar4 = ((char)*vars * 10 + (short)(char)vars[1]) * 10 + (short)(char)vars[2];
+		uVar3 = (uint)(byte)(0xe - (char)((int)sVar4 % 0xf));
+		bVar5 = game_state_table->board_state[(int)sVar4 / 0xf & 0xff][uVar3];
+		if (bVar5 == 0) {
+			vars[3] = 0;
+			return uVar3;
+		}
+		if (bVar5 == 0x4f) {
+			vars[3] = 2;
+			return uVar3;
+		}
+		if (bVar5 != 0x58) {
+			return uVar3;
+		}
+		vars[3] = 1;
+	default:
+		return uVar3;
+	}
+	bVar5 = vars[6];
+	if (bVar5 == 0) {
+		bVar5 = 3;
+	} else {
+		if (bVar5 == 1) {
+			bVar5 = 4;
+		} else {
+			if (bVar5 != 2)
+				goto LAB_00412e85;
+			bVar5 = 5;
+		}
+	}
+	//uVar3 = pente_sub09_ai_FUN_00413fa0((uint)game_state_table, param_2, param_3, game_state_table, bVar5);
+	uVar3 = pente_sub09_ai_FUN_00413fa0((uint)game_state_table, 0, 0, game_state_table, bVar5);
+	DAT_0044faac = (short)uVar3;
+LAB_00412e85:
+	DAT_0044faa4 = (byte)((int)DAT_0044faac / 100);
+	DAT_0044faa0 = (byte)((int)DAT_0044faac % 100);
+	pente_sub03_scoring_FUN_00413200(game_state_table, DAT_0044faa0, DAT_0044faa4,
+									 (bool)((byte)game_state_table->maybe_move_counter_24 & 1));
+	uVar3 = pente_sub04_score_capture_FUN_004135c0(game_state_table, DAT_0044faa0, DAT_0044faa4);
+	DAT_0044faa8 = (char)uVar3;
+	DAT_0044faac = ((ushort)DAT_0044faa4 * 0xf - (ushort)DAT_0044faa0) + 0xe;
+	*vars = (byte)((int)DAT_0044faac / 100);
+	vars[1] = (byte)((int)(DAT_0044faac % 100) / 10);
+	iVar2 = (int)DAT_0044faac;
+	vars[2] = (byte)(iVar2 % 10);
+	return uVar3 & 0xffff0000 | iVar2 / 10 & 0xffffU;
+}
+
+
+
+
+
+
+
+// end Ghidra crap
 
 PenteGame::PenteGame() : _random("PenteGame") {
 }
 
 void PenteGame::run(byte *scriptVariables) {
 	// TODO
-	scriptVariables[5] = 4;	// Auto-solve the puzzle, so the player can continue	
+	//scriptVariables[5] = 4;	// Auto-solve the puzzle, so the player can continue
+
+	pente_FUN_00412c10(scriptVariables);
 }
 
 } // End of Groovie namespace
