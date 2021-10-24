@@ -1239,11 +1239,10 @@ uint pente_sub09_ai_FUN_00413fa0(uint y_1, undefined4 param_2, undefined4 param_
 
 
 
-
-byte DAT_0044faa4 = 0;
-short DAT_0044faac = 0;
-byte DAT_0044faa0 = 0;
-char DAT_0044faa8 = 0;
+byte DAT_0044faa0;//= 0;
+byte DAT_0044faa4;//= 0;
+char DAT_0044faa8;//= 0;
+short DAT_0044faac;//= 0;
 //byte DAT_00442460 = 0;
 short SHORT_00442460 = -1;
 
@@ -1268,6 +1267,8 @@ uint pente_FUN_00412c10(/*undefined4 param_1,*/ /*undefined4 param_2, undefined4
 	}
 	//uVar3 = SEXT14((char)vars[4]);
 	uVar3 = vars[4];
+	warning("pente_FUN_00412c10 vars[4]: %d", (int)vars[4]);
+
 	switch (uVar3) {
 	case 0:
 		if (game_state_table != (s_table *)0x0) {
@@ -1394,7 +1395,15 @@ void PenteGame::run(byte *scriptVariables) {
 	// TODO
 	//scriptVariables[5] = 4;	// Auto-solve the puzzle, so the player can continue
 
-	pente_FUN_00412c10(scriptVariables);
+	byte tvars[1024];
+	memcpy(tvars, scriptVariables, sizeof(tvars));
+	pente_FUN_00412c10(tvars);
+	for (int i = 0; i < sizeof(tvars); i++) {
+		if (tvars[i] != scriptVariables[i]) {
+			warning("PenteGame::run var %d changed from %d to %d", i, (int)scriptVariables[i], (int)tvars[i]);
+		}
+	}
+	memcpy(scriptVariables, tvars, sizeof(tvars));
 }
 
 } // End of Groovie namespace
