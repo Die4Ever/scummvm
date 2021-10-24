@@ -93,8 +93,9 @@ private:
 	byte _codebook4[256 * 4];
 
 	// Flags
-	bool _flagOne;	// Play only first frame and do not print the image to the screen
-	bool _flagTwo;	// If _flagOne is set. Copy frame to the foreground otherwise to the background
+	bool _flagOne;	 //!< Play only first frame and do not print the image to the screen
+	bool _flagTwo;	 //!< If _flagOne is set. Copy frame to the foreground otherwise to the background
+	bool _flagMasked; //!< Clear the video instead of play it, used in pente
 
 	// Buffers
 	void buildShowBuf();
