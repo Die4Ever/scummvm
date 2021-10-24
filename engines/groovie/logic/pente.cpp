@@ -966,7 +966,7 @@ void __cdecl pente_sub11_revert_capture_FUN_00413990(s_table *table, byte y, byt
 
 
 
-int __cdecl pente_sub10_ai_recurse_FUN_00413be0(s_table *table_1, char param_2, int param_3)
+int __cdecl pente_sub10_ai_recurse_FUN_00413be0(s_table *table_1, char depth, int parent_score)
 
 {
 	byte bVar1;
@@ -982,14 +982,14 @@ int __cdecl pente_sub10_ai_recurse_FUN_00413be0(s_table *table_1, char param_2, 
 	byte bVar11;
 	int iVar12;
 	ushort local_970[2];
-	int local_964;
+	int best_score;
 	undefined4 local_960;
 	//int local_95c[599];
 	offset_array<int, 600> local_95c(1);
 	//maybe some of these stack variables overlap the array, could turn them into references
 
-	local_964 = 0x7fffffff;
-	if (param_2 == '\x01') {
+	best_score = 0x7fffffff;
+	if (depth == '\x01') {
 		bVar1 = 0;
 		table_1->maybe_move_counter_44 = 0;
 		if (table_1->width != 0) {
@@ -1010,12 +1010,12 @@ int __cdecl pente_sub10_ai_recurse_FUN_00413be0(s_table *table_1, char param_2, 
 								pente_sub11_revert_capture_FUN_00413990(table_1, bVar11, bVar1, (byte)uVar7);
 							}
 							pente_sub07_revert_score_FUN_004133e0(table_1, bVar11, bVar1);
-							if (iVar12 < local_964) {
-								local_964 = iVar12;
+							if (iVar12 < best_score) {
+								best_score = iVar12;
 							}
-							if (-param_3 != local_964 && param_3 <= -local_964) {
+							if (-parent_score != best_score && parent_score <= -best_score) {
 								table_1->maybe_move_counter_44 = 1;
-								return -local_964;
+								return -best_score;
 							}
 						}
 						bVar11 += 1;
@@ -1111,7 +1111,7 @@ int __cdecl pente_sub10_ai_recurse_FUN_00413be0(s_table *table_1, char param_2, 
 				uVar7 = table_1->maybe_player_score_i8;
 				if ((((int)uVar7 < 100000000) && ((int)table_1->maybe_stauf_score_i12 < 100000000)) &&
 					(table_1->board_size != table_1->maybe_move_counter_24)) {
-					iVar12 = pente_sub10_ai_recurse_FUN_00413be0(table_1, param_2 + -1, local_964);
+					iVar12 = pente_sub10_ai_recurse_FUN_00413be0(table_1, depth + -1, best_score);
 				} else {
 					if ((*(byte *)&table_1->maybe_move_counter_24 & 1) == 0) {
 						iVar12 = uVar7 - table_1->maybe_stauf_score_i12;
@@ -1123,23 +1123,23 @@ int __cdecl pente_sub10_ai_recurse_FUN_00413be0(s_table *table_1, char param_2, 
 					pente_sub11_revert_capture_FUN_00413990(table_1, bVar1, bVar11, (byte)uVar9);
 				}
 				pente_sub07_revert_score_FUN_004133e0(table_1, bVar1, bVar11);
-				if (iVar12 < local_964) {
-					local_964 = iVar12;
+				if (iVar12 < best_score) {
+					best_score = iVar12;
 				}
-				if (-param_3 != local_964 && param_3 <= -local_964)
+				if (-parent_score != best_score && parent_score <= -best_score)
 					break;
 				sVar10 += 1;
 				local_970[1] = (ushort)(*(uint *)local_970 >> 0x10);
 			} while (sVar10 < (short)local_970[1]);
 		}
 	}
-	return -local_964;
+	return -best_score;
 }
 
 
 
 
-uint pente_sub09_ai_FUN_00413fa0(uint y_1, undefined4 param_2, undefined4 param_3, s_table *table_4, byte param_5)
+uint pente_sub09_ai_FUN_00413fa0(uint y_1, undefined4 param_2, undefined4 param_3, s_table *table_4, byte depth)
 
 {
 	bool bVar1;
@@ -1148,7 +1148,7 @@ uint pente_sub09_ai_FUN_00413fa0(uint y_1, undefined4 param_2, undefined4 param_
 	uint extraout_ECX;
 	undefined4 extraout_EDX;
 	byte _y;
-	int iVar4;
+	int best_score;
 	ushort uVar5;
 	byte bStack18;
 	byte _x;
@@ -1159,7 +1159,7 @@ uint pente_sub09_ai_FUN_00413fa0(uint y_1, undefined4 param_2, undefined4 param_
 	bStack18 = 1;
 	_x = 0;
 	uVar5 = 0xffff;
-	iVar4 = 0x7fffffff;
+	best_score = 0x7fffffff;
 	if (table_4->width != 0) {
 		do {
 			_y = 0;
@@ -1202,19 +1202,19 @@ uint pente_sub09_ai_FUN_00413fa0(uint y_1, undefined4 param_2, undefined4 param_
 						if ((table_4->board_state[_x][_y2] == 0) && (table_4->board_state2[_x][_y2] != 0)) {
 							pente_sub03_scoring_FUN_00413200(table_4, _y, _x, (bool)((byte)table_4->maybe_move_counter_24 & 1));
 							uVar2 = pente_sub04_score_capture_FUN_004135c0(table_4, _y, _x);
-							iVar3 = pente_sub10_ai_recurse_FUN_00413be0(table_4, param_5 - 1, iVar4);
+							iVar3 = pente_sub10_ai_recurse_FUN_00413be0(table_4, depth - 1, best_score);
 							if ((byte)uVar2 != 0) {
 								pente_sub11_revert_capture_FUN_00413990(table_4, _y, _x, (byte)uVar2);
 							}
 							/*y_1 =*/ pente_sub07_revert_score_FUN_004133e0(table_4, _y, _x);
 							local_c = (ushort)_x;
 							local_4 = (short)_y2;
-							if (iVar3 < iVar4) {
+							if (iVar3 < best_score) {
 								bStack18 = 1;
 								uVar5 = local_c * 100 + local_4;
-								iVar4 = iVar3;
+								best_score = iVar3;
 							} else {
-								if (iVar3 == iVar4) {
+								if (iVar3 == best_score) {
 									bStack18 += 1;
 									_y2 = ai_rng_FUN_00412b50(/*y_1, extraout_EDX, extraout_ECX*/);
 									y_1 = (uint)bStack18;
@@ -1232,7 +1232,7 @@ uint pente_sub09_ai_FUN_00413fa0(uint y_1, undefined4 param_2, undefined4 param_
 				y_1 &= 0xffffff00;
 			} while (_x <= table_4->width && table_4->width != _x);
 		}
-	} while ((99999999 < iVar4) && (param_5 -= 1, 1 < param_5));
+	} while ((99999999 < best_score) && (depth -= 1, 1 < depth));
 	return y_1 & 0xffff0000 | (uint)uVar5;
 }
 
@@ -1245,7 +1245,7 @@ short DAT_0044faac = 0;
 byte DAT_0044faa0 = 0;
 char DAT_0044faa8 = 0;
 //byte DAT_00442460 = 0;
-short SHORT_00442460 = 0;
+short SHORT_00442460 = -1;
 
 
 uint pente_FUN_00412c10(/*undefined4 param_1,*/ /*undefined4 param_2, undefined4 param_3,*/ byte *vars)
@@ -1258,7 +1258,7 @@ uint pente_FUN_00412c10(/*undefined4 param_1,*/ /*undefined4 param_2, undefined4
 	undefined4 extraout_ECX;
 	undefined4 extraout_EDX;
 	short sVar4;
-	byte bVar5;
+	byte ai_depth;
 	short local_2;
 
 	if ((game_state_table == (s_table *)0x0) && (vars[4] != 0)) {
@@ -1333,36 +1333,36 @@ uint pente_FUN_00412c10(/*undefined4 param_1,*/ /*undefined4 param_2, undefined4
 	case 5:
 		sVar4 = ((char)*vars * 10 + (short)(char)vars[1]) * 10 + (short)(char)vars[2];
 		uVar3 = (uint)(byte)(0xe - (char)((int)sVar4 % 0xf));
-		bVar5 = game_state_table->board_state[(int)sVar4 / 0xf & 0xff][uVar3];
-		if (bVar5 == 0) {
+		ai_depth = game_state_table->board_state[(int)sVar4 / 0xf & 0xff][uVar3];
+		if (ai_depth == 0) {
 			vars[3] = 0;
 			return uVar3;
 		}
-		if (bVar5 == 0x4f) {
+		if (ai_depth == 0x4f) {
 			vars[3] = 2;
 			return uVar3;
 		}
-		if (bVar5 != 0x58) {
+		if (ai_depth != 0x58) {
 			return uVar3;
 		}
 		vars[3] = 1;
 	default:
 		return uVar3;
 	}
-	bVar5 = vars[6];
-	if (bVar5 == 0) {
-		bVar5 = 3;
+	ai_depth = vars[6];
+	if (ai_depth == 0) {
+		ai_depth = 3;
 	} else {
-		if (bVar5 == 1) {
-			bVar5 = 4;
+		if (ai_depth == 1) {
+			ai_depth = 4;
 		} else {
-			if (bVar5 != 2)
+			if (ai_depth != 2)
 				goto LAB_00412e85;
-			bVar5 = 5;
+			ai_depth = 5;
 		}
 	}
 	//uVar3 = pente_sub09_ai_FUN_00413fa0((uint)game_state_table, param_2, param_3, game_state_table, bVar5);
-	uVar3 = pente_sub09_ai_FUN_00413fa0((uint)game_state_table, 0, 0, game_state_table, bVar5);
+	uVar3 = pente_sub09_ai_FUN_00413fa0((uint)game_state_table, 0, 0, game_state_table, ai_depth);
 	DAT_0044faac = (short)uVar3;
 LAB_00412e85:
 	DAT_0044faa4 = (byte)((int)DAT_0044faac / 100);
