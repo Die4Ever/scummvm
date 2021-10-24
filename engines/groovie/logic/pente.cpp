@@ -1280,6 +1280,7 @@ uint pente_FUN_00412c10(/*undefined4 param_1,*/ /*undefined4 param_2, undefined4
 		DAT_0044faac = ((char)*vars * 10 + (short)(char)vars[1]) * 10 + (short)(char)vars[2];
 		DAT_0044faa4 = (byte)(DAT_0044faac / 15);
 		DAT_0044faa0 = 0xe - (char)((int)DAT_0044faac % 15);
+		warning("player moved to %d, %d", (int)DAT_0044faa4, (int)DAT_0044faa0);
 		pente_sub03_scoring_FUN_00413200(game_state_table, DAT_0044faa0, DAT_0044faa4,
 										 (bool)((byte)game_state_table->maybe_move_counter_24 & 1));
 		uVar3 = pente_sub04_score_capture_FUN_004135c0(game_state_table, DAT_0044faa0, DAT_0044faa4);
