@@ -40,9 +40,10 @@ public:
 };
 
 struct pentePlayerTable {
-	int *p0;
+	/*int *p0;
 	int i4;
-	int score_i8;
+	int score_i8;*/
+	int i[813];
 };
 
 struct penteTable {
@@ -65,7 +66,7 @@ struct penteTable {
 	byte b34;
 	byte b35;
 	uint16 ***lines_table_0x24;
-	byte **board_state2;
+	byte **board_state_0x28;
 	byte maybe_move_counter_44;
 	byte b45;
 	byte b46;
@@ -74,37 +75,14 @@ struct penteTable {
 
 
 int *PenteGame::allocs(int param_1, int param_2)
-
 {
-	int *piVar1;
-	//int iVar2;
-	uint uVar3;
-	uint uVar4;
-	int iVar5;
-	int *piVar6;
-	//const char *pcVar7;
-	//int local_4;
-
-	iVar5 = param_2 * param_1;
-	uVar4 = iVar5 + 4;
-	piVar1 = (int *)malloc(uVar4);
-	if (piVar1 == (int *)0x0) {
-		error("malloc failed, uVar4: %d", (int)uVar4);
-	}
-	if (uVar4 != 0) {
-		piVar6 = piVar1;
-		for (uVar3 = uVar4 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
-			*piVar6 = 0;
-			piVar6 = piVar6 + 1;
-		}
-		for (uVar4 = uVar4 & 3; uVar4 != 0; uVar4 = uVar4 - 1) {
-			*(byte *)piVar6 = 0;
-			piVar6 = (int *)((int)piVar6 + 1);
-		}
-	}
-	*piVar1 = iVar5 + 4;
-	//free_mem_DAT_0045aae4 = free_mem_DAT_0045aae4 - (iVar5 + 4);
-	return piVar1 + 1;
+	uint size = param_1 * param_2;
+	int *p = (int *)malloc(size);
+	if (p)
+		memset(p, 0, size);
+	else
+		error("PenteGame: malloc failed with %u bytes", size);
+	return p;
 }
 
 
@@ -179,10 +157,10 @@ void PenteGame::penteSub02Frees(penteTable *param_1)
 		do {
 			uVar1 = (uint)bVar2;
 			bVar2 += 1;
-			free(param_1->board_state2[uVar1]);
+			free(param_1->board_state_0x28[uVar1]);
 		} while (bVar2 <= param_1->width && param_1->width != bVar2);
 	}
-	free(param_1->board_state2);
+	free(param_1->board_state_0x28);
 	penteSub06Frees((int)param_1);
 	free(param_1);
 	return;
@@ -374,6 +352,8 @@ penteTable *PenteGame::penteSub01Init(byte width, byte height, byte length)
 		} while (bVar5 < width);
 	}
 	penteSub05BuildLookupTable(table);
+	assert(table->lines_counter_s20 == 812);
+	assert(sizeof(pentePlayerTable) == 813*4);
 	psVar3 = (pentePlayerTable *)allocs(table->lines_counter_s20 + 1, 4);
 	table->player_p0 = psVar3;
 	psVar3 = (pentePlayerTable *)allocs(table->lines_counter_s20 + 1, 4);
@@ -382,13 +362,13 @@ penteTable *PenteGame::penteSub01Init(byte width, byte height, byte length)
 	table->maybe_stauf_score_i12 = (uint)table->lines_counter_s20;
 	table->maybe_player_score_i8 = (uint)table->lines_counter_s20;
 	ppbVar1 = (byte **)allocs((uint)width, 4);
-	table->board_state2 = ppbVar1;
+	table->board_state_0x28 = ppbVar1;
 	if (width != 0) {
 		do {
 			piVar2 = allocs((uint)height, 1);
 			uVar4 = (uint)bVar5;
 			bVar5 += 1;
-			table->board_state2[uVar4] = (byte *)piVar2;
+			table->board_state_0x28[uVar4] = (byte *)piVar2;
 		} while (bVar5 < width);
 	}
 	table->maybe_move_counter_44 = 1;
@@ -399,11 +379,10 @@ penteTable *PenteGame::penteSub01Init(byte width, byte height, byte length)
 
 
 void PenteGame::penteSub03Scoring(penteTable *table, byte move_y, byte move_x, bool whose_turn)
-
 {
 	uint16 ***pppuVar1;
 	int iVar2;
-	int *piVar3;
+	int iVar3;
 	uint uVar4;
 	byte bVar5;
 	byte bVar6;
@@ -411,12 +390,13 @@ void PenteGame::penteSub03Scoring(penteTable *table, byte move_y, byte move_x, b
 	byte bVar7;
 	byte bVar8;
 	uint _move_y;
+	int *piVar9;
 	byte local_15;
 	pentePlayerTable *player_table;
 	byte **board_state2;
 
 	pppuVar1 = table->lines_table_0x24;
-	board_state2 = table->board_state2;
+	board_state2 = table->board_state_0x28;
 	_move_x = (uint)move_x;
 	_move_y = (uint)move_y;
 	/* whose_turn ? 88 : 79 */
@@ -427,24 +407,25 @@ void PenteGame::penteSub03Scoring(penteTable *table, byte move_y, byte move_x, b
 	if (bVar5 != 0) {
 		player_table = (pentePlayerTable *)(&table->player_p0 + whose_turn);
 		do {
-			iVar2 = player_table->p0[(*pppuVar1)[_move_y][local_15]];
-			player_table->p0[(*pppuVar1)[_move_y][local_15]] = iVar2 + 1;
+			piVar9 = (int *)(player_table->i[0] + (uint)(*pppuVar1)[_move_y][local_15] * 4);
+			iVar2 = *piVar9;
+			*piVar9 = iVar2 + 1;
 			if ((uint)table->line_length - iVar2 == 1) {
-				player_table->score_i8 = player_table->score_i8 + 100000000;
+				player_table->i[2] = player_table->i[2] + 100000000;
 			} else {
 				uVar4 = (uint)(whose_turn == false);
-				piVar3 = (&(&table->player_p0)[uVar4]->p0)[(*pppuVar1)[_move_y][local_15]];
+				iVar3 = (&table->player_p0)[uVar4]->i[(*pppuVar1)[_move_y][local_15]];
 				if ((iVar2 == 0) &&
 					((&table->maybe_player_score_i8)[uVar4] =
-						 (&table->maybe_player_score_i8)[uVar4] + (-1 << ((byte)(uint)piVar3 & 0x1f)),
-					 (uint)table->line_length - (int)piVar3 == 1)) {
+						 (&table->maybe_player_score_i8)[uVar4] + (-1 << ((byte)iVar3 & 0x1f)),
+					 (uint)table->line_length - iVar3 == 1)) {
 					(&table->b16)[uVar4] = (&table->b16)[uVar4] - 1;
 				}
-				if (((piVar3 == (int *)0x0) &&
-					 (player_table->score_i8 = player_table->score_i8 + (1 << ((byte)iVar2 & 0x1f)),
+				if (((iVar3 == 0) &&
+					 (player_table->i[2] = player_table->i[2] + (1 << ((byte)iVar2 & 0x1f)),
 					  (uint)table->line_length - iVar2 == 2)) &&
 					(bVar6 = (&table->b16)[whose_turn] + 1, (&table->b16)[whose_turn] = bVar6, 1 < bVar6)) {
-					player_table->score_i8 = player_table->score_i8 + 1000000;
+					player_table->i[2] = player_table->i[2] + 1000000;
 				}
 			}
 			local_15 += 1;
@@ -486,14 +467,15 @@ void PenteGame::penteSub03Scoring(penteTable *table, byte move_y, byte move_x, b
 
 
 
-void PenteGame::penteSub07RevertScore(penteTable *table_1, byte y, byte x)
 
+
+void PenteGame::penteSub07RevertScore(penteTable *table_1, byte y, byte x)
 {
-	pentePlayerTable **ppsVar1;
+	pentePlayerTable **pppVar1;
 	uint16 ***pppuVar2;
 	byte **ppbVar3;
-	int *piVar4;
-	int *piVar5;
+	int iVar4;
+	int iVar5;
 	uint uVar6;
 	byte bVar7;
 	uint uVar8;
@@ -508,37 +490,37 @@ void PenteGame::penteSub07RevertScore(penteTable *table_1, byte y, byte x)
 	uVar8 = (uint)x;
 	uVar12 = (uint)y;
 	pppuVar2 = table_1->lines_table_0x24;
-	ppbVar3 = table_1->board_state2;
+	ppbVar3 = table_1->board_state_0x28;
 	bVar10 = table_1->board_state[uVar8][uVar12];
 	table_1->board_state[uVar8][uVar12] = 0;
-	bVar14 = bVar10 == 0x58;
+	bVar14 = bVar10 == 88;
 	table_1->maybe_move_counter_24 = table_1->maybe_move_counter_24 - 1;
 	pppuVar2 = pppuVar2 + uVar8;
 	local_11 = 1;
 	bVar10 = *(byte *)(*pppuVar2)[uVar12];
 	if (bVar10 != 0) {
 		uVar9 = (uint)bVar14;
-		ppsVar1 = &table_1->player_p0 + uVar9;
+		pppVar1 = &table_1->player_p0 + uVar9;
 		do {
-			(&(*ppsVar1)->p0)[(*pppuVar2)[uVar12][local_11]] =
-				(int *)((int)(&(*ppsVar1)->p0)[(*pppuVar2)[uVar12][local_11]] + -1);
-			piVar4 = (&(*ppsVar1)->p0)[(*pppuVar2)[uVar12][local_11]];
-			if ((uint)table_1->line_length - (int)piVar4 == 1) {
-				ppsVar1[2] = (pentePlayerTable *)&ppsVar1[2][-0x7f2816].score_i8;
+			(*pppVar1)->i[(*pppuVar2)[uVar12][local_11]] =
+				(*pppVar1)->i[(*pppuVar2)[uVar12][local_11]] + -1;
+			iVar4 = (*pppVar1)->i[(*pppuVar2)[uVar12][local_11]];
+			if ((uint)table_1->line_length - iVar4 == 1) {
+				pppVar1[2] = (pentePlayerTable *)(pppVar1[2][-30751].i + 563);
 			} else {
 				uVar6 = (uint)!bVar14;
-				piVar5 = (&(&table_1->player_p0)[uVar6]->p0)[(*pppuVar2)[uVar12][local_11]];
-				if ((piVar4 == (int *)0x0) &&
+				iVar5 = (&table_1->player_p0)[uVar6]->i[(*pppuVar2)[uVar12][local_11]];
+				if ((iVar4 == 0) &&
 					((&table_1->maybe_player_score_i8)[uVar6] =
-						 (&table_1->maybe_player_score_i8)[uVar6] + (1 << ((byte)(uint)piVar5 & 0x1f)),
-					 (uint)table_1->line_length - (int)piVar5 == 1)) {
+						 (&table_1->maybe_player_score_i8)[uVar6] + (1 << ((byte)iVar5 & 31)),
+					 (uint)table_1->line_length - iVar5 == 1)) {
 					(&table_1->b16)[uVar6] = (&table_1->b16)[uVar6] + 1;
 				}
-				if (((piVar5 == (int *)0x0) &&
-					 (ppsVar1[2] = (pentePlayerTable *)((int)&ppsVar1[2]->p0 + (-1 << ((byte)(uint)piVar4 & 0x1f))),
-					  (uint)table_1->line_length - (int)piVar4 == 2)) &&
+				if (((iVar5 == 0) &&
+					 (pppVar1[2] = (pentePlayerTable *)((int)pppVar1[2]->i + (-1 << ((byte)iVar4 & 31))),
+					  (uint)table_1->line_length - iVar4 == 2)) &&
 					(bVar13 = (&table_1->b16)[uVar9], (&table_1->b16)[uVar9] = bVar13 - 1, 1 < bVar13)) {
-					ppsVar1[2] = (pentePlayerTable *)&ppsVar1[2][-0x14586].score_i8;
+					pppVar1[2] = (pentePlayerTable *)(pppVar1[2][-308].i + 404);
 				}
 			}
 			local_11 += 1;
@@ -575,6 +557,7 @@ void PenteGame::penteSub07RevertScore(penteTable *table_1, byte y, byte x)
 	}
 	return;
 }
+
 
 
 
@@ -779,7 +762,7 @@ void PenteGame::penteSub08(short param_1, byte *param_2, short *param_3, short *
 void PenteGame::penteSub11RevertCapture(penteTable *table, byte y, byte x, byte y2)
 
 {
-	pentePlayerTable **ppsVar1;
+	pentePlayerTable *ppsVar1;
 	uint uVar2;
 	bool whose_turn;
 
@@ -788,14 +771,27 @@ void PenteGame::penteSub11RevertCapture(penteTable *table, byte y, byte x, byte 
 		uVar2 = (uint)y2;
 		do {
 			if ((uVar2 & 1) != 0) {
-				ppsVar1 = &table->player_p0 + !whose_turn;
-				(&(*ppsVar1)->p0)[table->lines_counter_s20] =
-					(int *)((int)(&(*ppsVar1)->p0)[table->lines_counter_s20] + -1);
-				if ((uint)table->line_length - (int)(&(*ppsVar1)->p0)[table->lines_counter_s20] == 1) {
-					ppsVar1[2] = (pentePlayerTable *)&ppsVar1[2][-0x7f2816].score_i8;
+				//ppsVar1 = &table->player_p0 + !whose_turn;
+				ppsVar1 = whose_turn ? table->player_p0 : table->stauf_p4;
+				uint &score = whose_turn ? table->maybe_player_score_i8 : table->maybe_stauf_score_i12;
+
+				//(*ppsVar1)->i[table->lines_counter_s20] =
+					//(*ppsVar1)->i[table->lines_counter_s20] + -1;
+
+				auto &linesCounter = ((int *)ppsVar1)[table->lines_counter_s20];
+				linesCounter--;
+
+				/*if ((uint)table->line_length - (*ppsVar1)->i[table->lines_counter_s20] == 1) {
+					ppsVar1[2] = (s_player_table *)(ppsVar1[2][-0x76f3].i + 0x10f);
 				} else {
-					ppsVar1[2] = (pentePlayerTable *)((int)&ppsVar1[2]->p0 +
-													(-1 << ((byte)(uint)(&(*ppsVar1)->p0)[table->lines_counter_s20] & 0x1f)));
+					ppsVar1[2] = (s_player_table *)((int)ppsVar1[2]->i +
+													(-1 << ((byte)(*ppsVar1)->i[table->lines_counter_s20] & 0x1f)));
+				}*/
+
+				if (table->line_length - linesCounter == 1) {
+					score -= 100000000;
+				} else {
+					score -= (1 << ((char)linesCounter & 0x1f));
 				}
 			}
 			uVar2 >>= 1;
@@ -871,7 +867,7 @@ int PenteGame::penteSub10AiRecurse(penteTable *table_1, char depth, int parent_s
 				if (table_1->height != 0) {
 					do {
 						if ((table_1->board_state[bVar1][bVar11] == 0) &&
-							(table_1->board_state2[bVar1][bVar11] != 0)) {
+							(table_1->board_state_0x28[bVar1][bVar11] != 0)) {
 							penteSub03Scoring(table_1, bVar11, bVar1, (bool)((byte)table_1->maybe_move_counter_24 & 1));
 							uVar7 = penteSub04ScoreCapture(table_1, bVar11, bVar1);
 							if ((*(byte *)&table_1->maybe_move_counter_24 & 1) == 0) {
@@ -907,7 +903,7 @@ int PenteGame::penteSub10AiRecurse(penteTable *table_1, char depth, int parent_s
 				if (table_1->height != 0) {
 					do {
 						if ((table_1->board_state[bVar1][bVar11] == 0) &&
-							(table_1->board_state2[bVar1][bVar11] != 0)) {
+							(table_1->board_state_0x28[bVar1][bVar11] != 0)) {
 							penteSub03Scoring(table_1, bVar11, bVar1, (bool)((byte)table_1->maybe_move_counter_24 & 1));
 							uVar7 = penteSub04ScoreCapture(table_1, bVar11, bVar1);
 							if ((*(byte *)&table_1->maybe_move_counter_24 & 1) == 0) {
@@ -1039,7 +1035,7 @@ uint PenteGame::penteSub09Ai(uint y_1, int param_2, int param_3, penteTable *tab
 			if (table_4->height != 0) {
 				do {
 					y_1 = (uint)_y;
-					if ((table_4->board_state[_x][y_1] == 0) && (table_4->board_state2[_x][y_1] != 0)) {
+					if ((table_4->board_state[_x][y_1] == 0) && (table_4->board_state_0x28[_x][y_1] != 0)) {
 						penteSub03Scoring(table_4, _y, _x, (bool)((byte)table_4->maybe_move_counter_24 & 1));
 						_y2 = penteSub04ScoreCapture(table_4, _y, _x);
 						if (((int)table_4->maybe_player_score_i8 < 100000000) &&
@@ -1072,7 +1068,7 @@ uint PenteGame::penteSub09Ai(uint y_1, int param_2, int param_3, penteTable *tab
 					do {
 						_y = (byte)_y2;
 						y_1 = 0;
-						if ((table_4->board_state[_x][_y2] == 0) && (table_4->board_state2[_x][_y2] != 0)) {
+						if ((table_4->board_state[_x][_y2] == 0) && (table_4->board_state_0x28[_x][_y2] != 0)) {
 							penteSub03Scoring(table_4, _y, _x, (bool)((byte)table_4->maybe_move_counter_24 & 1));
 							uVar2 = penteSub04ScoreCapture(table_4, _y, _x);
 							iVar3 = penteSub10AiRecurse(table_4, depth - 1, best_score);
