@@ -39,7 +39,7 @@ class PenteGame {
 public:
 	PenteGame();
 	void run(byte *scriptVariables);
-	
+
 private:
 	int *allocs(int param_1, int param_2);
 	void penteSub06Frees(int param_1);
@@ -53,7 +53,12 @@ private:
 	void penteSub11RevertCapture(penteTable *table, byte y, byte x, byte y2);
 	int penteSub10AiRecurse(penteTable *table_1, char depth, int parent_score);
 	uint penteSub09Ai(uint y_1, int param_2, int param_3, penteTable *table_4, byte depth);
+	void varsMoveToXY(byte var0, byte var1, byte var2, byte &x, byte &y);
+	void aiMoveToXY(int move, byte &x, byte &y);
+	void moveToVars(uint x, uint y, byte &var0, byte &var1, byte &var2);
 	void penteOp(byte *vars);
+	void test();
+	void testGame(uint32 seed, Common::Array<int> moves, bool playerWin);
 
 	Common::RandomSource _random;
 

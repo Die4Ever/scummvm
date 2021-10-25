@@ -1102,13 +1102,29 @@ uint PenteGame::penteSub09Ai(uint y_1, int param_2, int param_3, penteTable *tab
 }
 
 
+void PenteGame::varsMoveToXY(byte var0, byte var1, byte var2, byte &x, byte &y) {
+	int move = ((char)var0 * 10 + (short)(char)var1) * 10 + (short)(char)var2;
+	x = (byte)(move / 15);
+	y = 0xe - (char)((int)move % 15);
+}
+
+void PenteGame::aiMoveToXY(int move, byte &x, byte &y) {
+	x = move / 100;
+	y = move % 100;
+}
+
+void PenteGame::moveToVars(uint x, uint y, byte &var0, byte &var1, byte &var2) {
+	int move = (x * 0xf - y) + 0xe;
+	var0 = (byte)(move / 100);
+	var1 = (byte)((move % 100) / 10);
+	var2 = (byte)(move % 10);
+}
 
 void PenteGame::penteOp(byte *vars)
 {
 	uint16 uVar1;
 	int iVar2;
 	uint uVar3;
-	short sVar4;
 	byte ai_depth;
 	short local_2;
 
@@ -1126,9 +1142,7 @@ void PenteGame::penteOp(byte *vars)
 		game_state_table = (penteTable *)0x0;
 		return;
 	case 1:
-		globalPlayerMove = ((char)*vars * 10 + (short)(char)vars[1]) * 10 + (short)(char)vars[2];
-		globalX = (byte)(globalPlayerMove / 15);
-		globalY = 0xe - (char)((int)globalPlayerMove % 15);
+		varsMoveToXY(vars[0], vars[1], vars[2], globalX, globalY);
 		debugC(kDebugLogic, "player moved to %d, %d", (int)globalX, (int)globalY);
 		penteSub03Scoring(game_state_table, globalY, globalX,
 										 (bool)((byte)game_state_table->maybe_move_counter_24 & 1));
@@ -1140,14 +1154,14 @@ void PenteGame::penteOp(byte *vars)
 		if (global2 != '\0') {
 			if (global1 < 0) {
 				penteSub08(globalPlayerMove, (byte *)&global2, &local_2, &global1);
-				*vars = (byte)((int)local_2 / 100);
+				vars[0] = (byte)((int)local_2 / 100);
 				vars[5] = 1;
 				vars[1] = (byte)((int)(local_2 % 100) / 10);
 				vars[2] = (byte)((int)local_2 % 10);
 				return;
 			}
 		LAB_00412da4:
-			*vars = (byte)((int)global1 / 100);
+			vars[0] = (byte)((int)global1 / 100);
 			vars[1] = (byte)((int)(global1 % 100) / 10);
 			iVar2 = (int)global1;
 			vars[2] = (byte)(iVar2 % 10);
@@ -1166,24 +1180,25 @@ void PenteGame::penteOp(byte *vars)
 			}
 			if ((int)game_state_table->maybe_player_score_i8 < 100000000) {
 				uVar3 = game_state_table->maybe_stauf_score_i12;
-				vars[5] = 2;
+				vars[5] = 2;// Stauf wins
 				if ((int)uVar3 < 100000000) {
-					vars[5] = 4;// player wins
+					vars[5] = 4;// player wins because the board is full?
 				}
-				goto LAB_00412d7a;
+				goto DEALLOC;
 			}
 		}
-		vars[5] = 3;
-	LAB_00412d7a:
+		vars[5] = 3;// player wins
+	DEALLOC:
 		penteSub02Frees(game_state_table);
 		game_state_table = (penteTable *)0x0;
 		return;
 	case 3:
 		break;
 	case 5:
-		sVar4 = ((char)*vars * 10 + (short)(char)vars[1]) * 10 + (short)(char)vars[2];
-		uVar3 = (uint)(byte)(0xe - (char)((int)sVar4 % 0xf));
-		ai_depth = game_state_table->board_state[(int)sVar4 / 0xf & 0xff][uVar3];
+		// asking Samantha to make a move? this does a bunch of queries to check if pieces belong to stauf or the player?
+		byte x, y;
+		varsMoveToXY(vars[0], vars[1], vars[2], x, y);
+		ai_depth = game_state_table->board_state[x][y];
 		if (ai_depth == 0) {
 			vars[3] = 0;
 			return;
@@ -1211,21 +1226,16 @@ void PenteGame::penteOp(byte *vars)
 			ai_depth = 5;
 		}
 	}
-	//uVar3 = penteSub09Ai((uint)game_state_table, param_2, param_3, game_state_table, bVar5);
-	uVar3 = penteSub09Ai((uint)game_state_table, 0, 0, game_state_table, ai_depth);
-	globalPlayerMove = (short)uVar3;
+	globalPlayerMove = penteSub09Ai((uint)game_state_table, 0, 0, game_state_table, ai_depth);
 LAB_00412e85:
-	globalX = (byte)((int)globalPlayerMove / 100);
-	globalY = (byte)((int)globalPlayerMove % 100);
+	aiMoveToXY(globalPlayerMove, globalX, globalY);
+	debugC(kDebugLogic, "Stauf moved to %d, %d", (int)globalX, (int)globalY);
 	penteSub03Scoring(game_state_table, globalY, globalX,
 									 (bool)((byte)game_state_table->maybe_move_counter_24 & 1));
 	uVar3 = penteSub04ScoreCapture(game_state_table, globalY, globalX);
 	global2 = (char)uVar3;
 	globalPlayerMove = ((uint16)globalX * 0xf - (uint16)globalY) + 0xe;
-	*vars = (byte)((int)globalPlayerMove / 100);
-	vars[1] = (byte)((int)(globalPlayerMove % 100) / 10);
-	iVar2 = (int)globalPlayerMove;
-	vars[2] = (byte)(iVar2 % 10);
+	moveToVars(globalX, globalY, vars[0], vars[1], vars[2]);
 }
 
 
@@ -1236,6 +1246,7 @@ PenteGame::PenteGame() : _random("PenteGame") {
 	globalX = 0;
 	global2 = 0;
 	globalPlayerMove = 0;
+	test();
 }
 
 void PenteGame::run(byte *scriptVariables) {
@@ -1249,6 +1260,84 @@ void PenteGame::run(byte *scriptVariables) {
 		}
 	}
 	memcpy(scriptVariables, tvars, sizeof(tvars));
+}
+
+void PenteGame::test() {
+	warning("starting PenteGame::test()");
+	uint32 oldSeed = _random.getSeed();
+
+	// 6 moves per line
+	testGame(3,
+		{
+			/*x=*/10, /*y=*/6, /*x=*/9, /*y=*/6, /*x=*/10, /*y=*/7, /*x=*/10, /*y=*/5, /*x=*/10, /*y=*/8, /*x=*/9, /*y=*/9,
+			/*x=*/10, /*y=*/9, /*x=*/10, /*y=*/10, /*x=*/9, /*y=*/8, /*x=*/8, /*y=*/7, /*x=*/8, /*y=*/8, /*x=*/7, /*y=*/8,
+			/*x=*/6, /*y=*/9, /*x=*/11, /*y=*/4, 
+		}, false);
+
+	testGame(10,
+		{
+			/*x=*/10, /*y=*/6, /*x=*/11, /*y=*/7, /*x=*/10, /*y=*/5, /*x=*/10, /*y=*/7, /*x=*/9, /*y=*/7, /*x=*/12, /*y=*/7,
+			/*x=*/10, /*y=*/4, /*x=*/8, /*y=*/8, /*x=*/10, /*y=*/3, /*x=*/11, /*y=*/5, /*x=*/10, /*y=*/2, /*x=*/9, /*y=*/7,
+			/*x=*/10, /*y=*/6, 
+		}, true);
+
+	_random.setSeed(oldSeed);
+	warning("finished PenteGame::test()");
+}
+
+void PenteGame::testGame(uint32 seed, Common::Array<int> moves, bool playerWin) {
+	byte vars[1024];
+	byte &winner = vars[5];
+	byte &op = vars[4];
+
+	warning("starting PenteGame::testGame(%u, %u, %d)", seed, moves.size(), (int)playerWin);
+	memset(vars, 0, sizeof(vars));
+	_random.setSeed(seed);
+
+	op = 0;
+	penteOp(vars);
+
+	for (uint i = 0; i < moves.size(); i += 2) {
+		if (winner)
+			error("%u: early winner: %d", i, (int)winner);
+
+		int x = moves[i];
+		int y = moves[i + 1];
+
+		if (i % 4) {
+			// check Stauf's move
+			op = 3;
+			penteOp(vars);
+
+			byte sX, sY;
+			varsMoveToXY(vars[0], vars[1], vars[2], sX, sY);
+
+			if (sX != x || sY != y)
+				error("%u: Stauf, expected (%d, %d), got (%d, %d)", i, (int)x, (int)y, (int)sX, (int)sY);
+
+			do {
+				op = 4;
+				penteOp(vars);
+			} while (winner == 1);
+			continue;
+		}
+
+		moveToVars(x, y, vars[0], vars[1], vars[2]);
+		op = 1;
+		penteOp(vars);
+
+		do {
+			op = 2;
+			penteOp(vars);
+		} while (winner == 1);
+	}
+
+	if (playerWin && winner != 3)
+		error("player didn't win, winner: %d", (int)winner);
+	else if (playerWin == false && winner != 2)
+		error("Stauf didn't win, winner: %d", (int)winner);
+
+	warning("finished PenteGame::testGame(%u, %u, %d)", seed, moves.size(), (int)playerWin);
 }
 
 } // End of Groovie namespace
