@@ -86,7 +86,7 @@ int *PenteGame::allocs(int param_1, int param_2)
 }
 
 
-void PenteGame::penteSub06Frees(int param_1)
+void PenteGame::penteSub06Frees(void *param)
 
 {
 	byte bVar1;
@@ -94,12 +94,13 @@ void PenteGame::penteSub06Frees(int param_1)
 	int *piVar3;
 	uint uVar4;
 	int *piVar5;
-	int iVar6;
+	uintptr iVar6;
 	uint local_4;
 
-	piVar3 = *(int **)(param_1 + 0x24);
-	bVar1 = *(byte *)(param_1 + 0x12);
-	bVar2 = *(byte *)(param_1 + 0x13);
+	byte *p = (byte *)param;
+	piVar3 = *(int **)(p + 0x24);
+	bVar1 = *(p + 0x12);
+	bVar2 = *(p + 0x13);
 	if (bVar1 != 0) {
 		local_4 = (uint)bVar1;
 		piVar5 = piVar3;
@@ -109,7 +110,7 @@ void PenteGame::penteSub06Frees(int param_1)
 				uVar4 = (uint)bVar2;
 				do {
 					iVar6 += 4;
-					free(*(void **)(*piVar5 + -4 + iVar6));
+					free(*(void ***)(*piVar5 + -4 + iVar6));
 					uVar4 -= 1;
 				} while (uVar4 != 0);
 			}
@@ -128,8 +129,8 @@ void PenteGame::penteSub06Frees(int param_1)
 		} while (uVar4 != 0);
 	}
 	free(piVar3);
-	*(int *)(param_1 + 0x24) = 0;
-	*(uint16 *)(param_1 + 0x20) = 0;
+	*(int *)(p + 0x24) = 0;
+	*(uint16 *)(p + 0x20) = 0;
 	return;
 }
 
@@ -161,7 +162,7 @@ void PenteGame::penteSub02Frees(penteTable *param_1)
 		} while (bVar2 <= param_1->width && param_1->width != bVar2);
 	}
 	free(param_1->board_state_40);
-	penteSub06Frees((int)param_1);
+	penteSub06Frees(param_1);
 	free(param_1);
 	return;
 }

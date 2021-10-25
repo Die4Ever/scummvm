@@ -42,7 +42,7 @@ public:
 
 private:
 	int *allocs(int param_1, int param_2);
-	void penteSub06Frees(int param_1);
+	void penteSub06Frees(void *param_1);
 	void penteSub02Frees(penteTable *param_1);
 	void penteSub05BuildLookupTable(penteTable *table);
 	penteTable *penteSub01Init(byte width, byte height, byte length);
