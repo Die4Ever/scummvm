@@ -53,15 +53,15 @@ private:
 	void penteSub11RevertCapture(penteTable *table, byte y, byte x, byte y2);
 	int penteSub10AiRecurse(penteTable *table_1, char depth, int parent_score);
 	uint penteSub09Ai(uint y_1, int param_2, int param_3, penteTable *table_4, byte depth);
-	uint penteOp(byte *vars);
+	void penteOp(byte *vars);
 
 	Common::RandomSource _random;
 
-	byte DAT_0044faa0;
-	byte DAT_0044faa4;
-	char DAT_0044faa8;
-	short DAT_0044faac;
-	short SHORT_00442460;
+	byte globalY;
+	byte globalX;
+	char global2;
+	short globalPlayerMove;
+	short global1;
 	penteTable *game_state_table;
 };
 
