@@ -2182,8 +2182,7 @@ void Script::o2_playsound() {
 }
 
 void Script::o_wipemaskfromstring58() {
-	// FIXME: used in pente when peices are captured
-	// looks like this is supposed to delete from the overlay
+	// used in pente when pieces are captured
 	Common::String vidName;
 	uint16 instStart = _currentInstruction;
 	uint32 fileref = getVideoRefString(vidName);
