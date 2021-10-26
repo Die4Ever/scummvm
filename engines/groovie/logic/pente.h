@@ -48,6 +48,7 @@ private:
 	penteTable *penteSub01Init(byte width, byte height, byte length);
 	void penteSub03Scoring(penteTable *table, byte move_y, byte move_x, bool whose_turn);
 	void penteSub07RevertScore(penteTable *table_1, byte y, byte x);
+	byte penteScoreCaptureSingle(penteTable *table, byte x, byte y, int slopeX, int slopeY);
 	uint penteSub04ScoreCapture(penteTable *table, byte y, byte x);
 	void penteSub08(short param_1, byte *param_2, short *param_3, short *param_4);
 	void penteSub11RevertCapture(penteTable *table, byte y, byte x, byte y2);

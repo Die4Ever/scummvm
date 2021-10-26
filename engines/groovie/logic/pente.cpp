@@ -495,7 +495,7 @@ void PenteGame::penteSub07RevertScore(penteTable *table, byte y, byte x) {
 	table->maybe_move_counter_24--;
 	uint lines = table->lines_table_36[x][y][0];
 
-	for (int i = 1; i <= lines; i++) {
+	for (uint i = 1; i <= lines; i++) {
 		uint16 lineIndex = table->lines_table_36[x][y][i];
 		penteScoringLine(table, lineIndex, stauf_turn, true);
 	}
@@ -506,138 +506,73 @@ void PenteGame::penteSub07RevertScore(penteTable *table, byte y, byte x) {
 }
 
 
+byte PenteGame::penteScoreCaptureSingle(penteTable *table, byte x, byte y, int slopeX, int slopeY) {
+	byte x1 = x + slopeX;
+	byte y1 = y + slopeY;
+	byte x2 = x + slopeX * 2;
+	byte y2 = y + slopeY * 2;
+	byte endX = x + slopeX * 3;
+	byte endY = y + slopeY * 3;
+
+	// we don't need to check for below 0 when we have unsigned types
+	if (x >= table->width || y >= table->height)
+		return 0;
+	if (endX >= table->width || endY >= table->height)
+		return 0;
+
+	byte **boardState = table->board_state;
+	byte captor = boardState[x][y];
+	byte captive = captor == 88 ? 79 : 88;
+
+	// make sure the captor is at the start and end of the line
+	if (boardState[endX][endY] != captor)
+		return 0;
+
+	// check that the captive is both of the middle pieces
+	if (boardState[x1][y1] != captive || boardState[x2][y2] != captive)
+		return 0;
+
+	penteSub07RevertScore(table, y1, x1);
+	penteSub07RevertScore(table, y2, x2);
+	return 1;
+}
 
 uint PenteGame::penteSub04ScoreCapture(penteTable *table, byte y, byte x)
-
 {
-	byte **ppbVar1;
-	int *piVar2;
-	byte bVar3;
-	byte bVar4;
-	uint uVar5;
-	byte bVar6;
-	byte bVar7;
-	int iVar8;
-	int iVar9;
-	byte *pbVar10;
-	char cVar11;
-	byte bVar12;
-	uint local_8;
-	//int *ppsVar2;
+	byte bitMask = 0;
+	bool isStauf = table->board_state[x][y] == 88;
 
-	cVar11 = '\0';
-	bVar3 = table->height;
-	local_8 = (uint)x;
-	ppbVar1 = table->board_state + local_8;
-	uVar5 = (uint)y;
-	bVar4 = (*ppbVar1)[uVar5];
-	bVar6 = -(bVar4 == 0x4f) & 9;
-	bVar7 = bVar6 + 0x4f;
-	iVar8 = table->width - 4;
-	if ((int)local_8 <= iVar8) {
-		if (ppbVar1[3][uVar5] == bVar4) {
-			if ((ppbVar1[2][uVar5] == bVar7) && (ppbVar1[1][uVar5] == bVar7)) {
-				penteSub07RevertScore(table, y, x + 2);
-				cVar11 = '\x01';
-				penteSub07RevertScore(table, y, x + 1);
-			}
+	struct Slope {
+		int x, y;
+	};
+	// the order of these is important because we return the bitMask
+	Slope slopes[] = {{1, 0},
+					  {1, 1},
+					  {0, 1},
+					  {-1, 1},
+					  {-1, 0},
+					  {-1, -1},
+					  {0, -1},
+					  {1, -1}};
+	for (const Slope &slope : slopes ) {
+		bitMask <<= 1;
+		bitMask |= penteScoreCaptureSingle(table, x, y, slope.x, slope.y);
+	}
+
+	for (int i = bitMask; i; i >>= 1) {
+		if ((i & 1) == 0)
+			continue;
+		pentePlayerTable *playerTable = isStauf ? table->stauf_p4 : table->player_p0;
+		uint &score = isStauf ? table->maybe_stauf_score_i12 : table->maybe_player_score_i8;
+
+		int lineLength = ++playerTable->i4[table->lines_counter_s20 - 1];
+		if (table->line_length == lineLength) {
+			score += WIN_SCORE;
+		} else {
+			score += 1 << (lineLength - 1U & 0x1f);
 		}
 	}
-	bVar12 = cVar11 * '\x02';
-	if (((int)local_8 <= iVar8) && ((int)uVar5 <= (int)(bVar3 - 4))) {
-		if (ppbVar1[3][uVar5 + 3] == bVar4) {
-			if ((ppbVar1[2][uVar5 + 2] == bVar7) && (ppbVar1[1][uVar5 + 1] == bVar7)) {
-				penteSub07RevertScore(table, y + 2, x + 2);
-				bVar12 |= 1;
-				penteSub07RevertScore(table, y + 1, x + 1);
-			}
-		}
-	}
-	bVar12 *= '\x02';
-	iVar9 = bVar3 - 4;
-	if ((int)uVar5 <= iVar9) {
-		pbVar10 = *ppbVar1 + uVar5;
-		if (pbVar10[3] == bVar4) {
-			if ((pbVar10[2] == bVar7) && (pbVar10[1] == bVar7)) {
-				penteSub07RevertScore(table, y + 2, x);
-				bVar12 |= 1;
-				penteSub07RevertScore(table, y + 1, x);
-			}
-		}
-	}
-	bVar12 *= '\x02';
-	if ((2 < x) && ((int)uVar5 <= iVar9)) {
-		if (ppbVar1[-3][uVar5 + 3] == bVar4) {
-			if ((ppbVar1[-2][uVar5 + 2] == bVar7) && (ppbVar1[-1][uVar5 + 1] == bVar7)) {
-				penteSub07RevertScore(table, y + 2, x - 2);
-				bVar12 |= 1;
-				penteSub07RevertScore(table, y + 1, x - 1);
-			}
-		}
-	}
-	bVar12 *= '\x02';
-	if (2 < x) {
-		if (ppbVar1[-3][uVar5] == bVar4) {
-			if ((ppbVar1[-2][uVar5] == bVar7) && (ppbVar1[-1][uVar5] == bVar7)) {
-				penteSub07RevertScore(table, y, x - 2);
-				bVar12 |= 1;
-				penteSub07RevertScore(table, y, x - 1);
-			}
-		}
-	}
-	bVar12 *= '\x02';
-	if ((2 < x) && (2 < y)) {
-		if (ppbVar1[-3][uVar5 - 3] == bVar4) {
-			if ((ppbVar1[-2][uVar5 - 2] == bVar7) && (ppbVar1[-1][uVar5 - 1] == bVar7)) {
-				penteSub07RevertScore(table, y - 2, x - 2);
-				bVar12 |= 1;
-				penteSub07RevertScore(table, y - 1, x - 1);
-			}
-		}
-	}
-	bVar12 *= '\x02';
-	if ((((2 < y) && (pbVar10 = *ppbVar1 + uVar5, pbVar10[-3] == bVar4)) && (pbVar10[-2] == bVar7)) &&
-		(pbVar10[-1] == bVar7)) {
-		penteSub07RevertScore(table, y - 2, x);
-		bVar12 |= 1;
-		penteSub07RevertScore(table, y - 1, x);
-	}
-	bVar12 *= '\x02';
-	if (((int)local_8 <= iVar8) && (2 < y)) {
-		local_8 = 0;
-		if (ppbVar1[3][uVar5 - 3] == bVar4) {
-			local_8 = 0;
-			if ((ppbVar1[2][uVar5 - 2] == bVar7) && (ppbVar1[1][uVar5 - 1] == bVar7)) {
-				penteSub07RevertScore(table, y - 2, x + 2);
-				bVar12 |= 1;
-				penteSub07RevertScore(table, y - 1, x + 1);
-			}
-		}
-	}
-	if (bVar12 != 0) {
-		local_8 = local_8 & 0xffffff00 | (uint)bVar12;
-		do {
-			if ((local_8 & 1) != 0) {
-				//ppsVar2 = (int *)(&table->player_p0 + (bVar6 == 0));
-				auto ppsVar2 = bVar6 ? table->player_p0 : table->stauf_p4;
-				uint &score = bVar6 ? table->maybe_player_score_i8 : table->maybe_stauf_score_i12;
-				//piVar2 = (int *)(*ppsVar2 + (uint)table->lines_counter_s20 * 4);
-				piVar2 = &ppsVar2->i4[table->lines_counter_s20 - 1];
-				uVar5 = ++*piVar2;
-				//uVar5 = *(uint *)(*ppsVar2 + (uint)table->lines_counter_s20 * 4);
-				if (table->line_length == uVar5) {
-					//ppsVar2[2] = ppsVar2[2] + WIN_SCORE;
-					score += WIN_SCORE;
-				} else {
-					//ppsVar2[2] = ppsVar2[2] + (1 << ((char)uVar5 - 1U & 0x1f));
-					score += (1 << ((char)uVar5 - 1U & 0x1f));
-				}
-			}
-			uVar5 = local_8 >> 1 & 0x7f;
-			local_8 = local_8 & 0xffffff00 | uVar5;
-		} while ((char)uVar5 != '\0');
-	}
-	return local_8 & 0xffffff00 | (uint)bVar12;
+	return bitMask;
 }
 
 
