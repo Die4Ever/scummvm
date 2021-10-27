@@ -537,23 +537,25 @@ byte PenteGame::penteScoreCaptureSingle(penteTable *table, byte x, byte y, int s
 	return 1;
 }
 
+struct Slope {
+	int x, y;
+};
+// the order of these is important because we return the bitMask
+Slope slopes[] = {{1, 0},
+				  {1, 1},
+				  {0, 1},
+				  {-1, 1},
+				  {-1, 0},
+				  {-1, -1},
+				  {0, -1},
+				  {1, -1}};
+
 uint PenteGame::penteSub04ScoreCapture(penteTable *table, byte y, byte x)
 {
 	byte bitMask = 0;
 	bool isStauf = table->board_state[x][y] == 88;
 
-	struct Slope {
-		int x, y;
-	};
-	// the order of these is important because we return the bitMask
-	Slope slopes[] = {{1, 0},
-					  {1, 1},
-					  {0, 1},
-					  {-1, 1},
-					  {-1, 0},
-					  {-1, -1},
-					  {0, -1},
-					  {1, -1}};
+	
 	for (const Slope &slope : slopes ) {
 		bitMask <<= 1;
 		bitMask |= penteScoreCaptureSingle(table, x, y, slope.x, slope.y);
@@ -578,27 +580,25 @@ uint PenteGame::penteSub04ScoreCapture(penteTable *table, byte y, byte x)
 
 
 
-void PenteGame::penteSub08(short move, byte *param_2, short *param_3, short *param_4)
+void PenteGame::penteSub08MaybeAnimateCapture(short move, byte *bitMaskG, short *param_3, short *param_4)
 
 {
 	byte x;
 	byte y;
-	byte bVar3;
-	short sVar4;
-	byte bVar5;
 
 	x = (byte)((int)move / 0xf);
-	bVar5 = *param_2;
 	y = 0xe - (char)((int)move % 0xf);
-	bVar3 = 0;
-	do {
-		if ((bVar5 & 1) != 0) {
-			*param_2 = '\x01' << (bVar3 & 0x1f) ^ *param_2;
+
+	byte &bitMask = *bitMaskG;
+	byte bVar3 = 0;
+	for (bVar3 = 0; bVar3 < 8; bVar3++) {
+		if (bitMask >> bVar3 & 1) {
+			bitMask = '\x01' << (bVar3 & 0x1f) ^ bitMask;
 			break;
 		}
-		bVar5 >>= 1;
-		bVar3 += 1;
-	} while (bVar3 < 8);
+	}
+
+	short sVar4;
 	switch (bVar3) {
 	case 0:
 		*param_3 = (x + 2) * 0xf - (uint16)y;
@@ -644,77 +644,33 @@ void PenteGame::penteSub08(short move, byte *param_2, short *param_3, short *par
 
 
 
-void PenteGame::penteSub11RevertCapture(penteTable *table, byte y, byte x, byte y2)
-
+void PenteGame::penteSub11RevertCapture(penteTable *table, byte y, byte x, byte bitMask)
 {
-	pentePlayerTable *ppsVar1;
-	uint uVar2;
-	bool whose_turn;
+	bool isPlayer = table->board_state[x][y] == 79;
+	for (int i = bitMask; i; i >>= 1) {
+		if ((i & 1) == 0)
+			continue;
 
-	whose_turn = table->board_state[x][y] == 0x4f;
-	if (y2 != 0) {
-		uVar2 = (uint)y2;
-		do {
-			if ((uVar2 & 1) != 0) {
-				//ppsVar1 = &table->player_p0 + !whose_turn;
-				ppsVar1 = whose_turn ? table->player_p0 : table->stauf_p4;
-				uint &score = whose_turn ? table->maybe_player_score_i8 : table->maybe_stauf_score_i12;
+		pentePlayerTable *playerTable = isPlayer ? table->player_p0 : table->stauf_p4;
+		uint &score = isPlayer ? table->maybe_player_score_i8 : table->maybe_stauf_score_i12;
 
-				//(*ppsVar1)->i[table->lines_counter_s20] =
-					//(*ppsVar1)->i[table->lines_counter_s20] + -1;
+		int linesCounter = --playerTable->i4[table->lines_counter_s20 - 1];
 
-				auto &linesCounter = ((int *)ppsVar1)[table->lines_counter_s20];
-				linesCounter--;
+		if (table->line_length - linesCounter == 1) {
+			score -= WIN_SCORE;
+		} else {
+			score -= (1 << ((char)linesCounter & 0x1f));
+		}
+	}
 
-				/*if ((uint)table->line_length - (*ppsVar1)->i[table->lines_counter_s20] == 1) {
-					ppsVar1[2] = (s_player_table *)(ppsVar1[2][-0x76f3].i + 0x10f);
-				} else {
-					ppsVar1[2] = (s_player_table *)((int)ppsVar1[2]->i +
-													(-1 << ((byte)(*ppsVar1)->i[table->lines_counter_s20] & 0x1f)));
-				}*/
+	for (int i = 0; i < 8; i++) {
+		if ((bitMask >> i & 1) == 0)
+			continue;
 
-				if (table->line_length - linesCounter == 1) {
-					score -= WIN_SCORE;
-				} else {
-					score -= (1 << ((char)linesCounter & 0x1f));
-				}
-			}
-			uVar2 >>= 1;
-		} while ((char)uVar2 != '\0');
+		Slope &slope = slopes[7 - i];
+		penteSub03Scoring(table, y + slope.y * 2, x + slope.x * 2, isPlayer);
+		penteSub03Scoring(table, y + slope.y, x + slope.x, isPlayer);
 	}
-	if ((y2 & 1) != 0) {
-		penteSub03Scoring(table, y - 2, x + 2, whose_turn);
-		penteSub03Scoring(table, y - 1, x + 1, whose_turn);
-	}
-	if ((y2 >> 1 & 1) != 0) {
-		penteSub03Scoring(table, y - 2, x, whose_turn);
-		penteSub03Scoring(table, y - 1, x, whose_turn);
-	}
-	if ((y2 >> 2 & 1) != 0) {
-		penteSub03Scoring(table, y - 2, x - 2, whose_turn);
-		penteSub03Scoring(table, y - 1, x - 1, whose_turn);
-	}
-	if ((y2 >> 3 & 1) != 0) {
-		penteSub03Scoring(table, y, x - 2, whose_turn);
-		penteSub03Scoring(table, y, x - 1, whose_turn);
-	}
-	if ((y2 >> 4 & 1) != 0) {
-		penteSub03Scoring(table, y + 2, x - 2, whose_turn);
-		penteSub03Scoring(table, y + 1, x - 1, whose_turn);
-	}
-	if ((y2 >> 5 & 1) != 0) {
-		penteSub03Scoring(table, y + 2, x, whose_turn);
-		penteSub03Scoring(table, y + 1, x, whose_turn);
-	}
-	if ((y2 >> 6 & 1) != 0) {
-		penteSub03Scoring(table, y + 2, x + 2, whose_turn);
-		penteSub03Scoring(table, y + 1, x + 1, whose_turn);
-	}
-	if ((char)y2 < '\0') {
-		penteSub03Scoring(table, y, x + 2, whose_turn);
-		penteSub03Scoring(table, y, x + 1, whose_turn);
-	}
-	return;
 }
 
 
@@ -1038,7 +994,7 @@ void PenteGame::penteOp(byte *vars)
 	case 4:
 		if (global2 != '\0') {
 			if (global1 < 0) {
-				penteSub08(globalPlayerMove, (byte *)&global2, &local_2, &global1);
+				penteSub08MaybeAnimateCapture(globalPlayerMove, (byte *)&global2, &local_2, &global1);
 				vars[0] = (byte)((int)local_2 / 100);
 				vars[5] = 1;
 				vars[1] = (byte)((int)(local_2 % 100) / 10);
@@ -1204,6 +1160,8 @@ void PenteGame::test() {
 
 	_random.setSeed(oldSeed);
 	warning("finished PenteGame::test()");
+	warning("forcing seed");
+	_random.setSeed(111);
 }
 
 void PenteGame::testGame(uint32 seed, Common::Array<int> moves, bool playerWin) {

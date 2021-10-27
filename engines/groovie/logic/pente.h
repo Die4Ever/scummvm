@@ -50,7 +50,7 @@ private:
 	void penteSub07RevertScore(penteTable *table_1, byte y, byte x);
 	byte penteScoreCaptureSingle(penteTable *table, byte x, byte y, int slopeX, int slopeY);
 	uint penteSub04ScoreCapture(penteTable *table, byte y, byte x);
-	void penteSub08(short param_1, byte *param_2, short *param_3, short *param_4);
+	void penteSub08MaybeAnimateCapture(short param_1, byte *param_2, short *param_3, short *param_4);
 	void penteSub11RevertCapture(penteTable *table, byte y, byte x, byte y2);
 	int penteSub10AiRecurse(penteTable *table_1, char depth, int parent_score);
 	uint penteSub09Ai(uint y_1, int param_2, int param_3, penteTable *table_4, byte depth);
