@@ -43,9 +43,6 @@ public:
 };
 
 struct pentePlayerTable {
-	/*int *p0;
-	int i4;
-	int score_i8;*/
 	int *p0;
 	int i4[812];
 };
@@ -91,52 +88,7 @@ int *PenteGame::allocs(int param_1, int param_2)
 
 
 void PenteGame::penteSub06Frees(void *param)
-
 {
-	/*byte bVar1;
-	byte bVar2;
-	int *piVar3;
-	uint uVar4;
-	int *piVar5;
-	uintptr iVar6;
-	uint local_4;
-
-	byte *p = (byte *)param;
-	piVar3 = *(int **)(p + 0x24);
-	bVar1 = *(p + 0x12);
-	bVar2 = *(p + 0x13);
-	if (bVar1 != 0) {
-		local_4 = (uint)bVar1;
-		piVar5 = piVar3;
-		do {
-			if (bVar2 != 0) {
-				iVar6 = 0;
-				uVar4 = (uint)bVar2;
-				do {
-					iVar6 += 4;
-					free(*(void ***)(*piVar5 + -4 + iVar6));
-					uVar4 -= 1;
-				} while (uVar4 != 0);
-			}
-			piVar5 = piVar5 + 1;
-			local_4 -= 1;
-		} while (local_4 != 0);
-	}
-	if (bVar1 != 0) {
-		uVar4 = (uint)bVar1;
-		piVar5 = piVar3;
-		do {
-			iVar6 = *piVar5;
-			piVar5 = piVar5 + 1;
-			free((void *)iVar6);
-			uVar4 -= 1;
-		} while (uVar4 != 0);
-	}
-	free(piVar3);
-	*(int *)(p + 0x24) = 0;
-	//((penteTable *)p)->lines_table_36 = 0;
-	*(uint16 *)(p + 0x20) = 0;
-	return;*/
 	penteTable *p = (penteTable *)param;
 	for (int x = 0; x < p->width; x++) {
 		for (int y = 0; y < p->height; y++) {
@@ -688,100 +640,84 @@ void PenteGame::penteSub11RevertCapture(penteTable *table, byte y, byte x, byte 
 int PenteGame::penteSub10AiRecurse(penteTable *table_1, char depth, int parent_score)
 
 {
-	byte bVar1;
+	//byte bVar1;
 	int iVar2;
 	int iVar3;
 	int iVar4;
 	bool bVar5;
-	uint16 uVar6;
+	//uint16 uVar6;
 	uint uVar7;
 	int iVar8;
 	uint uVar9;
 	short sVar10;
-	byte bVar11;
+	//byte bVar11;
 	int iVar12;
 	uint16 local_970[2];
 	int best_score;
 	offsetArray<int, 600> local_95c(1);
 
 	best_score = 0x7fffffff;
-	if (depth == '\x01') {
-		bVar1 = 0;
+	if (depth == 1) {
 		table_1->maybe_move_counter_44 = 0;
-		if (table_1->width != 0) {
-			do {
-				bVar11 = 0;
-				if (table_1->height != 0) {
-					do {
-						if ((table_1->board_state[bVar1][bVar11] == 0) &&
-							(table_1->board_state_40[bVar1][bVar11] != 0)) {
-							penteSub03Scoring(table_1, bVar11, bVar1, (bool)((byte)table_1->maybe_move_counter_24 & 1));
-							uVar7 = penteSub04ScoreCapture(table_1, bVar11, bVar1);
-							if ((*(byte *)&table_1->maybe_move_counter_24 & 1) == 0) {
-								iVar12 = table_1->maybe_player_score_i8 - table_1->maybe_stauf_score_i12;
-							} else {
-								iVar12 = table_1->maybe_stauf_score_i12 - table_1->maybe_player_score_i8;
-							}
-							if ((byte)uVar7 != 0) {
-								penteSub11RevertCapture(table_1, bVar11, bVar1, (byte)uVar7);
-							}
-							penteSub07RevertScore(table_1, bVar11, bVar1);
-							if (iVar12 < best_score) {
-								best_score = iVar12;
-							}
-							if (-parent_score != best_score && parent_score <= -best_score) {
-								table_1->maybe_move_counter_44 = 1;
-								return -best_score;
-							}
-						}
-						bVar11 += 1;
-					} while (bVar11 <= table_1->height && table_1->height != bVar11);
+		for (byte bVar1 = 0; bVar1 < table_1->width; bVar1++) {
+			for (byte bVar11 = 0; bVar11 < table_1->height; bVar11++) {
+				if ((table_1->board_state[bVar1][bVar11] != 0) ||
+					(table_1->board_state_40[bVar1][bVar11] == 0)) {
+					continue;
 				}
-				bVar1 += 1;
-			} while (bVar1 <= table_1->width && table_1->width != bVar1);
+
+				penteSub03Scoring(table_1, bVar11, bVar1, (bool)((byte)table_1->maybe_move_counter_24 & 1));
+				uVar7 = penteSub04ScoreCapture(table_1, bVar11, bVar1);
+				if ((*(byte *)&table_1->maybe_move_counter_24 & 1) == 0) {
+					iVar12 = table_1->maybe_player_score_i8 - table_1->maybe_stauf_score_i12;
+				} else {
+					iVar12 = table_1->maybe_stauf_score_i12 - table_1->maybe_player_score_i8;
+				}
+				if ((byte)uVar7 != 0) {
+					penteSub11RevertCapture(table_1, bVar11, bVar1, (byte)uVar7);
+				}
+				penteSub07RevertScore(table_1, bVar11, bVar1);
+				if (iVar12 < best_score) {
+					best_score = iVar12;
+				}
+				if (-parent_score != best_score && parent_score <= -best_score) {
+					table_1->maybe_move_counter_44 = 1;
+					return -best_score;
+				}
+			}
 		}
 		table_1->maybe_move_counter_44 = 1;
 	} else {
 		*(uint *)local_970 = 0;
-		bVar1 = 0;
-		if (table_1->width != 0) {
-			do {
-				bVar11 = 0;
-				if (table_1->height != 0) {
-					do {
-						if ((table_1->board_state[bVar1][bVar11] == 0) &&
-							(table_1->board_state_40[bVar1][bVar11] != 0)) {
-							penteSub03Scoring(table_1, bVar11, bVar1, (bool)((byte)table_1->maybe_move_counter_24 & 1));
-							uVar7 = penteSub04ScoreCapture(table_1, bVar11, bVar1);
-							if ((*(byte *)&table_1->maybe_move_counter_24 & 1) == 0) {
-								iVar12 = table_1->maybe_player_score_i8 - table_1->maybe_stauf_score_i12;
-							} else {
-								iVar12 = table_1->maybe_stauf_score_i12 - table_1->maybe_player_score_i8;
-							}
-							if ((byte)uVar7 != 0) {
-								penteSub11RevertCapture(table_1, bVar11, bVar1, (byte)uVar7);
-							}
-							penteSub07RevertScore(table_1, bVar11, bVar1);
-							iVar8 = (int)(short)local_970[1];
-							*(uint *)local_970 = (uint)(uint16)(local_970[1] + 1) << 0x10;
-							local_95c[iVar8 * 2] = iVar12;
-							//*(byte *)(local_95c + iVar8 * 2 + -1) = bVar11;
-							*(byte *)&local_95c[iVar8 * 2 - 1] = bVar11;
-							//*(byte *)((int)local_95c + iVar8 * 8 + -3) = bVar1;
-							*((byte *)&local_95c[iVar8 * 2 - 1] + 1) = bVar1;
-						}
-						bVar11 += 1;
-					} while (bVar11 <= table_1->height && table_1->height != bVar11);
+		for (byte bVar1 = 0; bVar1 < table_1->width; bVar1++) {
+			for (byte bVar11 = 0; bVar11 < table_1->height; bVar11++) {
+				if ((table_1->board_state[bVar1][bVar11] != 0) ||
+					(table_1->board_state_40[bVar1][bVar11] == 0)) {
+					continue;
 				}
-				bVar1 += 1;
-			} while (bVar1 <= table_1->width && table_1->width != bVar1);
+
+				penteSub03Scoring(table_1, bVar11, bVar1, (bool)((byte)table_1->maybe_move_counter_24 & 1));
+				uVar7 = penteSub04ScoreCapture(table_1, bVar11, bVar1);
+				if ((*(byte *)&table_1->maybe_move_counter_24 & 1) == 0) {
+					iVar12 = table_1->maybe_player_score_i8 - table_1->maybe_stauf_score_i12;
+				} else {
+					iVar12 = table_1->maybe_stauf_score_i12 - table_1->maybe_player_score_i8;
+				}
+				if ((byte)uVar7 != 0) {
+					penteSub11RevertCapture(table_1, bVar11, bVar1, (byte)uVar7);
+				}
+				penteSub07RevertScore(table_1, bVar11, bVar1);
+				iVar8 = (int)(short)local_970[1];
+				*(uint *)local_970 = (uint)(uint16)(local_970[1] + 1) << 0x10;
+				local_95c[iVar8 * 2] = iVar12;
+				*(byte *)&local_95c[iVar8 * 2 - 1] = bVar11;
+				*((byte *)&local_95c[iVar8 * 2 - 1] + 1) = bVar1;
+			}
 		}
-		uVar6 = 1;
-		if (0 < (short)local_970[1]) {
-			do {
-				uVar6 = uVar6 * 3 + 1;
-			} while ((short)uVar6 <= (short)local_970[1]);
-		}
+
+		uint16 uVar6;
+		for (uVar6 = 1; uVar6 < local_970[1]; uVar6 = uVar6 * 3 + 1) {}
+
 		while (2 < (short)uVar6) {
 			uVar6 = (short)uVar6 / 3;
 			uVar7 = *(uint *)local_970 & 0xffff0000;
@@ -813,40 +749,35 @@ int PenteGame::penteSub10AiRecurse(penteTable *table_1, char depth, int parent_s
 				} while ((short)(local_970[0] + 1) < (short)local_970[1]);
 			}
 		}
-		sVar10 = 0;
+
 		local_970[1] = (uint16)(*(uint *)local_970 >> 0x10);
-		if (0 < (short)local_970[1]) {
-			do {
-				//bVar1 = *(byte *)(local_95c + sVar10 * 2 + -1);
-				bVar1 = *(byte *)&local_95c[sVar10 * 2 - 1];
-				//bVar11 = *(byte *)((int)local_95c + sVar10 * 8 + -3);
-				bVar11 = * ((byte *)&local_95c[sVar10 * 2 - 1]+1);
-				*(uint *)local_970 &= 0xffffff00;
-				penteSub03Scoring(table_1, bVar1, bVar11, (bool)((byte)table_1->maybe_move_counter_24 & 1));
-				uVar9 = penteSub04ScoreCapture(table_1, bVar1, bVar11);
-				uVar7 = table_1->maybe_player_score_i8;
-				if ((((int)uVar7 < WIN_SCORE) && ((int)table_1->maybe_stauf_score_i12 < WIN_SCORE)) &&
-					(table_1->board_size != table_1->maybe_move_counter_24)) {
-					iVar12 = penteSub10AiRecurse(table_1, depth + -1, best_score);
+		for (sVar10 = 0; sVar10 < local_970[1]; sVar10++) {
+			byte bVar1 = *(byte *)&local_95c[sVar10 * 2 - 1];
+			byte bVar11 = *((byte *)&local_95c[sVar10 * 2 - 1] + 1);
+			*(uint *)local_970 &= 0xffffff00;
+			penteSub03Scoring(table_1, bVar1, bVar11, (bool)((byte)table_1->maybe_move_counter_24 & 1));
+			uVar9 = penteSub04ScoreCapture(table_1, bVar1, bVar11);
+			uVar7 = table_1->maybe_player_score_i8;
+			if ((((int)uVar7 < WIN_SCORE) && ((int)table_1->maybe_stauf_score_i12 < WIN_SCORE)) &&
+				(table_1->board_size != table_1->maybe_move_counter_24)) {
+				iVar12 = penteSub10AiRecurse(table_1, depth + -1, best_score);
+			} else {
+				if ((*(byte *)&table_1->maybe_move_counter_24 & 1) == 0) {
+					iVar12 = uVar7 - table_1->maybe_stauf_score_i12;
 				} else {
-					if ((*(byte *)&table_1->maybe_move_counter_24 & 1) == 0) {
-						iVar12 = uVar7 - table_1->maybe_stauf_score_i12;
-					} else {
-						iVar12 = table_1->maybe_stauf_score_i12 - uVar7;
-					}
+					iVar12 = table_1->maybe_stauf_score_i12 - uVar7;
 				}
-				if ((byte)uVar9 != 0) {
-					penteSub11RevertCapture(table_1, bVar1, bVar11, (byte)uVar9);
-				}
-				penteSub07RevertScore(table_1, bVar1, bVar11);
-				if (iVar12 < best_score) {
-					best_score = iVar12;
-				}
-				if (-parent_score != best_score && parent_score <= -best_score)
-					break;
-				sVar10 += 1;
-				local_970[1] = (uint16)(*(uint *)local_970 >> 0x10);
-			} while (sVar10 < (short)local_970[1]);
+			}
+			if ((byte)uVar9 != 0) {
+				penteSub11RevertCapture(table_1, bVar1, bVar11, (byte)uVar9);
+			}
+			penteSub07RevertScore(table_1, bVar1, bVar11);
+			if (iVar12 < best_score) {
+				best_score = iVar12;
+			}
+			if (-parent_score != best_score && parent_score <= -best_score)
+				break;
+			local_970[1] = (uint16)(*(uint *)local_970 >> 0x10);
 		}
 	}
 	return -best_score;
