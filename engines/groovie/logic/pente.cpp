@@ -986,18 +986,19 @@ uint PenteGame::penteSub09Ai(uint y_1, int param_2, int param_3, penteTable *tab
 }
 
 
-void PenteGame::varsMoveToXY(byte var0, byte var1, byte var2, byte &x, byte &y) {
+int varsMoveToXY(byte var0, byte var1, byte var2, byte &x, byte &y) {
 	int move = ((char)var0 * 10 + (short)(char)var1) * 10 + (short)(char)var2;
 	x = (byte)(move / 15);
 	y = 0xe - (char)((int)move % 15);
+	return move;
 }
 
-void PenteGame::aiMoveToXY(int move, byte &x, byte &y) {
+void aiMoveToXY(int move, byte &x, byte &y) {
 	x = move / 100;
 	y = move % 100;
 }
 
-void PenteGame::moveToVars(uint x, uint y, byte &var0, byte &var1, byte &var2) {
+void moveToVars(uint x, uint y, byte &var0, byte &var1, byte &var2) {
 	int move = (x * 0xf - y) + 0xe;
 	var0 = (byte)(move / 100);
 	var1 = (byte)((move % 100) / 10);
@@ -1026,7 +1027,7 @@ void PenteGame::penteOp(byte *vars)
 		game_state_table = (penteTable *)0x0;
 		return;
 	case 1:
-		varsMoveToXY(vars[0], vars[1], vars[2], globalX, globalY);
+		globalPlayerMove = varsMoveToXY(vars[0], vars[1], vars[2], globalX, globalY);
 		debugC(kDebugLogic, "player moved to %d, %d", (int)globalX, (int)globalY);
 		penteSub03Scoring(game_state_table, globalY, globalX,
 										 (bool)((byte)game_state_table->maybe_move_counter_24 & 1));
