@@ -93,7 +93,7 @@ int *PenteGame::allocs(int param_1, int param_2)
 void PenteGame::penteSub06Frees(void *param)
 
 {
-	byte bVar1;
+	/*byte bVar1;
 	byte bVar2;
 	int *piVar3;
 	uint uVar4;
@@ -134,8 +134,17 @@ void PenteGame::penteSub06Frees(void *param)
 	}
 	free(piVar3);
 	*(int *)(p + 0x24) = 0;
+	//((penteTable *)p)->lines_table_36 = 0;
 	*(uint16 *)(p + 0x20) = 0;
-	return;
+	return;*/
+	penteTable *p = (penteTable *)param;
+	for (int x = 0; x < p->width; x++) {
+		for (int y = 0; y < p->height; y++) {
+			free(p->lines_table_36[x][y]);
+		}
+		free(p->lines_table_36[x]);
+	}
+	free(p->lines_table_36);
 }
 
 
@@ -199,10 +208,10 @@ void PenteGame::penteSub05BuildLookupTable(penteTable *table)
 	lines_counter = 0;
 	line_length = table->line_length;
 	_width = (uint)width;
-	lines_table = (uint16 ***)allocs(_width, 4);
+	lines_table = (uint16 ***)allocs(_width, sizeof(void *));
 	if (width != 0) {
 		do {
-			ppuVar2 = (uint16 **)allocs((uint)height, 4);
+			ppuVar2 = (uint16 **)allocs((uint)height, sizeof(void *));
 			uVar4 = (uint)bVar6;
 			bVar6 += 1;
 			lines_table[uVar4] = ppuVar2;
@@ -339,14 +348,14 @@ penteTable *PenteGame::penteSub01Init(byte width, byte height, byte length)
 	byte bVar5;
 	uint16 _height;
 
-	table = (penteTable *)allocs(1, 0x30);
+	table = (penteTable *)allocs(1, sizeof(penteTable));
 	table->width = width;
 	table->height = height;
 	_height = (uint16)height;
 	table->board_size = _height * width;
 	bVar5 = 0;
 	table->line_length = length;
-	ppbVar1 = (byte **)allocs((uint)width, 4);
+	ppbVar1 = (byte **)allocs((uint)width, sizeof(void *));
 	table->board_state = ppbVar1;
 	if (width != 0) {
 		do {
@@ -367,7 +376,7 @@ penteTable *PenteGame::penteSub01Init(byte width, byte height, byte length)
 	bVar5 = 0;
 	table->maybe_stauf_score_i12 = (uint)table->lines_counter_s20;
 	table->maybe_player_score_i8 = (uint)table->lines_counter_s20;
-	ppbVar1 = (byte **)allocs((uint)width, 4);
+	ppbVar1 = (byte **)allocs((uint)width, sizeof(void *));
 	table->board_state_40 = ppbVar1;
 	if (width != 0) {
 		do {
