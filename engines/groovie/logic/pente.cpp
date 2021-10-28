@@ -893,7 +893,9 @@ PenteGame::PenteGame() : _random("PenteGame") {
 	globalX = 0;
 	global2 = 0;
 	globalPlayerMove = 0;
+#if 0
 	test();
+#endif
 }
 
 void PenteGame::run(byte *scriptVariables) {
@@ -966,8 +968,6 @@ void PenteGame::test() {
 
 	_random.setSeed(oldSeed);
 	warning("finished PenteGame::test()");
-	warning("forcing seed");
-	_random.setSeed(111);
 }
 
 void PenteGame::testGame(uint32 seed, Common::Array<int> moves, bool playerWin) {
