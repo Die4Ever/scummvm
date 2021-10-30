@@ -1079,6 +1079,9 @@ void othelloRun(byte *vars) {
 	Freeboards *pFVar4;
 	void **piVar4x;
 
+	if (!g_globalsInited)
+		initGlobals();
+
 	switch (vars[1]) {
 	case 0:
 		*vars = 0;
