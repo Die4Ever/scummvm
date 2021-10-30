@@ -33,17 +33,6 @@ namespace Groovie {
 
 // Ghidra crap
 typedef uint16 ushort;
-//typedef int undefined4;
-//typedef uint16 undefined2;
-//typedef byte undefined;
-
-/*#include "common/pack-start.h" // START STRUCT PACKING
-struct int24 {
-	int data : 24;
-};
-#include "common/pack-end.h" // END STRUCT PACKING
-//typedef int24 undefined3;
-typedef int24 int3;*/
 
 uint CONCAT31(uint a, uint b) {
 	uint ret;
@@ -141,7 +130,6 @@ struct OthelloGlobals2 {
 	byte _b272[12];
 };
 
-
 bool g_globalsInited = false;
 OthelloGlobals g_globals;
 OthelloGlobals2 g_globals2;
@@ -165,9 +153,7 @@ void initGlobals() {
 
 
 
-void *othelloCalloc1(void)
-
-{
+void *othelloCalloc1(void) {
 	Boardspace *pvVar1;
 	int iVar1;
 	Freeboards *pFVar2;
@@ -201,10 +187,7 @@ void *othelloCalloc1(void)
 	return pFVar2;
 }
 
-
-Freeboards *othelloCalloc2(void)
-
-{
+Freeboards *othelloCalloc2(void) {
 	void **ppvVar1;
 	Freeboards *pFVar2;
 	//void *uVar1;
@@ -219,10 +202,7 @@ Freeboards *othelloCalloc2(void)
 	return pFVar2;
 }
 
-
-int othelloFuncPointee1(int param_1)
-
-{
+int othelloFuncPointee1(int param_1) {
 	char cVar1;
 	char cVar2;
 	char cVar3;
@@ -415,10 +395,7 @@ int othelloFuncPointee1(int param_1)
 	return local_58[1] - local_58[2];
 }
 
-
-int othelloFuncPointee2(int param_1)
-
-{
+int othelloFuncPointee2(int param_1) {
 	char cVar1;
 	char cVar2;
 	char *pcVar3;
@@ -555,10 +532,7 @@ int othelloFuncPointee2(int param_1)
 	return (local_c[1] - local_c[2]) * 4;
 }
 
-
-Freeboards *othelloInit(void)
-
-{
+Freeboards *othelloInit(void) {
 	Freeboards *pfVar1;
 	int iVar1;
 	int iVar2;
@@ -583,10 +557,7 @@ Freeboards *othelloInit(void)
 	return pfVar1;
 }
 
-
-void othelloSub01(AStruct *param_1, Freeboards *param_2, byte *vars)
-
-{
+void othelloSub01(AStruct *param_1, Freeboards *param_2, byte *vars) {
 	byte bVar1;
 	int iVar2;
 	int *piVar3;
@@ -631,10 +602,7 @@ void othelloSub01(AStruct *param_1, Freeboards *param_2, byte *vars)
 	return;
 }
 
-
-Freeboards *othelloSub02(byte *param_1)
-
-{
+Freeboards *othelloSub02(byte *param_1) {
 	byte *pbVar1;
 	Freeboards *pFVar2;
 	int iVar3;
@@ -665,19 +633,13 @@ Freeboards *othelloSub02(byte *param_1)
 	return pFVar2;
 }
 
-
-void *othelloSub03(Freeboards **param_1)
-
-{
+void *othelloSub03(Freeboards **param_1) {
 	*param_1 = g_globals._callocHolder;
 	g_globals._callocHolder = (Freeboards *)param_1;
 	return param_1;
 }
 
-
-int othelloSub04(int param_1, int param_2)
-
-{
+int othelloSub04(int param_1, int param_2) {
 	byte *pbVar1;
 	char *pcVar2;
 	byte bVar3;
@@ -736,10 +698,7 @@ int othelloSub04(int param_1, int param_2)
 	return (int)pFVar7;
 }
 
-
-void othelloSub05(int param_1, int param_2)
-
-{
+void othelloSub05(int param_1, int param_2) {
 	int *piVar1;
 	int iVar2;
 	int iVar3;
@@ -789,10 +748,7 @@ void othelloSub05(int param_1, int param_2)
 	} while (true);
 }
 
-
-int othelloSub06(int *param_1)
-
-{
+int othelloSub06(int *param_1) {
 	int iVar1;
 	int iVar2;
 	uint uVar3;
@@ -847,10 +803,7 @@ int othelloSub06(int *param_1)
 	} while (true);
 }
 
-
-int othelloSub07(int *param_1, int param_2, int param_3, int param_4)
-
-{
+int othelloSub07(int *param_1, int param_2, int param_3, int param_4) {
 	Freeboards *pFVar1;
 	uint uVar2;
 	bool bVar3;
@@ -916,10 +869,7 @@ int othelloSub07(int *param_1, int param_2, int param_3, int param_4)
 	return local_8;
 }
 
-
-byte othelloSub08(Freeboards **param_1)
-
-{
+byte othelloSub08(Freeboards **param_1) {
 	char *pcVar1;
 	Freeboards *pFVar2;
 	int iVar3;
@@ -980,12 +930,9 @@ byte othelloSub08(Freeboards **param_1)
 	return 1;
 }
 
-
 /* WARNING: Could not reconcile some variable overlaps */
 
-void othelloSub09(void)
-
-{
+void othelloSub09(void) {
 	int iVar1;
 	char *pcVar2;
 	char **ppcVar3;
@@ -1042,11 +989,7 @@ void othelloSub09(void)
 	return;
 }
 
-
-
-uint othelloSub10(Freeboards **freeboards, char param_2, char var2)
-
-{
+uint othelloSub10(Freeboards **freeboards, char param_2, char var2) {
 	uint uVar1;
 	//uint3 extraout_var;
 	void *pvVar2;
@@ -1105,11 +1048,7 @@ uint othelloSub10(Freeboards **freeboards, char param_2, char var2)
 	return uVar7 & 0xffffff00;
 }
 
-
-
-byte othelloSub11(int param_1)
-
-{
+byte othelloSub11(int param_1) {
 	char cVar1;
 	char *pcVar2;
 	char cVar3;
@@ -1132,10 +1071,7 @@ byte othelloSub11(int param_1)
 	return (local_4[2] <= local_4[1]) + 2;
 }
 
-
-void othelloRun(byte *vars)
-
-{
+void othelloRun(byte *vars) {
 	byte bVar1;
 	uint uVar2;
 	//uint uVar1;
@@ -1248,7 +1184,6 @@ void othelloRun(byte *vars)
 	}
 	return;
 }
-
 
 OthelloGame::OthelloGame() : _random("OthelloGame") {
 }
