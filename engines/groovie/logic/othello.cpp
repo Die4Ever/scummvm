@@ -45,7 +45,6 @@ struct int24 {
 typedef int24 undefined3;
 typedef int24 int3;
 
-
 uint CONCAT31(uint a, uint b) {
 	uint ret;
 	ret = (a << 8) & 0xffffff00;
@@ -134,6 +133,8 @@ void *_calloc(uint num, uint size) {
 
 // end of ghidra defaults
 
+#include "common/pack-start.h" // START STRUCT PACKING
+typedef struct AStruct AStruct, *PAStruct;
 
 struct AStruct {
 	int field_0x0[31];
@@ -161,19 +162,60 @@ struct Boardspace {
 typedef struct Freeboards Freeboards, *PFreeboards;
 
 struct Freeboards {
-	undefined field_0x0[124];
-	int field_0x7c;
-	undefined field_0x80[8];
-	char *field_0x88;
-	char *field_0x8c;
-	undefined field_0x90[12];
+	undefined u0[124];
+	int i124;
+	undefined u128[8];
+	char *s136;
+	char *s140;
+	undefined u144[12];
 };
 
+typedef struct OthelloGlobals OthelloGlobals, *POthelloGlobals;
 
+struct OthelloGlobals {
+	struct Freeboards *_callocHolder;
+	byte _u4[20];
+	byte _b24[240];
+	int _callocCount;
+	int _i268;
+	int _u272[136];
+	byte _b816[556];
+	char _string1372[34];
+	short _s1406;
+	char _string1408[34];
+	short _s1442;
+	char _string1444[29];
+	byte _b1473;
+	byte _b1474;
+	byte _b1475;
+	char _string1476[32];
+	int _i1508;
+};
+
+typedef struct OthelloGlobals2 OthelloGlobals2, *POthelloGlobals2;
+
+struct OthelloGlobals2 {
+	byte _b0[4];
+	int (*_funcPointer4)(int);
+	int _i8;
+	char ***_p12;
+	byte _b16[252];
+	struct Freeboards *_freeboards268;
+	byte _b272[12];
+};
+
+bool g_globalsInited = false;
+OthelloGlobals g_globals;
+OthelloGlobals2 g_globals2;
+
+#include "common/pack-end.h" // END STRUCT PACKING
+
+int(__cdecl *kOthelloFuncPointer)(int) = 0;
+/*
 size_t DAT_0044d818;
 undefined4 *DAT_0044d710 = 0;
 //void *_othello_func_pointer_DAT_00464e68 = 0;
-int(__cdecl *kOthelloFuncPointer)(int) = 0;
+
 Freeboards *DAT_00464f70 = 0;
 Freeboards *DAT_00464e6c = 0;
 int DAT_0044d820 = 0;
@@ -201,10 +243,20 @@ int DAT_0044d838;
 undefined _DAT_0044d81c;
 Freeboards *calloc_holder_PTR_0044d710 = NULL;
 uint calloc_count_DAT_0044d818 = 0x40;
+*/
 
+void initGlobals() {
+	if (g_globalsInited)
+		return;
+
+	byte data[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xd0, 0x07, 0x00, 0x00, 0xc4, 0x09, 0x00, 0x00, 0xf0, 0x0a, 0x00, 0x00, 0x34, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x15, 0x28, 0x1f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1e, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x06, 0x09, 0x03, 0x0f, 0x0c, 0x12, 0x06, 0x00, 0x2d, 0x06, 0x00, 0x03, 0x1b, 0x0c, 0x3c, 0x0f, 0x09, 0x12, 0x24, 0x15, 0x18, 0x1b, 0x1e, 0x18, 0x24, 0x21, 0x27, 0x1b, 0x15, 0x03, 0x1b, 0x15, 0x18, 0x45, 0x21, 0x12, 0x24, 0x1e, 0x27, 0x4e, 0x2a, 0x2d, 0x30, 0x33, 0x2d, 0x39, 0x36, 0x3c, 0x30, 0x2a, 0x57, 0x30, 0x2a, 0x2d, 0x06, 0x36, 0x66, 0x39, 0x33, 0x3c, 0x0f, 0x3f, 0x42, 0x45, 0x48, 0x42, 0x4e, 0x4b, 0x51, 0x45, 0x3f, 0x18, 0x45, 0x3f, 0x42, 0x45, 0x4b, 0x27, 0x4e, 0x48, 0x51, 0x4e, 0x54, 0x57, 0x5a, 0x5d, 0x57, 0x63, 0x60, 0x66, 0x5a, 0x54, 0x57, 0x5a, 0x54, 0x57, 0x30, 0x60, 0x66, 0x63, 0x5d, 0x66, 0x39, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xec, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xec, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0xec, 0xff, 0xff, 0xff, 0xec, 0xff, 0xff, 0xff, 0xec, 0xff, 0xff, 0xff, 0xec, 0xff, 0xff, 0xff, 0xec, 0xff, 0xff, 0xff, 0xec, 0xff, 0xff, 0xff, 0xec, 0xff, 0xff, 0xff, 0xec, 0xff, 0xff, 0xff, 0xec, 0xff, 0xff, 0xff, 0xec, 0xff, 0xff, 0xff, 0xd8, 0xff, 0xff, 0xff, 0xec, 0xff, 0xff, 0xff, 0xec, 0xff, 0xff, 0xff, 0xec, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0xec, 0xff, 0xff, 0xff, 0xd8, 0xff, 0xff, 0xff, 0xec, 0xff, 0xff, 0xff, 0xec, 0xff, 0xff, 0xff, 0xec, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0xd8, 0xff, 0xff, 0xff, 0xd8, 0xff, 0xff, 0xff, 0xd8, 0xff, 0xff, 0xff, 0xd8, 0xff, 0xff, 0xff, 0xd8, 0xff, 0xff, 0xff, 0xd8, 0xff, 0xff, 0xff, 0xd8, 0xff, 0xff, 0xff, 0xd8, 0xff, 0xff, 0xff, 0xd8, 0xff, 0xff, 0xff, 0xd8, 0xff, 0xff, 0xff, 0xd8, 0xff, 0xff, 0xff, 0xd8, 0xff, 0xff, 0xff, 0xd8, 0xff, 0xff, 0xff, 0xd8, 0xff, 0xff, 0xff, 0xec, 0xff, 0xff, 0xff, 0xd8, 0xff, 0xff, 0xff, 0xd8, 0xff, 0xff, 0xff, 0xd8, 0xff, 0xff, 0xff, 0xd8, 0xff, 0xff, 0xff, 0xd8, 0xff, 0xff, 0xff, 0xec, 0xff, 0xff, 0xff, 0x4f, 0x74, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x63, 0x6f, 0x75, 0x6c, 0x64, 0x6e, 0x27, 0x74, 0x20, 0x61, 0x6c, 0x6c, 0x6f, 0x63, 0x20, 0x62, 0x6f, 0x61, 0x72, 0x64, 0x73, 0x70, 0x61, 0x63, 0x65, 0x00, 0x00, 0x00, 0x4f, 0x74, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x63, 0x6f, 0x75, 0x6c, 0x64, 0x6e, 0x27, 0x74, 0x20, 0x61, 0x6c, 0x6c, 0x6f, 0x63, 0x20, 0x66, 0x72, 0x65, 0x65, 0x62, 0x6f, 0x61, 0x72, 0x64, 0x73, 0x00, 0x00, 0x00, 0x4f, 0x74, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x63, 0x6f, 0x75, 0x6c, 0x64, 0x6e, 0x27, 0x74, 0x20, 0x61, 0x6c, 0x6c, 0x6f, 0x63, 0x20, 0x62, 0x79, 0x74, 0x65, 0x73, 0x00, 0x00, 0x00, 0x00, 0x4f, 0x74, 0x68, 0x65, 0x6c, 0x6c, 0x6f, 0x20, 0x63, 0x6f, 0x75, 0x6c, 0x64, 0x6e, 0x27, 0x74, 0x20, 0x61, 0x6c, 0x6c, 0x6f, 0x63, 0x20, 0x70, 0x6f, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x73, 0x00, 0x00, 0x00, 0x00, 0x00};
+	assert(sizeof(g_globals) == sizeof(data));
+	static_assert(sizeof(g_globals) == sizeof(data), "size");
+	memcpy(&g_globals, data, sizeof(data));
+	g_globalsInited = true;
+}
 
 // end of ghidra globals
-
 
 void *othelloCalloc1(void)
 
@@ -216,39 +268,37 @@ void *othelloCalloc1(void)
 	int iVar4;
 	int iVar5;
 
-	calloc_holder_PTR_0044d710 = (Freeboards *)_calloc(calloc_count_DAT_0044d818, 0x9c);
-	if (calloc_holder_PTR_0044d710 == (Freeboards *)0x0) {
-		error("error_FUN_0040b560(s_Othello_couldn't_alloc_freeboard_0044dc90,1);");
+	g_globals._callocHolder = (Freeboards *)_calloc(g_globals._callocCount, 0x9c);
+	if (g_globals._callocHolder == (Freeboards *)0x0) {
+		error("error_FUN_0040b560(g_globals._string1408, 1);");
 	}
-	pvVar1 = (Boardspace *)_calloc(calloc_count_DAT_0044d818, 0x40);
+	pvVar1 = (Boardspace *)_calloc(g_globals._callocCount, 0x40);
 	if (pvVar1 == (Boardspace *)0x0) {
-		error("error_FUN_0040b560(s_Othello_couldn't_alloc_boardspac_0044dc6c,1);");
+		error("error_FUN_0040b560(g_globals._string1372, 1);");
 	}
 	iVar5 = 0;
-	if (0 < (int)calloc_count_DAT_0044d818) {
+	if (0 < g_globals._callocCount) {
 		iVar4 = 0;
 		do {
-			*(undefined **)(calloc_holder_PTR_0044d710->field_0x0 + iVar4 + -0x9c) =
-				calloc_holder_PTR_0044d710->field_0x0 + iVar4;
+			*(undefined **)((g_globals._callocHolder)->u0 + iVar4 + -0x9c) =
+				(g_globals._callocHolder)->u0 + iVar4;
 			iVar1 = 8;
 			iVar3 = iVar4;
 			do {
-				*(Boardspace **)(calloc_holder_PTR_0044d710->field_0x80 + iVar3 + -4) = pvVar1;
+				*(Boardspace **)((g_globals._callocHolder)->u128 + iVar3 + -4) = pvVar1;
 				pvVar1 = (Boardspace *)(pvVar1->field_0x0 + 8);
 				iVar1 += -1;
 				iVar3 = iVar3 + 4;
 			} while (iVar1 != 0);
 			iVar4 += 0x9c;
 			iVar5 += 1;
-		} while (iVar5 < (int)calloc_count_DAT_0044d818);
+		} while (iVar5 < g_globals._callocCount);
 	}
-	pFVar2 = calloc_holder_PTR_0044d710;
-	*(undefined4 *)calloc_holder_PTR_0044d710[calloc_count_DAT_0044d818 - 1].field_0x0 = 0;
-	calloc_count_DAT_0044d818 = 10;
+	pFVar2 = g_globals._callocHolder;
+	*(undefined4 *)g_globals._callocHolder[g_globals._callocCount + -1].u0 = 0;
+	g_globals._callocCount = 10;
 	return pFVar2;
 }
-
-
 
 Freeboards *othelloCalloc2(void)
 
@@ -257,18 +307,17 @@ Freeboards *othelloCalloc2(void)
 	Freeboards *pFVar2;
 	void *uVar1;
 
-	if (calloc_holder_PTR_0044d710 == (Freeboards *)0x0) {
+	if (g_globals._callocHolder == (Freeboards *)0x0) {
 		othelloCalloc1();
 	}
-	pFVar2 = calloc_holder_PTR_0044d710;
-	puVar1 = (undefined4 *)calloc_holder_PTR_0044d710->field_0x0;
-	calloc_holder_PTR_0044d710 = *(Freeboards **)calloc_holder_PTR_0044d710->field_0x0;
+	pFVar2 = g_globals._callocHolder;
+	puVar1 = (undefined4 *)(g_globals._callocHolder)->u0;
+	g_globals._callocHolder = *(Freeboards **)(g_globals._callocHolder)->u0;
 	*puVar1 = 0;
 	return pFVar2;
 }
 
-
-int __cdecl othelloFuncPointee1(int param_1)
+int othelloFuncPointee1(int param_1)
 
 {
 	char cVar1;
@@ -321,69 +370,62 @@ int __cdecl othelloFuncPointee1(int param_1)
 	local_20 = (int)pcVar4[0x20];
 	local_18 = (int)pcVar4[0x28];
 	cVar2 = pcVar4[2];
-	local_58[1] = *(int *)(&DAT_0044dac8 +
-						   ((char)(&DAT_0044da58)
-								[(int)pcVar4[0x3e] +
-								 (int)(char)(&DAT_0044da58)
-									 [(int)pcVar4[0x3d] +
-									  (int)(char)(&DAT_0044da58)
-										  [(int)pcVar4[0x3c] +
-										   (int)(char)(&DAT_0044da58)
-											   [(int)pcVar4[0x3b] +
-												(int)(char)(&DAT_0044da58)
-													[(int)pcVar4[0x3a] +
-													 (int)(char)(&DAT_0044da58)
-														 [(int)pcVar4[0x39] +
-														  (int)(char)(&DAT_0044da58)[local_48]]]]]]] +
+	local_58[1] = *(int *)(g_globals._b816 +
+						   (*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(*(char *)((char)g_globals
+																							._b816[local_48 + 0x18] +
+																						0x44da58 +
+																						(int)pcVar4[0x39]) +
+																			  0x44da58 + (int)pcVar4[0x3a]) +
+																	0x44da58 + (int)pcVar4[0x3b]) +
+														  0x44da58 +
+														  (int)pcVar4[0x3c]) +
+												0x44da58 + (int)pcVar4[0x3d]) +
+									  0x44da58 + (int)pcVar4[0x3e]) +
 							local_44) *
-							   4) +
-				  *(int *)(&DAT_0044dac8 +
-						   ((char)(&DAT_0044da58)
-								[(int)pcVar4[0x37] +
-								 (int)(char)(&DAT_0044da58)
-									 [(int)pcVar4[0x2f] +
-									  (int)(char)(&DAT_0044da58)
-										  [(int)pcVar4[0x27] +
-										   (int)(char)(&DAT_0044da58)
-											   [(int)pcVar4[0x1f] +
-												(int)(char)(&DAT_0044da58)
-													[(int)pcVar4[0x17] +
-													 (int)(char)(&DAT_0044da58)
-														 [(int)pcVar4[0xf] +
-														  (int)(char)(&DAT_0044da58)[local_58[3]]]]]]]] +
+							   4 +
+						   0x88) +
+				  *(int *)(g_globals._b816 +
+						   (*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(*(char *)((char)g_globals
+																							._b816[local_58[3] + 0x18] +
+																						0x44da58 +
+																						(int)pcVar4[0xf]) +
+																			  0x44da58 + (int)pcVar4[0x17]) +
+																	0x44da58 + (int)pcVar4[0x1f]) +
+														  0x44da58 +
+														  (int)pcVar4[0x27]) +
+												0x44da58 + (int)pcVar4[0x2f]) +
+									  0x44da58 + (int)pcVar4[0x37]) +
 							local_44) *
-							   4) +
-				  *(int *)(&DAT_0044dac8 +
-						   ((char)(&DAT_0044da58)
-								[(int)pcVar4[0x30] +
-								 (int)(char)(&DAT_0044da58)
-									 [(int)pcVar4[0x28] +
-									  (int)(char)(&DAT_0044da58)
-										  [(int)pcVar4[0x20] +
-										   (int)(char)(&DAT_0044da58)
-											   [(int)pcVar4[0x18] +
-												(int)(char)(&DAT_0044da58)
-													[(int)pcVar4[0x10] +
-													 (int)(char)(&DAT_0044da58)
-														 [(int)(char)(&DAT_0044da58)[iVar5] +
-														  (int)pcVar4[8]]]]]]] +
+							   4 +
+						   0x88) +
+				  *(int *)(g_globals._b816 +
+						   (*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(pcVar4[8] +
+																						0x44da58 +
+																						(int)(char)
+																							g_globals._b816[iVar5 + 0x18]) +
+																			  0x44da58 +
+																			  (int)pcVar4[0x10]) +
+																	0x44da58 + (int)pcVar4[0x18]) +
+														  0x44da58 + (int)pcVar4[0x20]) +
+												0x44da58 +
+												(int)pcVar4[0x28]) +
+									  0x44da58 + (int)pcVar4[0x30]) +
 							local_48) *
-							   4) +
-				  *(int *)(&DAT_0044dac8 +
-						   ((char)(&DAT_0044da58)
-								[(int)pcVar4[6] +
-								 (int)(char)(&DAT_0044da58)
-									 [(int)pcVar4[5] +
-									  (int)(char)(&DAT_0044da58)
-										  [(int)pcVar4[4] +
-										   (int)(char)(&DAT_0044da58)
-											   [(int)pcVar4[3] +
-												(int)(char)(&DAT_0044da58)
-													[(int)pcVar4[2] +
-													 (int)(char)(&DAT_0044da58)
-														 [(int)(char)(&DAT_0044da58)[iVar5] + (int)cVar1]]]]]] +
+							   4 +
+						   0x88) +
+				  *(int *)(g_globals._b816 +
+						   (*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(cVar1 +
+																						0x44da58 +
+																						(int)(char)g_globals._b816[iVar5 + 0x18]) +
+																			  0x44da58 + (int)pcVar4[2]) +
+																	0x44da58 +
+																	(int)pcVar4[3]) +
+														  0x44da58 + (int)pcVar4[4]) +
+												0x44da58 + (int)pcVar4[5]) +
+									  0x44da58 + (int)pcVar4[6]) +
 							local_58[3]) *
-							   4);
+							   4 +
+						   0x88);
 	local_58[iVar5] = local_58[iVar5] + 0x32;
 	cVar3 = pcVar4[3];
 	local_58[cVar1] = local_58[cVar1] + 4;
@@ -399,58 +441,58 @@ int __cdecl othelloFuncPointee1(int param_1)
 	local_58[cVar2] = local_58[cVar2] + 0x32;
 	cVar2 = pcVar4[9];
 	local_58[cVar1] = local_58[cVar1] + 4;
-	local_58[cVar2] = local_58[cVar2] - (int)(char)(&DAT_0044da48)[iVar5];
+	local_58[cVar2] = local_58[cVar2] - (int)(char)g_globals._b816[iVar5 + 8];
 	cVar1 = pcVar4[0xb];
-	local_58[pcVar4[10]] = local_58[pcVar4[10]] - (int)(char)(&DAT_0044da4c)[local_40];
-	local_58[cVar1] = local_58[cVar1] - (int)(char)(&DAT_0044da50)[local_3c];
-	local_58[pcVar4[0xc]] = local_58[pcVar4[0xc]] - (int)(char)(&DAT_0044da50)[local_38];
-	local_58[pcVar4[0xd]] = local_58[pcVar4[0xd]] - (int)(char)(&DAT_0044da4c)[local_34];
-	local_58[pcVar4[0xe]] = local_58[pcVar4[0xe]] - (int)(char)(&DAT_0044da48)[local_58[3]];
+	local_58[pcVar4[10]] = local_58[pcVar4[10]] - (int)(char)g_globals._b816[local_40 + 0xc];
+	local_58[cVar1] = local_58[cVar1] - (int)(char)g_globals._b816[local_3c + 0x10];
+	local_58[pcVar4[0xc]] = local_58[pcVar4[0xc]] - (int)(char)g_globals._b816[local_38 + 0x10];
+	local_58[pcVar4[0xd]] = local_58[pcVar4[0xd]] - (int)(char)g_globals._b816[local_34 + 0xc];
+	local_58[pcVar4[0xe]] = local_58[pcVar4[0xe]] - (int)(char)g_globals._b816[local_58[3] + 8];
 	cVar1 = pcVar4[0x10];
 	local_58[pcVar4[0xf]] = local_58[pcVar4[0xf]] + 4;
 	cVar2 = pcVar4[0x11];
 	local_58[cVar1] = local_58[cVar1] + 0x10;
-	local_58[cVar2] = local_58[cVar2] - (int)(char)(&DAT_0044da4c)[local_30];
+	local_58[cVar2] = local_58[cVar2] - (int)(char)g_globals._b816[local_30 + 0xc];
 	cVar1 = pcVar4[0x15];
 	local_58[pcVar4[0x12]] = local_58[pcVar4[0x12]] + 1;
 	cVar2 = pcVar4[0x16];
 	local_58[cVar1] = local_58[cVar1] + 1;
-	local_58[cVar2] = local_58[cVar2] - (int)(char)(&DAT_0044da4c)[local_2c];
+	local_58[cVar2] = local_58[cVar2] - (int)(char)g_globals._b816[local_2c + 0xc];
 	cVar1 = pcVar4[0x18];
 	local_58[pcVar4[0x17]] = local_58[pcVar4[0x17]] + 0x10;
 	cVar2 = pcVar4[0x19];
 	cVar3 = pcVar4[0x1e];
 	local_58[cVar1] = local_58[cVar1] + 0xc;
-	local_58[cVar2] = local_58[cVar2] - (int)(char)(&DAT_0044da50)[local_28];
+	local_58[cVar2] = local_58[cVar2] - (int)(char)g_globals._b816[local_28 + 0x10];
 	cVar1 = pcVar4[0x1f];
-	local_58[cVar3] = local_58[cVar3] - (int)(char)(&DAT_0044da50)[local_24];
+	local_58[cVar3] = local_58[cVar3] - (int)(char)g_globals._b816[local_24 + 0x10];
 	local_58[cVar1] = local_58[cVar1] + 0xc;
 	cVar1 = pcVar4[0x21];
 	local_58[pcVar4[0x20]] = local_58[pcVar4[0x20]] + 0xc;
 	cVar2 = pcVar4[0x26];
-	local_58[cVar1] = local_58[cVar1] - (int)(char)(&DAT_0044da50)[local_20];
-	local_58[cVar2] = local_58[cVar2] - (int)(char)(&DAT_0044da50)[local_1c];
+	local_58[cVar1] = local_58[cVar1] - (int)(char)g_globals._b816[local_20 + 0x10];
+	local_58[cVar2] = local_58[cVar2] - (int)(char)g_globals._b816[local_1c + 0x10];
 	cVar1 = pcVar4[0x28];
 	local_58[pcVar4[0x27]] = local_58[pcVar4[0x27]] + 0xc;
 	cVar2 = pcVar4[0x29];
 	local_58[cVar1] = local_58[cVar1] + 0x10;
-	local_58[cVar2] = local_58[cVar2] - (int)(char)(&DAT_0044da4c)[local_18];
+	local_58[cVar2] = local_58[cVar2] - (int)(char)g_globals._b816[local_18 + 0xc];
 	cVar1 = pcVar4[0x2d];
 	local_58[pcVar4[0x2a]] = local_58[pcVar4[0x2a]] + 1;
 	local_58[cVar1] = local_58[cVar1] + 1;
-	local_58[pcVar4[0x2e]] = local_58[pcVar4[0x2e]] - (int)(char)(&DAT_0044da4c)[local_14];
+	local_58[pcVar4[0x2e]] = local_58[pcVar4[0x2e]] - (int)(char)g_globals._b816[local_14 + 0xc];
 	local_58[pcVar4[0x2f]] = local_58[pcVar4[0x2f]] + 0x10;
 	cVar1 = pcVar4[0x31];
 	local_58[pcVar4[0x30]] = local_58[pcVar4[0x30]] + 4;
-	local_58[cVar1] = local_58[cVar1] - (int)(char)(&DAT_0044da48)[local_48];
+	local_58[cVar1] = local_58[cVar1] - (int)(char)g_globals._b816[local_48 + 8];
 	cVar1 = pcVar4[0x33];
-	local_58[pcVar4[0x32]] = local_58[pcVar4[0x32]] - (int)(char)(&DAT_0044da4c)[local_10];
-	local_58[cVar1] = local_58[cVar1] - (int)(char)(&DAT_0044da50)[local_c];
-	local_58[pcVar4[0x34]] = local_58[pcVar4[0x34]] - (int)(char)(&DAT_0044da50)[local_8];
+	local_58[pcVar4[0x32]] = local_58[pcVar4[0x32]] - (int)(char)g_globals._b816[local_10 + 0xc];
+	local_58[cVar1] = local_58[cVar1] - (int)(char)g_globals._b816[local_c + 0x10];
+	local_58[pcVar4[0x34]] = local_58[pcVar4[0x34]] - (int)(char)g_globals._b816[local_8 + 0x10];
 	cVar1 = pcVar4[0x36];
-	local_58[pcVar4[0x35]] = local_58[pcVar4[0x35]] - (int)(char)(&DAT_0044da4c)[local_4];
+	local_58[pcVar4[0x35]] = local_58[pcVar4[0x35]] - (int)(char)g_globals._b816[local_4 + 0xc];
 	cVar2 = pcVar4[0x37];
-	local_58[cVar1] = local_58[cVar1] - (int)(char)(&DAT_0044da48)[local_44];
+	local_58[cVar1] = local_58[cVar1] - (int)(char)g_globals._b816[local_44 + 8];
 	local_58[cVar2] = local_58[cVar2] + 4;
 	cVar1 = pcVar4[0x39];
 	local_58[pcVar4[0x38]] = local_58[pcVar4[0x38]] + 0x32;
@@ -470,8 +512,7 @@ int __cdecl othelloFuncPointee1(int param_1)
 	return local_58[1] - local_58[2];
 }
 
-
-int __cdecl othelloFuncPointee2(int param_1)
+int othelloFuncPointee2(int param_1)
 
 {
 	char cVar1;
@@ -610,59 +651,7 @@ int __cdecl othelloFuncPointee2(int param_1)
 	return (local_c[1] - local_c[2]) * 4;
 }
 
-
-void __cdecl othelloInit1(AStruct *param_1, AStruct *param_2, AStruct1 *param_3)
-
-{
-	AStruct1 AVar1;
-	int iVar2;
-	int *piVar3;
-	int iVar4;
-	int iVar5;
-	int local_8;
-	int *local_4;
-
-	if (param_1 == (AStruct *)0x0) {
-		iVar2 = 0;
-		piVar3 = &param_2->field_0x7c;
-		do {
-			iVar4 = 0;
-			do {
-				iVar5 = iVar4 + 1;
-				param_3[iVar2 + iVar4 + 0x19] = *(AStruct1 *)(&DAT_0044da40 + *(char *)(*piVar3 + iVar4));
-				iVar4 = iVar5;
-			} while (iVar5 < 8);
-			piVar3 = piVar3 + 1;
-			iVar2 += 10;
-		} while (iVar2 < 0x50);
-		return;
-	}
-	local_4 = &param_1->field_0x7c;
-	piVar3 = &param_2->field_0x7c;
-	local_8 = 0;
-	do {
-		iVar2 = 0;
-		do {
-			AVar1 = *(AStruct1 *)(&DAT_0044da40 + *(char *)(*piVar3 + iVar2));
-			param_3[local_8 + iVar2 + 0x19] = AVar1;
-			if ((*(char *)(*local_4 + iVar2) == *(char *)(*piVar3 + iVar2)) &&
-				(*(char *)(*piVar3 + iVar2) != '\0')) {
-				//param_3[local_8 + iVar2 + 0x19] = (AStruct1)((char)AVar1 + 32);
-				param_3[local_8 + iVar2 + 0x19].field_0x0 = AVar1.field_0x0 + 32;
-			}
-			iVar2 += 1;
-		} while (iVar2 < 8);
-		local_4 = local_4 + 1;
-		local_8 += 10;
-		piVar3 = piVar3 + 1;
-	} while (local_8 < 0x50);
-	return;
-}
-
-
-/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
-
-Freeboards *othelloInit2(void)
+Freeboards *othelloInit(void)
 
 {
 	Freeboards *pfVar1;
@@ -671,7 +660,7 @@ Freeboards *othelloInit2(void)
 	int *piVar3;
 
 	pfVar1 = othelloCalloc2();
-	piVar3 = &pfVar1->field_0x7c;
+	piVar3 = &pfVar1->i124;
 	iVar2 = 8;
 	do {
 		iVar1 = 0;
@@ -682,16 +671,61 @@ Freeboards *othelloInit2(void)
 		piVar3 = piVar3 + 1;
 		iVar2 += -1;
 	} while (iVar2 != 0);
-	pfVar1->field_0x8c[4] = '\x02' - (DAT_0044d838 == _DAT_0044d81c);
-	pfVar1->field_0x88[3] = pfVar1->field_0x8c[4];
-	pfVar1->field_0x8c[3] = (DAT_0044d838 == _DAT_0044d81c) + '\x01';
-	pfVar1->field_0x88[4] = pfVar1->field_0x8c[3];
+	pfVar1->s140[4] = 2 - (g_globals._u272[6] == g_globals._i268);
+	pfVar1->s136[3] = pfVar1->s140[4];
+	pfVar1->s140[3] = (g_globals._u272[6] == g_globals._i268) + 1;
+	pfVar1->s136[4] = pfVar1->s140[3];
 	return pfVar1;
 }
 
+void othelloSub01(AStruct *param_1, Freeboards *param_2, byte *vars)
 
+{
+	byte bVar1;
+	int iVar2;
+	int *piVar3;
+	int iVar4;
+	int iVar5;
+	int local_8;
+	int *local_4;
 
-Freeboards *othelloSub1(byte *param_1)
+	if (param_1 == (AStruct *)0x0) {
+		iVar2 = 0;
+		piVar3 = &param_2->i124;
+		do {
+			iVar4 = 0;
+			do {
+				iVar5 = iVar4 + 1;
+				vars[iVar2 + iVar4 + 0x19] = g_globals._b816[*(char *)(*piVar3 + iVar4)];
+				iVar4 = iVar5;
+			} while (iVar5 < 8);
+			piVar3 = piVar3 + 1;
+			iVar2 += 10;
+		} while (iVar2 < 0x50);
+		return;
+	}
+	local_4 = &param_1->field_0x7c;
+	piVar3 = &param_2->i124;
+	local_8 = 0;
+	do {
+		iVar2 = 0;
+		do {
+			bVar1 = g_globals._b816[*(char *)(*piVar3 + iVar2)];
+			vars[local_8 + iVar2 + 0x19] = bVar1;
+			if ((*(char *)(*local_4 + iVar2) == *(char *)(*piVar3 + iVar2)) &&
+				(*(char *)(*piVar3 + iVar2) != '\0')) {
+				vars[local_8 + iVar2 + 0x19] = bVar1 + 32;
+			}
+			iVar2 += 1;
+		} while (iVar2 < 8);
+		local_4 = local_4 + 1;
+		local_8 += 10;
+		piVar3 = piVar3 + 1;
+	} while (local_8 < 0x50);
+	return;
+}
+
+Freeboards *othelloSub02(byte *param_1)
 
 {
 	byte *pbVar1;
@@ -701,19 +735,19 @@ Freeboards *othelloSub1(byte *param_1)
 	int iVar5;
 
 	pFVar2 = othelloCalloc2();
-	piVar4 = &pFVar2->field_0x7c;
+	piVar4 = &pFVar2->i124;
 	iVar3 = 0;
 	do {
 		iVar5 = 0;
 		do {
 			pbVar1 = param_1 + iVar3 + iVar5 + 0x19;
-			if (*pbVar1 == DAT_0044da40) {
+			if (*pbVar1 == g_globals._b816[0]) {
 				*(undefined *)(*piVar4 + iVar5) = 0;
 			}
-			if (*pbVar1 == DAT_0044da41) {
+			if (*pbVar1 == g_globals._b816[1]) {
 				*(undefined *)(*piVar4 + iVar5) = 1;
 			}
-			if (*pbVar1 == DAT_0044da42) {
+			if (*pbVar1 == g_globals._b816[2]) {
 				*(undefined *)(*piVar4 + iVar5) = 2;
 			}
 			iVar5 += 1;
@@ -724,43 +758,38 @@ Freeboards *othelloSub1(byte *param_1)
 	return pFVar2;
 }
 
-
-
-void *__cdecl othelloSub4(Freeboards **param_1)
+void *othelloSub03(Freeboards **param_1)
 
 {
-	*param_1 = calloc_holder_PTR_0044d710;
-	calloc_holder_PTR_0044d710 = (Freeboards *)param_1;
+	*param_1 = g_globals._callocHolder;
+	g_globals._callocHolder = (Freeboards *)param_1;
 	return param_1;
 }
 
-
-/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
-
-int othelloSub8(int param_1, int param_2)
+int othelloSub04(int param_1, int param_2)
 
 {
 	undefined *puVar1;
 	char *pcVar2;
 	char cVar3;
 	int iVar4;
-	char ***pppcVar5;
+	char **ppcVar5;
 	Freeboards *pFVar6;
 	int iVar7;
-	char **ppcVar8;
+	char *pcVar8;
 	undefined *puVar9;
 	undefined uVar10;
 	int iVar11;
 	int iVar12;
 	undefined *puVar13;
-	char **ppcVar14;
+	char *pcVar14;
 	bool bVar15;
 
-	iVar11 = (_DAT_00464e64 == 0) + 1;
-	bVar15 = _DAT_00464e64 == 0;
+	iVar11 = (g_globals2._b0 == 0) + 1;
+	bVar15 = g_globals2._b0 == 0;
 	pFVar6 = othelloCalloc2();
 	iVar12 = 2 - (uint)bVar15;
-	puVar13 = (undefined *)pFVar6->field_0x7c;
+	puVar13 = (undefined *)pFVar6->i124;
 	puVar1 = puVar13 + 0x40;
 	puVar9 = *(undefined **)(param_1 + 0x7c);
 	for (; puVar13 < puVar1; puVar13 = puVar13 + 1) {
@@ -768,40 +797,36 @@ int othelloSub8(int param_1, int param_2)
 		puVar9 = puVar9 + 1;
 		*puVar13 = uVar10;
 	}
-	iVar4 = pFVar6->field_0x7c;
-	pppcVar5 = (&PTR_00464e70)[param_2];
+	iVar4 = pFVar6->i124;
+	ppcVar5 = *(char ***)(g_globals2._b16 + param_2 * 4 + -4);
 	uVar10 = (undefined)iVar11;
-	ppcVar14 = *pppcVar5;
-	while (ppcVar14 != (char **)0x0) {
-		ppcVar14 = *pppcVar5;
-		iVar7 = (int)*(char *)(*(char *)ppcVar14 + iVar4);
-		ppcVar8 = ppcVar14;
+	pcVar14 = *ppcVar5;
+	while (pcVar14 != (char *)0x0) {
+		pcVar14 = *ppcVar5;
+		iVar7 = (int)*(char *)(*pcVar14 + iVar4);
+		pcVar8 = pcVar14;
 		if (iVar12 == iVar7) {
 			do {
-				pcVar2 = (char *)((int)ppcVar8 + 1);
-				ppcVar8 = (char **)((int)ppcVar8 + 1);
+				pcVar2 = pcVar8 + 1;
+				pcVar8 = pcVar8 + 1;
 			} while (*(char *)(*pcVar2 + iVar4) == iVar12);
-			if (*(char *)(*(char *)ppcVar8 + iVar4) == iVar11) {
+			if (*(char *)(*pcVar8 + iVar4) == iVar11) {
 				while (iVar12 == iVar7) {
-					cVar3 = *(char *)ppcVar14;
-					ppcVar14 = (char **)((int)ppcVar14 + 1);
+					cVar3 = *pcVar14;
+					pcVar14 = pcVar14 + 1;
 					*(undefined *)(cVar3 + iVar4) = uVar10;
-					iVar7 = (int)*(char *)(*(char *)ppcVar14 + iVar4);
+					iVar7 = (int)*(char *)(*pcVar14 + iVar4);
 				}
 			}
 		}
-		pppcVar5 = pppcVar5 + 1;
-		ppcVar14 = *pppcVar5;
+		ppcVar5 = ppcVar5 + 1;
+		pcVar14 = *ppcVar5;
 	}
 	*(undefined *)(param_2 + iVar4) = uVar10;
 	return (int)pFVar6;
 }
 
-
-
-/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
-
-void __cdecl othelloSub5(int param_1, int param_2)
+void othelloSub05(int param_1, int param_2)
 
 {
 	int *piVar1;
@@ -826,7 +851,7 @@ void __cdecl othelloSub5(int param_1, int param_2)
 				do {
 					iVar2 = *(int *)(param_1 + (iVar8 + iVar6) * 4);
 					iVar3 = *(int *)(*piVar7 + 0x78);
-					if (_DAT_00464e64 == 0) {
+					if (g_globals2._b0 == 0) {
 						bVar4 = true;
 						if (iVar3 <= *(int *)(iVar2 + 0x78))
 							goto LAB_00412193;
@@ -853,10 +878,7 @@ void __cdecl othelloSub5(int param_1, int param_2)
 	} while (true);
 }
 
-
-/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
-
-int __cdecl othelloSub7(int *param_1)
+int othelloSub06(int *param_1)
 
 {
 	int iVar1;
@@ -873,11 +895,11 @@ int __cdecl othelloSub7(int *param_1)
 	char ****local_4;
 
 	iVar9 = 0;
-	bVar10 = _DAT_00464e64 == 0;
+	bVar10 = g_globals2._b0 == 0;
 	local_c = 0;
 	iVar1 = param_1[0x1f];
-	local_4 = &PTR_00464e70;
-	cVar6 = '\x02' - (_DAT_00464e64 == 0);
+	local_4 = &g_globals2._p12;
+	cVar6 = '\x02' - (g_globals2._b0 == 0);
 	piVar7 = param_1;
 	do {
 		piVar8 = piVar7;
@@ -895,11 +917,10 @@ int __cdecl othelloSub7(int *param_1)
 				} while (*(char *)(*(char *)ppcVar5 + iVar1) == cVar6);
 			} while (*(char *)(*(char *)ppcVar5 + iVar1) != (char)(bVar10 + '\x01'));
 			piVar8 = piVar7 + 1;
-			iVar2 = othelloSub8((int)param_1, iVar9);
+			iVar2 = othelloSub04((int)param_1, iVar9);
 			local_c += 1;
 			*piVar7 = iVar2;
-			//uVar3 = (*(code *)kOthelloFuncPointer)(iVar2);
-			uVar3 = kOthelloFuncPointer(iVar2);
+			uVar3 = g_globals2._funcPointer4(iVar2);
 			*(undefined4 *)(iVar2 + 0x78) = uVar3;
 		}
 	LAB_00412467:
@@ -907,18 +928,14 @@ int __cdecl othelloSub7(int *param_1)
 		iVar9 += 1;
 		piVar7 = piVar8;
 		if (0x3f < iVar9) {
-			othelloSub5((int)param_1, local_c);
+			othelloSub05((int)param_1, local_c);
 			param_1[local_c] = 0;
 			return local_c;
 		}
 	} while (true);
 }
 
-
-
-/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
-
-int __cdecl othelloSub3(int *param_1, int param_2, int param_3, int param_4)
+int othelloSub07(int *param_1, int param_2, int param_3, int param_4)
 
 {
 	Freeboards *pFVar1;
@@ -931,31 +948,31 @@ int __cdecl othelloSub3(int *param_1, int param_2, int param_3, int param_4)
 	int local_8;
 	Freeboards **local_4;
 
-	local_c = othelloSub7(param_1);
+	local_c = othelloSub06(param_1);
 	if (local_c == 0) {
-		_DAT_00464e64 = (uint)(_DAT_00464e64 == 0);
-		local_c = othelloSub7(param_1);
+		*(uint *)g_globals2._b0 = (uint)(g_globals2._b0 == 0);
+		local_c = othelloSub06(param_1);
 		if (local_c == 0) {
 			iVar4 = othelloFuncPointee2((int)param_1);
 			return iVar4;
 		}
 	}
 	iVar4 = param_2 + -1;
-	local_8 = (-(uint)(_DAT_00464e64 == 0) & 200) - 100;
-	uVar2 = (uint)(_DAT_00464e64 == 0);
+	local_8 = (-(uint)(g_globals2._b0 == 0) & 200) - 100;
+	uVar2 = (uint)(g_globals2._b0 == 0);
 	iVar6 = 0;
 	if (0 < local_c) {
 		local_4 = (Freeboards **)param_1;
 		do {
 			pFVar1 = *local_4;
-			_DAT_00464e64 = uVar2;
+			*(uint *)g_globals2._b0 = uVar2;
 			if (iVar4 == 0) {
-				iVar5 = *(int *)((int)pFVar1->field_0x0 + 0x78);
+				iVar5 = *(int *)((int)pFVar1->u0 + 0x78);
 			} else {
 				if (uVar2 == 0) {
-					iVar5 = othelloSub3((int *)pFVar1, iVar4, local_8, param_4);
+					iVar5 = othelloSub07((int *)pFVar1, iVar4, local_8, param_4);
 				} else {
-					iVar5 = othelloSub3((int *)pFVar1, iVar4, param_3, local_8);
+					iVar5 = othelloSub07((int *)pFVar1, iVar4, param_3, local_8);
 				}
 			}
 			if (local_8 < iVar5 != uVar2) {
@@ -973,24 +990,20 @@ int __cdecl othelloSub3(int *param_1, int param_2, int param_3, int param_4)
 				local_8 = iVar5;
 				if (bVar3) {
 					for (; iVar6 < local_c; iVar6 += 1) {
-						othelloSub4((Freeboards **)param_1[iVar6]);
+						othelloSub03((Freeboards **)param_1[iVar6]);
 					}
 					return iVar5;
 				}
 			}
 			iVar6 += 1;
-			othelloSub4((Freeboards **)pFVar1);
+			othelloSub03((Freeboards **)pFVar1);
 			local_4 = local_4 + 1;
 		} while (iVar6 < local_c);
 	}
 	return local_8;
 }
 
-
-
-/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
-
-undefined4 __cdecl othelloSub2(Freeboards **param_1)
+undefined4 othelloSub08(Freeboards **param_1)
 
 {
 	char *pcVar1;
@@ -1006,19 +1019,19 @@ undefined4 __cdecl othelloSub2(Freeboards **param_1)
 
 	local_4 = -0x65;
 	iVar7 = -100;
-	if (DAT_0044d720 == '\0') {
-		_DAT_00464e64 = 1;
+	if (g_globals._u4[12] == 0) {
+		*(uint *)g_globals2._b0 = 1;
 	}
-	iVar3 = othelloSub7((int *)*param_1);
+	iVar3 = othelloSub06((int *)*param_1);
 	if (iVar3 == 0) {
 		return 0;
 	}
 	iVar8 = 0;
 	if (0 < iVar3) {
 		do {
-			_DAT_00464e64 = (uint)(_DAT_00464e64 == 0);
-			iVar4 = othelloSub3(*(int **)((*param_1)->field_0x0 + iVar8 * 4),
-								*(int *)(BYTE_ARRAY_0044d728 + DAT_0044d820 * 4), iVar7, 100);
+			*(uint *)g_globals2._b0 = (uint)(g_globals2._b0 == 0);
+			iVar4 = othelloSub07(*(int **)((*param_1)->u0 + iVar8 * 4),
+								 *(int *)(g_globals._b24 + g_globals._u272[0] * 4), iVar7, 100);
 			if (local_4 < iVar4) {
 				iVar7 = iVar4;
 				local_8 = iVar8;
@@ -1027,8 +1040,8 @@ undefined4 __cdecl othelloSub2(Freeboards **param_1)
 			iVar8 += 1;
 		} while (iVar8 < iVar3);
 	}
-	iVar7 = (*param_1)->field_0x7c + -1;
-	pcVar5 = (char *)(*(int *)(*(int *)((*param_1)->field_0x0 + local_8 * 4) + 0x7c) + -1);
+	iVar7 = (*param_1)->i124 + -1;
+	pcVar5 = (char *)(*(int *)(*(int *)((*param_1)->u0 + local_8 * 4) + 0x7c) + -1);
 	do {
 		do {
 			pcVar5 = pcVar5 + 1;
@@ -1040,31 +1053,29 @@ undefined4 __cdecl othelloSub2(Freeboards **param_1)
 	if (0 < iVar3) {
 		do {
 			if (local_8 != iVar7) {
-				othelloSub4((Freeboards **)*(Freeboards **)((*param_1)->field_0x0 + iVar7 * 4));
+				othelloSub03((Freeboards **)*(Freeboards **)((*param_1)->u0 + iVar7 * 4));
 			}
 			iVar7 += 1;
 		} while (iVar7 < iVar3);
 	}
-	pFVar2 = *(Freeboards **)((*param_1)->field_0x0 + local_8 * 4);
-	pvVar6 = othelloSub4((Freeboards **)*param_1);
+	pFVar2 = *(Freeboards **)((*param_1)->u0 + local_8 * 4);
+	pvVar6 = othelloSub03((Freeboards **)*param_1);
 	*param_1 = pFVar2;
-	if (DAT_0044d720 == '\0') {
-		DAT_0044d820 += 1;
+	if (g_globals._u4[12] == 0) {
+		g_globals._u272[0] += 1;
 	}
-	//return CONCAT31((int3)((uint)pvVar6 >> 8), 1);
 	return CONCAT31((uint)pvVar6 >> 8, 1);
 }
 
-
 /* WARNING: Could not reconcile some variable overlaps */
 
-void othelloSub6(void)
+void othelloSub09(void)
 
 {
 	int iVar1;
-	char **ppcVar2;
-	char ***pppcVar3;
-	char **ppcVar4;
+	char *pcVar2;
+	char **ppcVar3;
+	char *pcVar4;
 	int iVar5;
 	int iVar6;
 	int iVar7;
@@ -1073,13 +1084,13 @@ void othelloSub6(void)
 	int local_c;
 	int local_4;
 
-	pppcVar3 = (char ***)_calloc(0x1e4, 4);
-	if (pppcVar3 == (char ***)0x0) {
-		error("error_FUN_0040b560(s_Othello_couldn't_alloc_pointers_0044dcd4,1);");
+	ppcVar3 = (char **)_calloc(0x1e4, 4);
+	if (ppcVar3 == (char **)0x0) {
+		error("error_FUN_0040b560(g_globals._string1476, 1);");
 	}
-	ppcVar4 = (char **)_calloc(0x7e0, 1);
-	if (ppcVar4 == (char **)0x0) {
-		error("error_FUN_0040b560(s_Othello_couldn't_alloc_bytes_0044dcb4,1);");
+	pcVar4 = (char *)_calloc(0x7e0, 1);
+	if (pcVar4 == (char *)0x0) {
+		error("error_FUN_0040b560(g_globals._string1444, 1);");
 	}
 	local_4 = 0;
 	local_10 = '\0';
@@ -1088,32 +1099,32 @@ void othelloSub6(void)
 		local_18 = 0;
 		do {
 			iVar5 = -1;
-			(&PTR_00464e70)[local_c + local_18] = pppcVar3;
+			*(char ***)(g_globals2._b16 + (local_c + local_18) * 4 + -4) = ppcVar3;
 			do {
 				iVar6 = -1;
 				do {
 					if ((iVar5 != 0) || (iVar6 != 0)) {
-						*pppcVar3 = ppcVar4;
+						*ppcVar3 = pcVar4;
 						iVar1 = local_4 + iVar5;
-						ppcVar2 = ppcVar4;
+						pcVar2 = pcVar4;
 						for (iVar7 = local_18 + iVar6;
 							 (((-1 < iVar1 && (iVar1 < 8)) && (-1 < iVar7)) && (iVar7 < 8)); iVar7 += iVar6) {
-							*(char *)ppcVar2 = (char)iVar7 + (char)iVar1 * '\b';
+							*pcVar2 = (char)iVar7 + (char)iVar1 * '\b';
 							iVar1 = iVar1 + iVar5;
-							ppcVar2 = (char **)((int)ppcVar2 + 1);
+							pcVar2 = pcVar2 + 1;
 						}
-						if ((local_4 + iVar5 != iVar1) || (ppcVar4 = ppcVar2, local_18 + iVar6 != iVar7)) {
-							ppcVar4 = (char **)((int)ppcVar2 + 1);
-							pppcVar3 = pppcVar3 + 1;
-							*(char *)ppcVar2 = local_10 + (char)local_18;
+						if ((local_4 + iVar5 != iVar1) || (pcVar4 = pcVar2, local_18 + iVar6 != iVar7)) {
+							pcVar4 = pcVar2 + 1;
+							ppcVar3 = ppcVar3 + 1;
+							*pcVar2 = local_10 + (char)local_18;
 						}
 					}
 					iVar6 += 1;
 				} while (iVar6 < 2);
 				iVar5 += 1;
 			} while (iVar5 < 2);
-			*pppcVar3 = (char **)0x0;
-			pppcVar3 = pppcVar3 + 1;
+			*ppcVar3 = (char *)0x0;
+			ppcVar3 = ppcVar3 + 1;
 			local_18 += 1;
 		} while (local_18 < 8);
 		local_c += 8;
@@ -1123,69 +1134,65 @@ void othelloSub6(void)
 	return;
 }
 
-/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
-
-uint othelloSub9(int **param_1, char param_2, char param_3)
+uint othelloSub10(Freeboards **freeboards, char param_2, char var2)
 
 {
-	Freeboards *pFVar1;
-	uint uVar2;
-	void *pvVar3;
-	int *piVar4;
+	uint uVar1;
+	void *pvVar2;
+	Freeboards *pFVar3;
+	int iVar4;
 	int iVar5;
-	int iVar6;
+	uint uVar6;
 	uint uVar7;
-	uint uVar8;
 
-	_DAT_00464e64 = 0;
-	uVar2 = othelloSub7(*param_1);
-	if (uVar2 == 0) {
+	*(uint *)g_globals2._b0 = 0;
+	uVar1 = othelloSub06((int *)*freeboards);
+	if (uVar1 == 0) {
 		return 0;
 	}
-	uVar8 = uVar2 & 0xffffff00;
+	uVar7 = uVar1 & 0xffffff00;
 	if (param_2 == '*') {
-		DAT_0044d720 = 1;
-		pvVar3 = (void *)othelloSub2((Freeboards **)param_1);
-		DAT_0044d720 = 0;
+		g_globals._u4[12] = 1;
+		pvVar2 = (void *)othelloSub08(freeboards);
+		g_globals._u4[12] = 0;
 	LAB_004126bb:
-		DAT_0044d820 += 1;
-		//return CONCAT31((int3)((uint)pvVar3 >> 8), 1);
-		return CONCAT31((uint)pvVar3 >> 8, 1);
+		g_globals._u272[0] += 1;
+		return CONCAT31((uint)pvVar2 >> 8, 1);
 	}
-	iVar5 = (int)param_3;
-	iVar6 = (int)param_2;
-	if ((((-1 < iVar5) && (iVar5 < 8)) && (-1 < iVar6)) && (iVar6 < 8)) {
-		piVar4 = *param_1;
-		uVar8 = piVar4[iVar5 + 0x1f];
-		if (*(char *)(uVar8 + iVar6) == '\0') {
-			uVar8 = 0;
-			while (uVar7 = *(uint *)(*piVar4 + 0x7c + iVar5 * 4), *(char *)(uVar7 + iVar6) == '\0') {
-				piVar4 = piVar4 + 1;
-				uVar8 += 1;
-				if (uVar8 == uVar2) {
-					return uVar7 & 0xffffff00;
+	iVar4 = (int)var2;
+	iVar5 = (int)param_2;
+	if ((((-1 < iVar4) && (iVar4 < 8)) && (-1 < iVar5)) && (iVar5 < 8)) {
+		pFVar3 = *freeboards;
+		uVar7 = *(uint *)(pFVar3->u128 + iVar4 * 4 + -4);
+		if (*(char *)(uVar7 + iVar5) == '\0') {
+			uVar7 = 0;
+			while (uVar6 = *(uint *)(*(int *)pFVar3->u0 + 0x7c + iVar4 * 4),
+				   *(char *)(uVar6 + iVar5) == '\0') {
+				pFVar3 = (Freeboards *)(pFVar3->u0 + 4);
+				uVar7 += 1;
+				if (uVar7 == uVar1) {
+					return uVar6 & 0xffffff00;
 				}
 			}
-			uVar7 = 0;
-			if (0 < (int)uVar2) {
+			uVar6 = 0;
+			if (0 < (int)uVar1) {
 				do {
-					if (uVar8 != uVar7) {
-						othelloSub4((Freeboards **)(*param_1)[uVar7]);
+					if (uVar7 != uVar6) {
+						othelloSub03((Freeboards **)*(Freeboards **)((*freeboards)->u0 + uVar6 * 4));
 					}
-					uVar7 += 1;
-				} while ((int)uVar7 < (int)uVar2);
+					uVar6 += 1;
+				} while ((int)uVar6 < (int)uVar1);
 			}
-			pFVar1 = (Freeboards *)(*param_1)[uVar8];
-			pvVar3 = othelloSub4((Freeboards **)*param_1);
-			*param_1 = (int *)pFVar1;
+			pFVar3 = *(Freeboards **)((*freeboards)->u0 + uVar7 * 4);
+			pvVar2 = othelloSub03((Freeboards **)*freeboards);
+			*freeboards = pFVar3;
 			goto LAB_004126bb;
 		}
 	}
-	return uVar8 & 0xffffff00;
+	return uVar7 & 0xffffff00;
 }
 
-
-uint __cdecl othelloSub10(int param_1)
+uint othelloSub11(int param_1)
 
 {
 	char cVar1;
@@ -1205,131 +1212,128 @@ uint __cdecl othelloSub10(int param_1)
 		cVar3 += -1;
 	} while (cVar3 != '\0');
 	if (local_4[2] < local_4[1]) {
-		//return CONCAT31((int3)(((uint)pcVar2 & 0xffffff00) >> 8), 1);
 		return CONCAT31(((uint)pcVar2 & 0xffffff00) >> 8, 1);
 	}
 	return (uint)pcVar2 & 0xffffff00 | (uint)(byte)((local_4[2] <= local_4[1]) + 2);
 }
 
-
-/* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
-
-void othelloRun(byte *param_1)
+void othelloRun(byte *vars)
 
 {
 	undefined4 uVar1;
 	uint uVar2;
 	int iVar3;
 	Freeboards *pFVar4;
-	AStruct *piVar4x;
+	undefined4 *piVar4x;
 
-	switch (param_1[1]) {
+	if (!g_globalsInited)
+		initGlobals();
+
+	switch (vars[1]) {
 	case 0:
-		*param_1 = 0;
-		kOthelloFuncPointer = othelloFuncPointee1;
-		othelloSub6();
-		if (calloc_holder_PTR_0044d710 != (Freeboards *)0x0) {
-			calloc_holder_PTR_0044d710 = (Freeboards *)0x0;
-			calloc_count_DAT_0044d818 = 0x40;
+		*vars = 0;
+		g_globals2._funcPointer4 = othelloFuncPointee1;
+		othelloSub09();
+		if (g_globals._callocHolder != (Freeboards *)0x0) {
+			g_globals._callocHolder = (Freeboards *)0x0;
+			g_globals._callocCount = 0x40;
 		}
 		othelloCalloc1();
-		DAT_00464f70 = othelloInit2();
-		DAT_00464e6c = othelloCalloc2();
-		DAT_0044d820 = 0;
-		othelloInit1((AStruct *)0x0, (AStruct *)DAT_00464f70, (AStruct1 *)param_1);
-		param_1[4] = 1;
+		g_globals2._freeboards268 = othelloInit();
+		g_globals2._i8 = (int)othelloCalloc2();
+		g_globals._u272[0] = 0;
+		othelloSub01((AStruct *)0x0, g_globals2._freeboards268, vars);
+		vars[4] = 1;
 		return;
 	case 1:
-		DAT_0044da44 = 1;
+		g_globals._b816[4] = 1;
 		return;
 	case 2:
-		pFVar4 = DAT_00464f70;
-		piVar4x = (AStruct *)DAT_00464e6c;
+		pFVar4 = g_globals2._freeboards268;
+		piVar4x = (undefined4 *)g_globals2._i8;
 		for (iVar3 = 0x27; iVar3 != 0; iVar3 += -1) {
-			piVar4x->field_0x0[0] = *(int *)pFVar4->field_0x0;
-			pFVar4 = (Freeboards *)(pFVar4->field_0x0 + 4);
-			piVar4x = (AStruct *)(piVar4x->field_0x0 + 1);
+			*piVar4x = *(undefined4 *)pFVar4->u0;
+			pFVar4 = (Freeboards *)(pFVar4->u0 + 4);
+			piVar4x = piVar4x + 1;
 		}
-		if (DAT_0044d820 < 0x3c) {
-			if (_DAT_0044d834 < DAT_0044d820) {
-				kOthelloFuncPointer = othelloFuncPointee2;
-				_DAT_0044d828 = DAT_0044d82c;
+		if (g_globals._u272[0] < 0x3c) {
+			if (g_globals._u272[5] < g_globals._u272[0]) {
+				g_globals2._funcPointer4 = othelloFuncPointee2;
+				g_globals._u272[2] = g_globals._u272[3];
 			}
-			DAT_0044da44 = '\0';
-			uVar1 = othelloSub9((int **)&DAT_00464f70, param_1[3], param_1[2]);
-			param_1[4] = (byte)uVar1;
+			g_globals._b816[4] = 0;
+			uVar1 = othelloSub10(&g_globals2._freeboards268, vars[3], vars[2]);
+			vars[4] = (byte)uVar1;
 		} else {
-			uVar2 = othelloSub10((int)DAT_00464f70);
-			*param_1 = (byte)uVar2;
-			param_1[4] = 1;
+			uVar2 = othelloSub11((int)g_globals2._freeboards268);
+			*vars = (byte)uVar2;
+			vars[4] = 1;
 		}
-		othelloInit1((AStruct *)DAT_00464e6c, (AStruct *)DAT_00464f70, (AStruct1 *)param_1);
+		othelloSub01((AStruct *)g_globals2._i8, g_globals2._freeboards268, vars);
 		return;
 	case 3:
-		pFVar4 = DAT_00464f70;
-		piVar4x = (AStruct *)DAT_00464e6c;
+		pFVar4 = g_globals2._freeboards268;
+		piVar4x = (undefined4 *)g_globals2._i8;
 		for (iVar3 = 0x27; iVar3 != 0; iVar3 += -1) {
-			piVar4x->field_0x0[0] = *(int *)pFVar4->field_0x0;
-			pFVar4 = (Freeboards *)(pFVar4->field_0x0 + 4);
-			piVar4x = (AStruct *)(piVar4x->field_0x0 + 1);
+			*piVar4x = *(undefined4 *)pFVar4->u0;
+			pFVar4 = (Freeboards *)(pFVar4->u0 + 4);
+			piVar4x = piVar4x + 1;
 		}
-		if (DAT_0044d820 < 0x3c) {
-			if (_DAT_0044d834 < DAT_0044d820) {
-				kOthelloFuncPointer = othelloFuncPointee2;
-				_DAT_0044d828 = DAT_0044d82c;
+		if (g_globals._u272[0] < 0x3c) {
+			if (g_globals._u272[5] < g_globals._u272[0]) {
+				g_globals2._funcPointer4 = othelloFuncPointee2;
+				g_globals._u272[2] = g_globals._u272[3];
 			}
-			param_1[3] = 0x2a;
-			uVar1 = othelloSub9((int **)&DAT_00464f70, '*', param_1[2]);
-			param_1[4] = (byte)uVar1;
+			vars[3] = 0x2a;
+			uVar1 = othelloSub10(&g_globals2._freeboards268, 42, vars[2]);
+			vars[4] = (byte)uVar1;
 			if ((byte)uVar1 == 0) {
-				DAT_0044da44 = '\x01';
+				g_globals._b816[4] = 1;
 			} else {
-				DAT_0044da44 = '\0';
+				g_globals._b816[4] = 0;
 			}
 		} else {
-			uVar2 = othelloSub10((int)DAT_00464f70);
-			*param_1 = (byte)uVar2;
-			param_1[4] = 1;
+			uVar2 = othelloSub11((int)g_globals2._freeboards268);
+			*vars = (byte)uVar2;
+			vars[4] = 1;
 		}
-		othelloInit1((AStruct *)DAT_00464e6c, (AStruct *)DAT_00464f70, (AStruct1 *)param_1);
+		othelloSub01((AStruct *)g_globals2._i8, g_globals2._freeboards268, vars);
 		return;
 	case 4:
-		pFVar4 = DAT_00464f70;
-		piVar4x = (AStruct *)DAT_00464e6c;
+		pFVar4 = g_globals2._freeboards268;
+		piVar4x = (undefined4 *)g_globals2._i8;
 		for (iVar3 = 0x27; iVar3 != 0; iVar3 += -1) {
-			piVar4x->field_0x0[0] = *(int *)pFVar4->field_0x0;
-			pFVar4 = (Freeboards *)(pFVar4->field_0x0 + 4);
-			piVar4x = (AStruct *)(piVar4x->field_0x0 + 1);
+			*piVar4x = *(undefined4 *)pFVar4->u0;
+			pFVar4 = (Freeboards *)(pFVar4->u0 + 4);
+			piVar4x = piVar4x + 1;
 		}
-		if (DAT_0044d820 < 0x3c) {
-			if (_DAT_0044d834 < DAT_0044d820) {
-				kOthelloFuncPointer = othelloFuncPointee2;
-				_DAT_0044d828 = DAT_0044d82c;
+		if (g_globals._u272[0] < 0x3c) {
+			if (g_globals._u272[5] < g_globals._u272[0]) {
+				g_globals2._funcPointer4 = othelloFuncPointee2;
+				g_globals._u272[2] = g_globals._u272[3];
 			}
-			uVar1 = othelloSub2(&DAT_00464f70);
-			param_1[4] = (byte)uVar1;
-			if (((byte)uVar1 == 0) && (DAT_0044da44 != '\0')) {
-				uVar2 = othelloSub10((int)DAT_00464f70);
-				*param_1 = (byte)uVar2;
+			uVar1 = othelloSub08(&g_globals2._freeboards268);
+			vars[4] = (byte)uVar1;
+			if (((byte)uVar1 == 0) && (g_globals._b816[4] != 0)) {
+				uVar2 = othelloSub11((int)g_globals2._freeboards268);
+				*vars = (byte)uVar2;
 			}
 		} else {
-			uVar2 = othelloSub10((int)DAT_00464f70);
-			*param_1 = (byte)uVar2;
-			param_1[4] = 0;
+			uVar2 = othelloSub11((int)g_globals2._freeboards268);
+			*vars = (byte)uVar2;
+			vars[4] = 0;
 		}
-		othelloInit1((AStruct *)DAT_00464e6c, (AStruct *)DAT_00464f70, (AStruct1 *)param_1);
+		othelloSub01((AStruct *)g_globals2._i8, g_globals2._freeboards268, vars);
 		return;
 	case 5:
-		DAT_0044d820 = (int)(char)param_1[2];
-		DAT_00464f70 = othelloSub1(param_1);
-		othelloSub6();
-		othelloSub7((int *)DAT_00464f70);
-		param_1[4] = 1;
+		g_globals._u272[0] = (int)(char)vars[2];
+		g_globals2._freeboards268 = othelloSub02(vars);
+		othelloSub09();
+		othelloSub06((int *)g_globals2._freeboards268);
+		vars[4] = 1;
 	}
 	return;
 }
-
-
 
 OthelloGame::OthelloGame() : _random("OthelloGame") {
 }
