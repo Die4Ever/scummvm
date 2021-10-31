@@ -203,66 +203,34 @@ int othelloFuncPointee1(int param_1)
 	local_18 = (int)pcVar4[0x28];
 	cVar2 = pcVar4[2];
 
-	uint p0x44da58 = (uint)&g_globals._b816[24];
-	int t = 0;
-	t += *(int *)(g_globals._b816 +
-				  (*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(g_globals._b816
-																				   [local_48 +
-																					0x18] +
-																			   p0x44da58 + (int)pcVar4[0x39]) +
-																	 p0x44da58 +
-																	 (int)pcVar4[0x3a]) +
-														   p0x44da58 + (int)pcVar4[0x3b]) +
-												 p0x44da58 + (int)pcVar4[0x3c]) +
-									   p0x44da58 +
-									   (int)pcVar4[0x3d]) +
-							 p0x44da58 + (int)pcVar4[0x3e]) +
-				   local_44) *
-					  4 +
-				  0x88);
-	t += *(int *)(g_globals._b816 +
-				  (*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(g_globals._b816
-																				   [local_58[3] +
-																					0x18] +
-																			   p0x44da58 + (int)pcVar4[0xf]) +
-																	 p0x44da58 +
-																	 (int)pcVar4[0x17]) +
-														   p0x44da58 + (int)pcVar4[0x1f]) +
-												 p0x44da58 + (int)pcVar4[0x27]) +
-									   p0x44da58 +
-									   (int)pcVar4[0x2f]) +
-							 p0x44da58 + (int)pcVar4[0x37]) +
-				   local_44) *
-					  4 +
-				  0x88);
-	t += *(int *)(g_globals._b816 +
-				  (*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(pcVar4[8] +
-																			   p0x44da58 +
-																			   (int)g_globals._b816[iVar5 +
-																									0x18]) +
-																	 p0x44da58 + (int)pcVar4[0x10]) +
-														   p0x44da58 + (int)pcVar4[0x18]) +
-												 p0x44da58 +
-												 (int)pcVar4[0x20]) +
-									   p0x44da58 + (int)pcVar4[0x28]) +
-							 p0x44da58 + (int)pcVar4[0x30]) +
-				   local_48) *
-					  4 +
-				  0x88);
-	t += *(int *)(g_globals._b816 +
-				  (*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(cVar1 +
-																			   p0x44da58 + (int)g_globals._b816[iVar5 + 0x18]) +
-																	 p0x44da58 + (int)pcVar4[2]) +
-														   p0x44da58 +
-														   (int)pcVar4[3]) +
-												 p0x44da58 + (int)pcVar4[4]) +
-									   p0x44da58 + (int)pcVar4[5]) +
-							 p0x44da58 + (int)pcVar4[6]) +
-				   local_58[3]) *
-					  4 +
-				  0x88);
-	local_58[1] = t;
-				  
+	char *p0x44da58 = &g_globals._b816[24];
+	local_58[1] = 0;
+	char *ptr = &g_globals._b816[local_48 + 0x18];
+	for (int i = 0x39; i <= 0x3e; i++) {
+		ptr = p0x44da58 + *ptr + pcVar4[i];
+	}
+	int t1 = *(int *)(g_globals._b816 + *ptr * 4 + 0x88);
+
+	ptr = &g_globals._b816[local_58[3] + 0x18];
+	for (int i = 0xf; i <= 0x37; i += 8) {
+		ptr = p0x44da58 + *ptr + pcVar4[i];
+	}
+	int t2 = *(int *)(g_globals._b816 + *ptr * 4 + 0x88);
+
+	ptr = &g_globals._b816[iVar5 + 0x18];
+	for (int i = 8; i <= 0x30; i += 8) {
+		ptr = p0x44da58 + *ptr + pcVar4[i];
+	}
+	int t3 = *(int *)(g_globals._b816 + *ptr * 4 + 0x88);
+
+	ptr = &g_globals._b816[iVar5 + 0x18];
+	for (int i = 1; i <= 7; i++) {
+		ptr = p0x44da58 + *ptr + pcVar4[i];
+	}
+	int t4 = *(int *)(g_globals._b816 + *ptr * 4 + 0x88);
+
+	local_58[1] = t1 + t2 + t3 + t4;
+					  
 	local_58[iVar5] = local_58[iVar5] + 0x32;
 	cVar3 = pcVar4[3];
 	local_58[cVar1] = local_58[cVar1] + 4;
