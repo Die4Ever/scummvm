@@ -101,7 +101,7 @@ struct OthelloGlobals {
 	int _callocCount;
 	int _i268;
 	int _u272[136];
-	byte _b816[556];
+	char _b816[556];
 	char _string1372[34];
 	short _s1406;
 	char _string1408[34];
@@ -146,6 +146,7 @@ void initGlobals() {
 }
 
 // end of ghidra globals
+
 
 
 int othelloFuncPointee1(int param_1)
@@ -205,29 +206,31 @@ int othelloFuncPointee1(int param_1)
 	uint p0x44da58 = (uint)&g_globals._b816[24];
 	int t = 0;
 	t += *(int *)(g_globals._b816 +
-				  (*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(*(char *)((char)g_globals
-																				   ._b816[local_48 + 0x18] +
-																			   p0x44da58 +
-																			   (int)pcVar4[0x39]) +
-																	 p0x44da58 + (int)pcVar4[0x3a]) +
+				  (*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(g_globals._b816
+																				   [local_48 +
+																					0x18] +
+																			   p0x44da58 + (int)pcVar4[0x39]) +
+																	 p0x44da58 +
+																	 (int)pcVar4[0x3a]) +
 														   p0x44da58 + (int)pcVar4[0x3b]) +
-												 p0x44da58 +
-												 (int)pcVar4[0x3c]) +
-									   p0x44da58 + (int)pcVar4[0x3d]) +
+												 p0x44da58 + (int)pcVar4[0x3c]) +
+									   p0x44da58 +
+									   (int)pcVar4[0x3d]) +
 							 p0x44da58 + (int)pcVar4[0x3e]) +
 				   local_44) *
 					  4 +
 				  0x88);
 	t += *(int *)(g_globals._b816 +
-				  (*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(*(char *)((char)g_globals
-																				   ._b816[local_58[3] + 0x18] +
-																			   p0x44da58 +
-																			   (int)pcVar4[0xf]) +
-																	 p0x44da58 + (int)pcVar4[0x17]) +
+				  (*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(g_globals._b816
+																				   [local_58[3] +
+																					0x18] +
+																			   p0x44da58 + (int)pcVar4[0xf]) +
+																	 p0x44da58 +
+																	 (int)pcVar4[0x17]) +
 														   p0x44da58 + (int)pcVar4[0x1f]) +
-												 p0x44da58 +
-												 (int)pcVar4[0x27]) +
-									   p0x44da58 + (int)pcVar4[0x2f]) +
+												 p0x44da58 + (int)pcVar4[0x27]) +
+									   p0x44da58 +
+									   (int)pcVar4[0x2f]) +
 							 p0x44da58 + (int)pcVar4[0x37]) +
 				   local_44) *
 					  4 +
@@ -235,22 +238,20 @@ int othelloFuncPointee1(int param_1)
 	t += *(int *)(g_globals._b816 +
 				  (*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(pcVar4[8] +
 																			   p0x44da58 +
-																			   (int)(char)
-																				   g_globals._b816[iVar5 + 0x18]) +
-																	 p0x44da58 +
-																	 (int)pcVar4[0x10]) +
+																			   (int)g_globals._b816[iVar5 +
+																									0x18]) +
+																	 p0x44da58 + (int)pcVar4[0x10]) +
 														   p0x44da58 + (int)pcVar4[0x18]) +
-												 p0x44da58 + (int)pcVar4[0x20]) +
-									   p0x44da58 +
-									   (int)pcVar4[0x28]) +
+												 p0x44da58 +
+												 (int)pcVar4[0x20]) +
+									   p0x44da58 + (int)pcVar4[0x28]) +
 							 p0x44da58 + (int)pcVar4[0x30]) +
 				   local_48) *
 					  4 +
 				  0x88);
 	t += *(int *)(g_globals._b816 +
 				  (*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(*(char *)(cVar1 +
-																			   p0x44da58 +
-																			   (int)(char)g_globals._b816[iVar5 + 0x18]) +
+																			   p0x44da58 + (int)g_globals._b816[iVar5 + 0x18]) +
 																	 p0x44da58 + (int)pcVar4[2]) +
 														   p0x44da58 +
 														   (int)pcVar4[3]) +
@@ -260,9 +261,8 @@ int othelloFuncPointee1(int param_1)
 				   local_58[3]) *
 					  4 +
 				  0x88);
-
 	local_58[1] = t;
-
+				  
 	local_58[iVar5] = local_58[iVar5] + 0x32;
 	cVar3 = pcVar4[3];
 	local_58[cVar1] = local_58[cVar1] + 4;
@@ -278,58 +278,58 @@ int othelloFuncPointee1(int param_1)
 	local_58[cVar2] = local_58[cVar2] + 0x32;
 	cVar2 = pcVar4[9];
 	local_58[cVar1] = local_58[cVar1] + 4;
-	local_58[cVar2] = local_58[cVar2] - (int)(char)g_globals._b816[iVar5 + 8];
+	local_58[cVar2] = local_58[cVar2] - (int)g_globals._b816[iVar5 + 8];
 	cVar1 = pcVar4[0xb];
-	local_58[pcVar4[10]] = local_58[pcVar4[10]] - (int)(char)g_globals._b816[local_40 + 0xc];
-	local_58[cVar1] = local_58[cVar1] - (int)(char)g_globals._b816[local_3c + 0x10];
-	local_58[pcVar4[0xc]] = local_58[pcVar4[0xc]] - (int)(char)g_globals._b816[local_38 + 0x10];
-	local_58[pcVar4[0xd]] = local_58[pcVar4[0xd]] - (int)(char)g_globals._b816[local_34 + 0xc];
-	local_58[pcVar4[0xe]] = local_58[pcVar4[0xe]] - (int)(char)g_globals._b816[local_58[3] + 8];
+	local_58[pcVar4[10]] = local_58[pcVar4[10]] - (int)g_globals._b816[local_40 + 0xc];
+	local_58[cVar1] = local_58[cVar1] - (int)g_globals._b816[local_3c + 0x10];
+	local_58[pcVar4[0xc]] = local_58[pcVar4[0xc]] - (int)g_globals._b816[local_38 + 0x10];
+	local_58[pcVar4[0xd]] = local_58[pcVar4[0xd]] - (int)g_globals._b816[local_34 + 0xc];
+	local_58[pcVar4[0xe]] = local_58[pcVar4[0xe]] - (int)g_globals._b816[local_58[3] + 8];
 	cVar1 = pcVar4[0x10];
 	local_58[pcVar4[0xf]] = local_58[pcVar4[0xf]] + 4;
 	cVar2 = pcVar4[0x11];
 	local_58[cVar1] = local_58[cVar1] + 0x10;
-	local_58[cVar2] = local_58[cVar2] - (int)(char)g_globals._b816[local_30 + 0xc];
+	local_58[cVar2] = local_58[cVar2] - (int)g_globals._b816[local_30 + 0xc];
 	cVar1 = pcVar4[0x15];
 	local_58[pcVar4[0x12]] = local_58[pcVar4[0x12]] + 1;
 	cVar2 = pcVar4[0x16];
 	local_58[cVar1] = local_58[cVar1] + 1;
-	local_58[cVar2] = local_58[cVar2] - (int)(char)g_globals._b816[local_2c + 0xc];
+	local_58[cVar2] = local_58[cVar2] - (int)g_globals._b816[local_2c + 0xc];
 	cVar1 = pcVar4[0x18];
 	local_58[pcVar4[0x17]] = local_58[pcVar4[0x17]] + 0x10;
 	cVar2 = pcVar4[0x19];
 	cVar3 = pcVar4[0x1e];
 	local_58[cVar1] = local_58[cVar1] + 0xc;
-	local_58[cVar2] = local_58[cVar2] - (int)(char)g_globals._b816[local_28 + 0x10];
+	local_58[cVar2] = local_58[cVar2] - (int)g_globals._b816[local_28 + 0x10];
 	cVar1 = pcVar4[0x1f];
-	local_58[cVar3] = local_58[cVar3] - (int)(char)g_globals._b816[local_24 + 0x10];
+	local_58[cVar3] = local_58[cVar3] - (int)g_globals._b816[local_24 + 0x10];
 	local_58[cVar1] = local_58[cVar1] + 0xc;
 	cVar1 = pcVar4[0x21];
 	local_58[pcVar4[0x20]] = local_58[pcVar4[0x20]] + 0xc;
 	cVar2 = pcVar4[0x26];
-	local_58[cVar1] = local_58[cVar1] - (int)(char)g_globals._b816[local_20 + 0x10];
-	local_58[cVar2] = local_58[cVar2] - (int)(char)g_globals._b816[local_1c + 0x10];
+	local_58[cVar1] = local_58[cVar1] - (int)g_globals._b816[local_20 + 0x10];
+	local_58[cVar2] = local_58[cVar2] - (int)g_globals._b816[local_1c + 0x10];
 	cVar1 = pcVar4[0x28];
 	local_58[pcVar4[0x27]] = local_58[pcVar4[0x27]] + 0xc;
 	cVar2 = pcVar4[0x29];
 	local_58[cVar1] = local_58[cVar1] + 0x10;
-	local_58[cVar2] = local_58[cVar2] - (int)(char)g_globals._b816[local_18 + 0xc];
+	local_58[cVar2] = local_58[cVar2] - (int)g_globals._b816[local_18 + 0xc];
 	cVar1 = pcVar4[0x2d];
 	local_58[pcVar4[0x2a]] = local_58[pcVar4[0x2a]] + 1;
 	local_58[cVar1] = local_58[cVar1] + 1;
-	local_58[pcVar4[0x2e]] = local_58[pcVar4[0x2e]] - (int)(char)g_globals._b816[local_14 + 0xc];
+	local_58[pcVar4[0x2e]] = local_58[pcVar4[0x2e]] - (int)g_globals._b816[local_14 + 0xc];
 	local_58[pcVar4[0x2f]] = local_58[pcVar4[0x2f]] + 0x10;
 	cVar1 = pcVar4[0x31];
 	local_58[pcVar4[0x30]] = local_58[pcVar4[0x30]] + 4;
-	local_58[cVar1] = local_58[cVar1] - (int)(char)g_globals._b816[local_48 + 8];
+	local_58[cVar1] = local_58[cVar1] - (int)g_globals._b816[local_48 + 8];
 	cVar1 = pcVar4[0x33];
-	local_58[pcVar4[0x32]] = local_58[pcVar4[0x32]] - (int)(char)g_globals._b816[local_10 + 0xc];
-	local_58[cVar1] = local_58[cVar1] - (int)(char)g_globals._b816[local_c + 0x10];
-	local_58[pcVar4[0x34]] = local_58[pcVar4[0x34]] - (int)(char)g_globals._b816[local_8 + 0x10];
+	local_58[pcVar4[0x32]] = local_58[pcVar4[0x32]] - (int)g_globals._b816[local_10 + 0xc];
+	local_58[cVar1] = local_58[cVar1] - (int)g_globals._b816[local_c + 0x10];
+	local_58[pcVar4[0x34]] = local_58[pcVar4[0x34]] - (int)g_globals._b816[local_8 + 0x10];
 	cVar1 = pcVar4[0x36];
-	local_58[pcVar4[0x35]] = local_58[pcVar4[0x35]] - (int)(char)g_globals._b816[local_4 + 0xc];
+	local_58[pcVar4[0x35]] = local_58[pcVar4[0x35]] - (int)g_globals._b816[local_4 + 0xc];
 	cVar2 = pcVar4[0x37];
-	local_58[cVar1] = local_58[cVar1] - (int)(char)g_globals._b816[local_44 + 8];
+	local_58[cVar1] = local_58[cVar1] - (int)g_globals._b816[local_44 + 8];
 	local_58[cVar2] = local_58[cVar2] + 4;
 	cVar1 = pcVar4[0x39];
 	local_58[pcVar4[0x38]] = local_58[pcVar4[0x38]] + 0x32;
@@ -348,6 +348,8 @@ int othelloFuncPointee1(int param_1)
 	local_58[cVar1] = local_58[cVar1] + 0x32;
 	return local_58[1] - local_58[2];
 }
+
+
 
 
 int othelloFuncPointee2(int param_1)
