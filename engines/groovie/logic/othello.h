@@ -43,6 +43,9 @@ public:
 	void run(byte *scriptVariables);
 
 private:
+	void test();
+	void testMatch(Common::Array<int> moves, bool playerWin);
+
 	Common::RandomSource _random;
 };
 
