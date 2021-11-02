@@ -588,7 +588,7 @@ void *othelloSub03(Freeboards **param_1) {
 	return param_1;
 }
 
-int othelloSub04(int param_1, int param_2) {
+int othelloSub04(Freeboards *freeboards, int param_2) {
 	byte *pbVar1;
 	char *pcVar2;
 	char cVar4;
@@ -607,7 +607,7 @@ int othelloSub04(int param_1, int param_2) {
 	bVar13 = g_globals2._i0 == 0;
 	pFVar6 = othelloCalloc2();
 	iVar10 = 2 - (uint)bVar13;
-	puVar9 = *(byte **)(param_1 + 0x7c);
+	puVar9 = freeboards->_boardstate124[0];
 
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
@@ -655,6 +655,8 @@ void othelloSub05(int param_1, int param_2) {
 	int *piVar7;
 	int iVar8;
 
+	Freeboards *f = (Freeboards *)param_1;
+
 	iVar6 = param_2 / 2;
 	do {
 		iVar5 = iVar6;
@@ -664,9 +666,9 @@ void othelloSub05(int param_1, int param_2) {
 		for (; iVar5 < param_2; iVar5 = iVar5 + 1) {
 			iVar8 = iVar5 - iVar6;
 			if (-1 < iVar8) {
-				piVar7 = (int *)(param_1 + iVar8 * 4);
+				piVar7 = (int *)&f->_p0[iVar8];
 				do {
-					iVar2 = *(int *)(param_1 + (iVar8 + iVar6) * 4);
+					iVar2 = *(int *)&f->_p0[iVar8 + iVar6];
 					iVar3 = *(int *)(*piVar7 + 0x78);
 					if (g_globals2._i0 == 0) {
 						bVar4 = true;
@@ -683,7 +685,7 @@ void othelloSub05(int param_1, int param_2) {
 					if (!bVar4)
 						break;
 					iVar2 = *piVar7;
-					piVar1 = (int *)(param_1 + (iVar8 + iVar6) * 4);
+					piVar1 = (int *)&f->_p0[iVar8 + iVar6];
 					*piVar7 = *piVar1;
 					piVar7 = piVar7 + -iVar6;
 					iVar8 -= iVar6;
@@ -695,15 +697,12 @@ void othelloSub05(int param_1, int param_2) {
 	} while (true);
 }
 
-int othelloSub06(int *param_1) {
-	int iVar1;
+int othelloSub06(Freeboards *freeboards) {
 	int iVar2;
 	uint uVar3;
 	char ***pppcVar3;
-	char **ppcVar4;
+	char *ppcVar4;
 	char cVar5;
-	int *piVar6;
-	int *piVar7;
 	int iVar8;
 	bool bVar9;
 	int local_c;
@@ -712,39 +711,34 @@ int othelloSub06(int *param_1) {
 	iVar8 = 0;
 	bVar9 = g_globals2._i0 == 0;
 	local_c = 0;
-	iVar1 = param_1[0x1f];
 	local_4 = &g_globals2._p12;
 	cVar5 = '\x02' - (g_globals2._i0 == 0);
-	piVar6 = param_1;
 	do {
-		piVar7 = piVar6;
-		if (*(char *)(iVar8 + iVar1) == '\0') {
+		if(freeboards->_boardstate124[iVar8 / 8][iVar8 % 8] == '\0') {
 			pppcVar3 = *local_4;
 			do {
 				do {
-					ppcVar4 = *pppcVar3;
+					ppcVar4 = (char *)*pppcVar3;
 					pppcVar3 = pppcVar3 + 1;
-					if (ppcVar4 == (char **)0x0)
+					if (ppcVar4 == 0x0)
 						goto LAB_00412467;
-				} while (*(char *)(*(char *)ppcVar4 + iVar1) != cVar5);
+				} while (freeboards->_boardstate124[*ppcVar4 / 8][*ppcVar4 % 8] != cVar5);
 				do {
-					ppcVar4 = (char **)((int)ppcVar4 + 1);
-				} while (*(char *)(*(char *)ppcVar4 + iVar1) == cVar5);
-			} while (*(char *)(*(char *)ppcVar4 + iVar1) != (char)(bVar9 + '\x01'));
-			piVar7 = piVar6 + 1;
-			iVar2 = othelloSub04((int)param_1, iVar8);
+					ppcVar4++;
+				} while (freeboards->_boardstate124[*ppcVar4 / 8][*ppcVar4 % 8] == cVar5);
+			} while (freeboards->_boardstate124[*ppcVar4 / 8][*ppcVar4 % 8] != bVar9 + 1);
+			iVar2 = othelloSub04(freeboards, iVar8);
+			((int *)freeboards->_p0)[local_c] = iVar2;
 			local_c += 1;
-			*piVar6 = iVar2;
 			uVar3 = g_globals2._funcPointer4(iVar2);
 			*(uint *)(iVar2 + 0x78) = uVar3;
 		}
 	LAB_00412467:
 		local_4 = local_4 + 1;
 		iVar8 += 1;
-		piVar6 = piVar7;
 		if (0x3f < iVar8) {
-			othelloSub05((int)param_1, local_c);
-			param_1[local_c] = 0;
+			othelloSub05((int)freeboards, local_c);
+			freeboards->_p0[local_c] = 0;
 			return local_c;
 		}
 	} while (true);
@@ -761,10 +755,10 @@ int othelloSub07AiRecurse(int *param_1, int depth, int parentScore, int opponent
 	int bestScore;
 	Freeboards **local_4;
 
-	local_c = othelloSub06(param_1);
+	local_c = othelloSub06((Freeboards *)param_1);
 	if (local_c == 0) {
 		g_globals2._i0 = (g_globals2._i0 == 0);
-		local_c = othelloSub06(param_1);
+		local_c = othelloSub06((Freeboards *)param_1);
 		if (local_c == 0) {
 			_depth = othelloFuncPointee2((int)param_1);
 			return _depth;
@@ -832,7 +826,7 @@ byte othelloSub08Ai(Freeboards **param_1) {
 	if (g_globals._u4[12] == 0) {
 		g_globals2._i0 = 1;
 	}
-	iVar3 = othelloSub06((int *)*param_1);
+	iVar3 = othelloSub06((Freeboards *)*param_1);
 	if (iVar3 == 0) {
 		return 0;
 	}
@@ -946,7 +940,7 @@ uint othelloSub10(Freeboards **freeboards, char param_2, char var2) {
 	uint uVar8;
 
 	g_globals2._i0 = 0;
-	uVar1 = othelloSub06((int *)*freeboards);
+	uVar1 = othelloSub06((Freeboards *)*freeboards);
 	if (uVar1 == 0) {
 		return 0;
 	}
@@ -1131,7 +1125,7 @@ void othelloRun(byte *vars) {
 		g_globals._u272[0] = (int)(char)vars[2];
 		g_globals2._freeboards268 = othelloSub02(vars);
 		othelloSub09Init();
-		othelloSub06((int *)g_globals2._freeboards268);
+		othelloSub06((Freeboards *)g_globals2._freeboards268);
 		vars[4] = 1;
 	}
 	return;
