@@ -121,8 +121,7 @@ struct OthelloGlobals2 {
 	int _i0;
 	int (*_funcPointer4)(Freeboards *);
 	Freeboards *_p8;
-	char ***_p12;
-	byte _b16[252];
+	char **_lines12[64];
 	struct Freeboards *_freeboards268;
 	byte _b272[12];
 };
@@ -556,21 +555,20 @@ void othelloSub01SetClickable(Freeboards *param_1, Freeboards *param_2, byte *va
 }
 
 Freeboards *othelloSub02(byte *param_1) {
-	byte *pbVar1;
 	Freeboards *pFVar2;
 
 	pFVar2 = othelloCalloc2();
 
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
-			pbVar1 = param_1 + xyToVar(x, y);
-			if (*pbVar1 == g_globals._b816[0]) {
+			byte b = param_1[xyToVar(x, y)];
+			if (b == g_globals._b816[0]) {
 				pFVar2->_boardstate124[x][y] = 0;
 			}
-			if (*pbVar1 == g_globals._b816[1]) {
+			if (b == g_globals._b816[1]) {
 				pFVar2->_boardstate124[x][y] = 1;
 			}
-			if (*pbVar1 == g_globals._b816[2]) {
+			if (b == g_globals._b816[2]) {
 				pFVar2->_boardstate124[x][y] = 2;
 			}
 		}
@@ -585,61 +583,61 @@ void *othelloSub03(Freeboards **param_1) {
 	return param_1;
 }
 
-Freeboards *othelloSub04(Freeboards *freeboards, int param_2) {
-	byte *pbVar1;
-	char *pcVar2;
-	char cVar4;
-	char **ppcVar5;
-	Freeboards *pFVar6;
-	int iVar7;
-	char *pcVar8;
-	byte *puVar9;
-	byte uVar10;
-	int iVar9;
-	int iVar10;
-	char *pcVar12;
-	bool bVar13;
+Freeboards *othelloSub04GetPossibleMove(Freeboards *freeboards, int moveSpot) {
+	// we make a new board with the piece placed and captures completed
+	byte *board;
+	char spacePos;
+	char **maybeLine;
+	Freeboards *newboard;
+	int piece;
+	char *_lineSpot;
+	byte _player;
+	int player;
+	int opponent;
+	char *lineSpot;
 
-	iVar9 = (g_globals2._i0 == 0) + 1;
-	bVar13 = g_globals2._i0 == 0;
-	pFVar6 = othelloCalloc2();
-	iVar10 = 2 - (uint)bVar13;
-	puVar9 = freeboards->_boardstate124[0];
+	player = (g_globals2._i0 == 0) + 1;
+	opponent = 2 - (uint)(g_globals2._i0 == 0);
 
+	// copy the board
+	newboard = othelloCalloc2();
+	board = freeboards->_boardstate124[0];
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
-			pFVar6->_boardstate124[x][y] = *puVar9;
-			puVar9++;
+			newboard->_boardstate124[x][y] = *board;
+			board++;
 		}
 	}
 
-	pbVar1 = &pFVar6->_boardstate124[0][0];
-	ppcVar5 = *(char ***)(g_globals2._b16 + param_2 * 4 + -4);
-	uVar10 = (byte)iVar9;
-	pcVar12 = *ppcVar5;
-	while (pcVar12 != (char *)0x0) {
-		pcVar12 = *ppcVar5;
-		iVar7 = (int)(char)pbVar1[*pcVar12];
-		pcVar8 = pcVar12;
-		if (iVar10 == iVar7) {
+	board = &newboard->_boardstate124[0][0];
+	//maybeLine = *(char ***)(g_globals2._b16 + moveSpot * 4 + -4);
+	maybeLine = g_globals2._lines12[moveSpot];
+	_player = (byte)player;
+	lineSpot = *maybeLine;
+	while (lineSpot != NULL) {
+		lineSpot = *maybeLine;
+		piece = board[*lineSpot];
+		_lineSpot = lineSpot;
+		if (opponent == piece) {
 			do {
-				pcVar2 = pcVar8 + 1;
-				pcVar8 = pcVar8 + 1;
-			} while ((char)pbVar1[*pcVar2] == iVar10);
-			if ((char)pbVar1[*pcVar8] == iVar9) {
-				while (iVar10 == iVar7) {
-					cVar4 = *pcVar12;
-					pcVar12 = pcVar12 + 1;
-					pbVar1[cVar4] = uVar10;
-					iVar7 = (int)(char)pbVar1[*pcVar12];
+				_lineSpot = _lineSpot + 1;
+			} while (board[*_lineSpot] == opponent);
+			if (board[*_lineSpot] == player) {
+				// apply the captures
+				while (opponent == piece) {
+					spacePos = *lineSpot;
+					lineSpot = lineSpot + 1;
+					board[spacePos] = _player;
+					piece = board[*lineSpot];
 				}
 			}
 		}
-		ppcVar5 = ppcVar5 + 1;
-		pcVar12 = *ppcVar5;
+		maybeLine = maybeLine + 1;
+		lineSpot = *maybeLine;
 	}
-	pbVar1[param_2] = uVar10;
-	return pFVar6;
+	// add the new piece
+	board[moveSpot] = _player;
+	return newboard;
 }
 
 void othelloSub05SortPossibleMoves(int param_1, int numPossibleMoves) {
@@ -695,18 +693,18 @@ void othelloSub05SortPossibleMoves(int param_1, int numPossibleMoves) {
 }
 
 int othelloSub06GetAllPossibleMoves(Freeboards *freeboards) {
-	char ***lineSpot;
+	char **lineSpot;
 	char *testSpot;
 	char opponent;
 	int moveSpot;
 	byte player;
 	int numPossibleMoves;
-	char ****line;
+	char ***line;
 
 	moveSpot = 0;
 	player = (g_globals2._i0 == 0) + 1;
 	numPossibleMoves = 0;
-	line = &g_globals2._p12;
+	line = &g_globals2._lines12[0];
 	opponent = '\x02' - (g_globals2._i0 == 0);
 	do {
 		if(freeboards->_boardstate124[moveSpot / 8][moveSpot % 8] == '\0') {
@@ -715,7 +713,7 @@ int othelloSub06GetAllPossibleMoves(Freeboards *freeboards) {
 			do {
 				do {
 					// skip all spots that aren't the opponent
-					testSpot = (char *)*lineSpot;
+					testSpot = *lineSpot;
 					lineSpot = lineSpot + 1;
 					if (testSpot == 0x0) // end of the null terminated line?
 						goto LAB_00412467;
@@ -728,7 +726,7 @@ int othelloSub06GetAllPossibleMoves(Freeboards *freeboards) {
 			} while (freeboards->_boardstate124[*testSpot / 8][*testSpot % 8] != player);
 			// so we found (empty space)(opponent+)(our own piece)
 			// add this to the list of possible moves
-			Freeboards *possibleMove = othelloSub04(freeboards, moveSpot);
+			Freeboards *possibleMove = othelloSub04GetPossibleMove(freeboards, moveSpot);
 			freeboards->_p0[numPossibleMoves] = possibleMove;
 			numPossibleMoves++;
 			possibleMove->_score120 = g_globals2._funcPointer4(possibleMove);
@@ -894,7 +892,7 @@ void othelloSub09Init(void) {
 		local_18 = 0;
 		do {
 			iVar5 = -1;
-			*(char ***)(g_globals2._b16 + (local_c + local_18) * 4 + -4) = ppcVar3;
+			g_globals2._lines12[(local_c + local_18)] = ppcVar3;
 			do {
 				iVar6 = -1;
 				do {
