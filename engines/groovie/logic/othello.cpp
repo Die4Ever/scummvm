@@ -97,11 +97,20 @@ typedef struct OthelloGlobals OthelloGlobals, *POthelloGlobals;
 
 struct OthelloGlobals {
 	struct Freeboards *_callocHolder;
-	byte _u4[20];
+	byte _u4[12];
+	byte _b16;
+	byte _u17[7];
 	int _b24[60];
 	int _callocCount;
 	int _i268;
-	int _u272[136];
+	int _counter272;
+	int _i276;
+	int _i280;
+	int _i284;
+	int _i288;
+	int _i292;
+	int _i296;
+	int _i300[129];
 	char _b816[556];
 	char _string1372[34];
 	short _s1406;
@@ -521,9 +530,9 @@ Freeboards *othelloInit(void) {
 		iVar3 += -1;
 	} while (iVar3 != 0);
 	// set the starting pieces, 1 is AI, 2 is player, 0 is empty
-	pfVar1->_boardstate124[4][4] = 2 - (g_globals._u272[6] == g_globals._i268);
+	pfVar1->_boardstate124[4][4] = 2 - (g_globals._i296 == g_globals._i268);
 	pfVar1->_boardstate124[3][3] = pfVar1->_boardstate124[4][4];
-	pfVar1->_boardstate124[4][3] = (g_globals._u272[6] == g_globals._i268) + 1;
+	pfVar1->_boardstate124[4][3] = (g_globals._i296 == g_globals._i268) + 1;
 	pfVar1->_boardstate124[3][4] = pfVar1->_boardstate124[4][3];
 	return pfVar1;
 }
@@ -821,7 +830,7 @@ byte othelloSub08Ai(Freeboards **param_1) {
 
 	bestScore = -0x65;
 	int parentScore = -100;
-	if (g_globals._u4[12] == 0) {
+	if (g_globals._b16 == 0) {
 		g_globals2._i0 = 1;
 	}
 	iVar3 = othelloSub06GetAllPossibleMoves((Freeboards *)*param_1);
@@ -832,7 +841,7 @@ byte othelloSub08Ai(Freeboards **param_1) {
 	if (0 < iVar3) {
 		do {
 			g_globals2._i0 = g_globals2._i0 == 0;
-			score = othelloSub07AiRecurse((int *)(*param_1)->_p0[move], g_globals._b24[g_globals._u272[0]], parentScore, 100);
+			score = othelloSub07AiRecurse((int *)(*param_1)->_p0[move], g_globals._b24[g_globals._counter272], parentScore, 100);
 			if (bestScore < score) {
 				parentScore = score;
 				bestMove = move;
@@ -862,15 +871,15 @@ byte othelloSub08Ai(Freeboards **param_1) {
 	pFVar2 = (Freeboards *)(*param_1)->_p0[bestMove];
 	othelloSub03((Freeboards **)*param_1);
 	*param_1 = pFVar2;
-	if (g_globals._u4[12] == 0) {
-		g_globals._u272[0] += 1;
+	if (g_globals._b16 == 0) {
+		g_globals._counter272 += 1;
 	}
 	return 1;
 }
 
 /* WARNING: Could not reconcile some variable overlaps */
 
-void othelloSub09Init(void) {
+void othelloSub09InitLines(void) {
 	int iVar1;
 	char *pcVar2;
 	char **ppcVar3;
@@ -927,7 +936,7 @@ void othelloSub09Init(void) {
 	return;
 }
 
-uint othelloSub10(Freeboards **freeboards, char param_2, char var2) {
+uint othelloSub10(Freeboards **freeboards, char x, char y) {
 	uint uVar1;
 	void *pvVar2;
 	byte *pbVar3;
@@ -943,17 +952,17 @@ uint othelloSub10(Freeboards **freeboards, char param_2, char var2) {
 		return 0;
 	}
 	pbVar3 = (byte *)(uVar1 & 0xffffff00);
-	if (param_2 == '*') {
-		g_globals._u4[12] = 1;
+	if (x == '*') {
+		g_globals._b16 = 1;
 		othelloSub08Ai(freeboards);
 		pvVar2 = 0;
-		g_globals._u4[12] = 0;
+		g_globals._b16 = 0;
 	LAB_004126bb:
-		g_globals._u272[0] += 1;
+		g_globals._counter272 += 1;
 		return 1;
 	}
-	iVar5 = (int)var2;
-	iVar6 = (int)param_2;
+	iVar5 = (int)y;
+	iVar6 = (int)x;
 	if ((((-1 < iVar5) && (iVar5 < 8)) && (-1 < iVar6)) && (iVar6 < 8)) {
 		pFVar4 = *freeboards;
 		pbVar3 = &pFVar4->_boardstate124[iVar5][0];
@@ -1017,7 +1026,7 @@ void othelloRun(byte *vars) {
 	case 0: // init/restart
 		*vars = 0;
 		g_globals2._funcPointer4 = othelloFuncPointee1;
-		othelloSub09Init();
+		othelloSub09InitLines();
 		if (g_globals._callocHolder != (Freeboards *)0x0) {
 			g_globals._callocHolder = (Freeboards *)0x0;
 			g_globals._callocCount = 0x40;
@@ -1025,7 +1034,7 @@ void othelloRun(byte *vars) {
 		othelloCalloc1();
 		g_globals2._freeboards268 = othelloInit();
 		g_globals2._p8 = othelloCalloc2();
-		g_globals._u272[0] = 0;
+		g_globals._counter272 = 0;
 		othelloSub01SetClickable(0x0, g_globals2._freeboards268, vars);
 		vars[4] = 1;
 		return;
@@ -1040,10 +1049,10 @@ void othelloRun(byte *vars) {
 			pFVar4 = (Freeboards *)(pFVar4->_p0 + 1);
 			piVar4x = piVar4x + 1;
 		}
-		if (g_globals._u272[0] < 0x3c) {
-			if (g_globals._u272[5] < g_globals._u272[0]) {
+		if (g_globals._counter272 < 0x3c) {
+			if (g_globals._i292 < g_globals._counter272) {
 				g_globals2._funcPointer4 = othelloFuncPointee2;
-				g_globals._u272[2] = g_globals._u272[3];
+				g_globals._i280 = g_globals._i284;
 			}
 			g_globals._b816[4] = 0;
 			byte x = vars[3];
@@ -1067,13 +1076,13 @@ void othelloRun(byte *vars) {
 			pFVar4 = (Freeboards *)(pFVar4->_p0 + 1);
 			piVar4x = piVar4x + 1;
 		}
-		if (g_globals._u272[0] < 0x3c) {
-			if (g_globals._u272[5] < g_globals._u272[0]) {
+		if (g_globals._counter272 < 0x3c) {
+			if (g_globals._i292 < g_globals._counter272) {
 				g_globals2._funcPointer4 = othelloFuncPointee2;
-				g_globals._u272[2] = g_globals._u272[3];
+				g_globals._i280 = g_globals._i284;
 			}
 			vars[3] = 0x2a;
-			uVar2 = othelloSub10(&g_globals2._freeboards268, 42, vars[2]);
+			uVar2 = othelloSub10(&g_globals2._freeboards268, '*', vars[2]);
 			vars[4] = (byte)uVar2;
 			if ((byte)uVar2 == 0) {
 				g_globals._b816[4] = 1;
@@ -1095,10 +1104,10 @@ void othelloRun(byte *vars) {
 			pFVar4 = (Freeboards *)(pFVar4->_p0 + 1);
 			piVar4x = piVar4x + 1;
 		}
-		if (g_globals._u272[0] < 0x3c) {
-			if (g_globals._u272[5] < g_globals._u272[0]) {
+		if (g_globals._counter272 < 0x3c) {
+			if (g_globals._i292 < g_globals._counter272) {
 				g_globals2._funcPointer4 = othelloFuncPointee2;
-				g_globals._u272[2] = g_globals._u272[3];
+				g_globals._i280 = g_globals._i284;
 			}
 			uVar1 = othelloSub08Ai(&g_globals2._freeboards268);
 			vars[4] = uVar1;
@@ -1114,9 +1123,9 @@ void othelloRun(byte *vars) {
 		othelloSub01SetClickable(g_globals2._p8, g_globals2._freeboards268, vars);
 		return;
 	case 5: // ???
-		g_globals._u272[0] = (int)(char)vars[2];
+		g_globals._counter272 = (int)(char)vars[2];
 		g_globals2._freeboards268 = othelloSub02(vars);
-		othelloSub09Init();
+		othelloSub09InitLines();
 		othelloSub06GetAllPossibleMoves((Freeboards *)g_globals2._freeboards268);
 		vars[4] = 1;
 	}
