@@ -59,55 +59,22 @@ void *_calloc(uint num, uint size) {
 
 // end of ghidra defaults
 
-#include "common/pack-start.h" // START STRUCT PACKING
-typedef struct AStruct AStruct, *PAStruct;
-
-struct AStruct {
-	int field_0x0[31];
-	int field_0x7c;
-};
-
-typedef struct AStruct1 AStruct1, *PAStruct1;
-
-struct AStruct1 {
-	char field_0x0;
-};
-
-typedef struct AStruct2 AStruct2, *PAStruct2;
-
-struct AStruct2 {
-	int field_0x0[32];
-};
-
-typedef struct Boardspace Boardspace, *PBoardspace;
-
-struct Boardspace {
-	byte _b0[64];
-};
-
-typedef struct Freeboards Freeboards, *PFreeboards;
-
 struct Freeboards {
 	Freeboards *_p0[30];
 	int _score120;
-	byte *_boardstate124[8];// 8x8, 0 is empty, 1 or 2 is player or ai?
+	byte _boardstate124[8][8];// 0 is empty, 1 or 2 is player or ai?
 };
-
-typedef struct OthelloGlobals OthelloGlobals, *POthelloGlobals;
 
 struct OthelloGlobals {
 	struct Freeboards *_callocHolder;
 	byte _b16;
-	int _b24[60];
+	int _depths24[60];
 	int _callocCount;
-	int _i268;
 	int _counter272;
-	int _i292;
-	int _i296;
-	char _b816[556];
+	int _i292;// this is 52, seems to be a marker of when to change the function pointerto an aleternate scoring algorithm for the late game
+	char _b816[136];
+	int _scoringInts[105];
 };
-
-typedef struct OthelloGlobals2 OthelloGlobals2, *POthelloGlobals2;
 
 struct OthelloGlobals2 {
 	int _i0;
@@ -117,8 +84,6 @@ struct OthelloGlobals2 {
 	struct Freeboards *_freeboards268;
 	byte _b272[12];
 };
-
-#include "common/pack-end.h" // END STRUCT PACKING
 
 bool g_globalsInited = false;
 OthelloGlobals g_globals;
@@ -132,11 +97,13 @@ void initGlobals() {
 	memset(&g_globals, 0, sizeof(g_globals));
 	g_globals._callocHolder = NULL;
 	int t_b24[60] = {1, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 7, 6, 5, 4, 3, 2, 1, 1};
-	memcpy(g_globals._b24, t_b24, sizeof(t_b24));
+	memcpy(g_globals._depths24, t_b24, sizeof(t_b24));
 	g_globals._callocCount = 64;
 	g_globals._i292 = 52;
-	int8 t_b816[556] = {21, 40, 31, 0, 0, 0, 0, 0, 30, 0, 0, 0, 4, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 3, 6, 9, 3, 15, 12, 18, 6, 0, 45, 6, 0, 3, 27, 12, 60, 15, 9, 18, 36, 21, 24, 27, 30, 24, 36, 33, 39, 27, 21, 3, 27, 21, 24, 69, 33, 18, 36, 30, 39, 78, 42, 45, 48, 51, 45, 57, 54, 60, 48, 42, 87, 48, 42, 45, 6, 54, 102, 57, 51, 60, 15, 63, 66, 69, 72, 66, 78, 75, 81, 69, 63, 24, 69, 63, 66, 69, 75, 39, 78, 72, 81, 78, 84, 87, 90, 93, 87, 99, 96, 102, 90, 84, 87, 90, 84, 87, 48, 96, 102, 99, 93, 102, 57, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -20, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, -20, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 20, 0, 0, 0, 20, 0, 0, 0, 20, 0, 0, 0, 20, 0, 0, 0, 20, 0, 0, 0, 20, 0, 0, 0, 20, 0, 0, 0, 20, 0, 0, 0, 20, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 20, 0, 0, 0, 20, 0, 0, 0, 40, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 20, 0, 0, 0, 20, 0, 0, 0, 40, 0, 0, 0, -20, -1, -1, -1, -20, -1, -1, -1, -20, -1, -1, -1, -20, -1, -1, -1, -20, -1, -1, -1, -20, -1, -1, -1, -20, -1, -1, -1, -20, -1, -1, -1, -20, -1, -1, -1, -20, -1, -1, -1, -40, -1, -1, -1, -20, -1, -1, -1, -20, -1, -1, -1, -20, -1, -1, -1, 0, 0, 0, 0, -20, -1, -1, -1, -40, -1, -1, -1, -20, -1, -1, -1, -20, -1, -1, -1, -20, -1, -1, -1, 0, 0, 0, 0, 40, 0, 0, 0, 40, 0, 0, 0, 40, 0, 0, 0, 40, 0, 0, 0, 40, 0, 0, 0, 40, 0, 0, 0, 40, 0, 0, 0, 40, 0, 0, 0, 40, 0, 0, 0, 40, 0, 0, 0, 20, 0, 0, 0, 40, 0, 0, 0, 40, 0, 0, 0, 40, 0, 0, 0, 40, 0, 0, 0, 40, 0, 0, 0, 20, 0, 0, 0, 40, 0, 0, 0, 40, 0, 0, 0, 40, 0, 0, 0, 40, 0, 0, 0, -40, -1, -1, -1, -40, -1, -1, -1, -40, -1, -1, -1, -40, -1, -1, -1, -40, -1, -1, -1, -40, -1, -1, -1, -40, -1, -1, -1, -40, -1, -1, -1, -40, -1, -1, -1, -40, -1, -1, -1, -40, -1, -1, -1, -40, -1, -1, -1, -40, -1, -1, -1, -40, -1, -1, -1, -20, -1, -1, -1, -40, -1, -1, -1, -40, -1, -1, -1, -40, -1, -1, -1, -40, -1, -1, -1, -40, -1, -1, -1, -20, -1, -1, -1};
+	int8 t_b816[] = {21, 40, 31, 0, 0, 0, 0, 0, 30, 0, 0, 0, 4, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 3, 6, 9, 3, 15, 12, 18, 6, 0, 45, 6, 0, 3, 27, 12, 60, 15, 9, 18, 36, 21, 24, 27, 30, 24, 36, 33, 39, 27, 21, 3, 27, 21, 24, 69, 33, 18, 36, 30, 39, 78, 42, 45, 48, 51, 45, 57, 54, 60, 48, 42, 87, 48, 42, 45, 6, 54, 102, 57, 51, 60, 15, 63, 66, 69, 72, 66, 78, 75, 81, 69, 63, 24, 69, 63, 66, 69, 75, 39, 78, 72, 81, 78, 84, 87, 90, 93, 87, 99, 96, 102, 90, 84, 87, 90, 84, 87, 48, 96, 102, 99, 93, 102, 57, 0, 0, 0, 0, 0, 0, 0};
 	memcpy(g_globals._b816, t_b816, sizeof(t_b816));
+	int t_scoringInts[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -20, 0, 0, 0, 20, 0, -20, 0, 0, 0, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 0, 20, 20, 20, 40, 20, 0, 20, 20, 20, 40, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -40, -20, -20, -20, 0, -20, -40, -20, -20, -20, 0, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 20, 40, 40, 40, 40, 40, 20, 40, 40, 40, 40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -20, -40, -40, -40, -40, -40, -20};
+	memcpy(g_globals._scoringInts, t_scoringInts, sizeof(t_scoringInts));
 	g_globalsInited = true;
 }
 
@@ -170,7 +137,7 @@ int othelloFuncPointee1(Freeboards *param_1) {
 	int local_4;
 
 	local_58[2] = 0;
-	byte *pcVar4 = param_1->_boardstate124[0];
+	byte *pcVar4 = &param_1->_boardstate124[0][0];
 	local_58[0] = 0;
 	local_48 = (int)pcVar4[0x38];
 	local_10 = (int)pcVar4[0x3a];
@@ -201,25 +168,25 @@ int othelloFuncPointee1(Freeboards *param_1) {
 	for (int i = 0x39; i <= 0x3e; i++) {
 		ptr = p0x44da58 + *ptr + pcVar4[i];
 	}
-	int t1 = *(int *)(g_globals._b816 + *ptr * 4 + 0x88);
+	int t1 = g_globals._scoringInts[*ptr];
 
 	ptr = &g_globals._b816[local_58[3] + 0x18];
 	for (int i = 0xf; i <= 0x37; i += 8) {
 		ptr = p0x44da58 + *ptr + pcVar4[i];
 	}
-	int t2 = *(int *)(g_globals._b816 + *ptr * 4 + 0x88);
+	int t2 = g_globals._scoringInts[*ptr];
 
 	ptr = &g_globals._b816[iVar5 + 0x18];
 	for (int i = 8; i <= 0x30; i += 8) {
 		ptr = p0x44da58 + *ptr + pcVar4[i];
 	}
-	int t3 = *(int *)(g_globals._b816 + *ptr * 4 + 0x88);
+	int t3 = g_globals._scoringInts[*ptr];
 
 	ptr = &g_globals._b816[iVar5 + 0x18];
 	for (int i = 1; i <= 7; i++) {
 		ptr = p0x44da58 + *ptr + pcVar4[i];
 	}
-	int t4 = *(int *)(g_globals._b816 + *ptr * 4 + 0x88);
+	int t4 = g_globals._scoringInts[*ptr];
 
 	local_58[1] = t1 + t2 + t3 + t4;
 
@@ -314,7 +281,7 @@ int othelloFuncPointee2(Freeboards *param_1) {
 	char cVar2;
 	int local_c[3];
 
-	byte *pcVar3 = param_1->_boardstate124[0];
+	byte *pcVar3 = &param_1->_boardstate124[0][0];
 	local_c[0] = 0;
 	local_c[1] = 0;
 	cVar1 = pcVar3[1];
@@ -446,15 +413,11 @@ int othelloFuncPointee2(Freeboards *param_1) {
 }
 
 void *othelloCalloc1(void) {
-	Boardspace *pvVar1;
-	int iVar1;
 	Freeboards *pFVar2;
-	int iVar3;
 	int iVar4;
 	int iVar5;
 
 	g_globals._callocHolder = (Freeboards *)_calloc(g_globals._callocCount, sizeof(Freeboards));
-	pvVar1 = (Boardspace *)_calloc(g_globals._callocCount, sizeof(Boardspace));
 	iVar5 = 0;
 	if (0 < g_globals._callocCount) {
 		iVar4 = 0;
@@ -464,14 +427,6 @@ void *othelloCalloc1(void) {
 				Freeboards *prev = &g_globals._callocHolder[iVar5 - 1];
 				prev->_p0[0] = node;
 			}
-			iVar1 = 8;
-			iVar3 = 0;
-			do {
-				node->_boardstate124[iVar3] = (byte *)pvVar1;
-				pvVar1 = (Boardspace *)((int)pvVar1 + 8);
-				iVar1 += -1;
-				iVar3++;
-			} while (iVar1 != 0);
 			iVar4 += 0x9c;
 			iVar5 += 1;
 		} while (iVar5 < g_globals._callocCount);
@@ -497,29 +452,14 @@ Freeboards *othelloCalloc2(void) {
 
 Freeboards *othelloInit(void) {
 	Freeboards *pfVar1;
-	int iVar1;
-	int iVar2;
-	int iVar3;
-	byte **ppbVar4;
 
 	pfVar1 = othelloCalloc2();
 	// clear the board
-	ppbVar4 = pfVar1->_boardstate124;
-	iVar3 = 8;
-	do {
-		iVar1 = 0;
-		do {
-			iVar2 = iVar1 + 1;
-			(*ppbVar4)[iVar1] = 0;
-			iVar1 = iVar2;
-		} while (iVar2 < 8);
-		ppbVar4 = ppbVar4 + 1;
-		iVar3 += -1;
-	} while (iVar3 != 0);
+	memset(pfVar1->_boardstate124, 0, sizeof(pfVar1->_boardstate124));
 	// set the starting pieces, 1 is AI, 2 is player, 0 is empty
-	pfVar1->_boardstate124[4][4] = 2 - (g_globals._i296 == g_globals._i268);
+	pfVar1->_boardstate124[4][4] = 1; // 2 - (g_globals._i296 == g_globals._i268);
 	pfVar1->_boardstate124[3][3] = pfVar1->_boardstate124[4][4];
-	pfVar1->_boardstate124[4][3] = (g_globals._i296 == g_globals._i268) + 1;
+	pfVar1->_boardstate124[4][3] = 2; // (g_globals._i296 == g_globals._i268) + 1;
 	pfVar1->_boardstate124[3][4] = pfVar1->_boardstate124[4][3];
 	return pfVar1;
 }
@@ -597,16 +537,9 @@ Freeboards *othelloSub04GetPossibleMove(Freeboards *freeboards, int moveSpot) {
 
 	// copy the board
 	newboard = othelloCalloc2();
-	board = freeboards->_boardstate124[0];
-	for (int x = 0; x < 8; x++) {
-		for (int y = 0; y < 8; y++) {
-			newboard->_boardstate124[x][y] = *board;
-			board++;
-		}
-	}
+	memcpy(newboard->_boardstate124, freeboards->_boardstate124, sizeof(newboard->_boardstate124));
 
 	board = &newboard->_boardstate124[0][0];
-	//maybeLine = *(char ***)(g_globals2._b16 + moveSpot * 4 + -4);
 	maybeLine = g_globals2._lines12[moveSpot];
 	_player = (byte)player;
 	lineSpot = *maybeLine;
@@ -828,7 +761,7 @@ byte othelloSub08Ai(Freeboards **param_1) {
 	if (0 < iVar3) {
 		do {
 			g_globals2._i0 = g_globals2._i0 == 0;
-			score = othelloSub07AiRecurse((int *)(*param_1)->_p0[move], g_globals._b24[g_globals._counter272], parentScore, 100);
+			score = othelloSub07AiRecurse((int *)(*param_1)->_p0[move], g_globals._depths24[g_globals._counter272], parentScore, 100);
 			if (bestScore < score) {
 				parentScore = score;
 				bestMove = move;
@@ -838,7 +771,7 @@ byte othelloSub08Ai(Freeboards **param_1) {
 		} while (move < iVar3);
 	}
 	pbVar6 = &(*param_1)->_boardstate124[0][0] - 1; // -1 because we increment it before using it
-	pbVar5 = (byte *)(*(int *)((int)(*param_1)->_p0[bestMove] + 0x7c) + -1);
+	pbVar5 = &(*param_1)->_p0[bestMove]->_boardstate124[0][0] - 1;
 	do {
 		do {
 			pbVar5 = pbVar5 + 1;
@@ -928,8 +861,6 @@ uint othelloSub10(Freeboards **freeboards, char x, char y) {
 	void *pvVar2;
 	byte *pbVar3;
 	Freeboards *pFVar4;
-	int iVar5;
-	int iVar6;
 	uint uVar7;
 	uint uVar8;
 
@@ -948,19 +879,17 @@ uint othelloSub10(Freeboards **freeboards, char x, char y) {
 		g_globals._counter272 += 1;
 		return 1;
 	}
-	iVar5 = (int)y;
-	iVar6 = (int)x;
-	if ((((-1 < iVar5) && (iVar5 < 8)) && (-1 < iVar6)) && (iVar6 < 8)) {
+
+	if ((((-1 < y) && (y < 8)) && (-1 < x)) && (x < 8)) {
 		pFVar4 = *freeboards;
-		pbVar3 = &pFVar4->_boardstate124[iVar5][0];
-		if (pbVar3[iVar6] == 0) {
+		pbVar3 = &pFVar4->_boardstate124[y][0];
+		if (pbVar3[x] == 0) {
 			uVar8 = 0;
-			while (uVar7 = *(uint *)((int)pFVar4->_p0[0] + iVar5 * 4 + 0x7c),
-				   *(char *)(uVar7 + iVar6) == '\0') {
+			while (pFVar4->_p0[0]->_boardstate124[y][x] == 0) {
 				pFVar4 = (Freeboards *)(pFVar4->_p0 + 1);
 				uVar8 += 1;
 				if (uVar8 == uVar1) {
-					return uVar7 & 0xffffff00;
+					return 0;
 				}
 			}
 			uVar7 = 0;
@@ -1118,6 +1047,7 @@ void othelloRun(byte *vars) {
 
 OthelloGame::OthelloGame() : _random("OthelloGame") {
 #if 1
+//#if 0
 	test();
 #endif
 }
