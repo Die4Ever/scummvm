@@ -31,34 +31,6 @@
 
 namespace Groovie {
 
-// Ghidra crap
-typedef uint16 ushort;
-
-uint CONCAT31(uint a, uint b) {
-	uint ret;
-	ret = (a << 8) & 0xffffff00;
-	ret |= b & 0xff;
-	return ret;
-}
-
-uint CONCAT22(uint a, uint b) {
-	uint ret;
-	ret = (a << 16) & 0xffff0000;
-	ret |= b & 0xffff;
-	return ret;
-}
-
-void *_calloc(uint num, uint size) {
-	void *p = malloc(num * size);
-	if (p == NULL) {
-		error("malloc failed");
-	}
-	memset(p, 0, num * size);
-	return p;
-}
-
-// end of ghidra defaults
-
 struct Freeboards {
 	Freeboards *_p0[30];
 	int _score120;
@@ -417,7 +389,7 @@ void *othelloCalloc1(void) {
 	int iVar4;
 	int iVar5;
 
-	g_globals._callocHolder = (Freeboards *)_calloc(g_globals._callocCount, sizeof(Freeboards));
+	g_globals._callocHolder = new Freeboards[g_globals._callocCount]();
 	iVar5 = 0;
 	if (0 < g_globals._callocCount) {
 		iVar4 = 0;
@@ -812,8 +784,8 @@ void othelloSub09InitLines(void) {
 	int local_c;
 	int local_4;
 
-	ppcVar3 = (char **)_calloc(0x1e4, 4);
-	pcVar4 = (char *)_calloc(0x7e0, 1);
+	ppcVar3 = new char *[484]();
+	pcVar4 = new char[0x7e0]();
 	local_4 = 0;
 	local_10 = '\0';
 	local_c = 0;
