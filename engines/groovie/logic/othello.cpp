@@ -35,6 +35,11 @@ struct Freeboards {
 	Freeboards *_p0[30];
 	int _score120;
 	byte _boardstate124[8][8];// 0 is empty, 1 or 2 is player or ai?
+
+	// for sorting an array of pointers
+	bool operator()(const Freeboards *a, const Freeboards *b) const {
+		return a->_score120 > b->_score120;
+	}
 };
 
 struct OthelloGlobals {
@@ -541,56 +546,11 @@ Freeboards *othelloSub04GetPossibleMove(Freeboards *freeboards, int moveSpot) {
 	return newboard;
 }
 
-void othelloSub05SortPossibleMoves(int param_1, int numPossibleMoves) {
-	int *piVar1;
-	int iVar2;
-	int iVar3;
-	bool bVar4;
-	int iVar5;
-	int iVar6;
-	int *piVar7;
-	int iVar8;
+void othelloSub05SortPossibleMoves(Freeboards *f, int numPossibleMoves) {
+	if (numPossibleMoves < 2)
+		return;
 
-	Freeboards *f = (Freeboards *)param_1;
-
-	iVar6 = numPossibleMoves / 2;
-	do {
-		iVar5 = iVar6;
-		if (iVar6 < 1) {
-			return;
-		}
-		for (; iVar5 < numPossibleMoves; iVar5 = iVar5 + 1) {
-			iVar8 = iVar5 - iVar6;
-			if (-1 < iVar8) {
-				piVar7 = (int *)&f->_p0[iVar8];
-				do {
-					iVar2 = *(int *)&f->_p0[iVar8 + iVar6];
-					iVar3 = *(int *)(*piVar7 + 0x78);
-					if (g_globals2._i0 == 0) {
-						bVar4 = true;
-						if (iVar3 <= *(int *)(iVar2 + 0x78))
-							goto LAB_00412193;
-					} else {
-						piVar1 = (int *)(iVar2 + 0x78);
-						bVar4 = true;
-						if (*piVar1 == iVar3 || *piVar1 < iVar3) {
-						LAB_00412193:
-							bVar4 = false;
-						}
-					}
-					if (!bVar4)
-						break;
-					iVar2 = *piVar7;
-					piVar1 = (int *)&f->_p0[iVar8 + iVar6];
-					*piVar7 = *piVar1;
-					piVar7 = piVar7 + -iVar6;
-					iVar8 -= iVar6;
-					*piVar1 = iVar2;
-				} while (-1 < iVar8);
-			}
-		}
-		iVar6 /= 2;
-	} while (true);
+	Common::sort(&f->_p0[0], &f->_p0[numPossibleMoves], *f);
 }
 
 int othelloSub06GetAllPossibleMoves(Freeboards *freeboards) {
@@ -637,7 +597,7 @@ int othelloSub06GetAllPossibleMoves(Freeboards *freeboards) {
 		moveSpot += 1;
 		if (0x3f < moveSpot) {
 			// null terminate the list
-			othelloSub05SortPossibleMoves((int)freeboards, numPossibleMoves);
+			othelloSub05SortPossibleMoves(freeboards, numPossibleMoves);
 			freeboards->_p0[numPossibleMoves] = 0;
 			return numPossibleMoves;
 		}
