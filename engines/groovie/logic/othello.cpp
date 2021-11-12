@@ -499,15 +499,10 @@ void *othelloSub03(Freeboards **param_1) {
 Freeboards *othelloSub04GetPossibleMove(Freeboards *freeboards, int moveSpot) {
 	// we make a new board with the piece placed and captures completed
 	byte *board;
-	char spacePos;
-	char **maybeLine;
+	char **line;
 	Freeboards *newboard;
-	int piece;
-	char *_lineSpot;
-	byte _player;
 	int player;
 	int opponent;
-	char *lineSpot;
 
 	player = (g_globals2._i0 == 0) + 1;
 	opponent = 2 - (uint)(g_globals2._i0 == 0);
@@ -517,32 +512,31 @@ Freeboards *othelloSub04GetPossibleMove(Freeboards *freeboards, int moveSpot) {
 	memcpy(newboard->_boardstate124, freeboards->_boardstate124, sizeof(newboard->_boardstate124));
 
 	board = &newboard->_boardstate124[0][0];
-	maybeLine = g_globals2._lines12[moveSpot];
-	_player = (byte)player;
-	lineSpot = *maybeLine;
-	while (lineSpot != NULL) {
-		lineSpot = *maybeLine;
-		piece = board[*lineSpot];
-		_lineSpot = lineSpot;
-		if (opponent == piece) {
-			do {
-				_lineSpot = _lineSpot + 1;
-			} while (board[*_lineSpot] == opponent);
-			if (board[*_lineSpot] == player) {
-				// apply the captures
-				while (opponent == piece) {
-					spacePos = *lineSpot;
-					lineSpot = lineSpot + 1;
-					board[spacePos] = _player;
-					piece = board[*lineSpot];
-				}
+	line = g_globals2._lines12[moveSpot];
+
+	// check every line until we hit the null-terminating pointer
+	for(line = g_globals2._lines12[moveSpot]; *line != NULL; line++) {
+		char *lineSpot = *line;
+		int piece = board[*lineSpot];
+		char *_lineSpot;
+		// we already know the current moveSpot is the player's piece
+		// if these 2 loops were a regex replacement, they would be something like s/(O+)P/(P+)P/
+		for (_lineSpot = lineSpot; piece == opponent; _lineSpot++) {
+			piece = board[*_lineSpot];
+		}
+		// if _lineSpot was advanced (meaning at least 1 opponent piece), and now we're at a player piece
+		if (_lineSpot != lineSpot && piece == player) {
+			// apply the captures
+			piece = board[*lineSpot];
+			while (piece == opponent) {
+				board[*lineSpot] = player;
+				lineSpot++;
+				piece = board[*lineSpot];
 			}
 		}
-		maybeLine = maybeLine + 1;
-		lineSpot = *maybeLine;
 	}
 	// add the new piece
-	board[moveSpot] = _player;
+	board[moveSpot] = player;
 	return newboard;
 }
 
@@ -606,7 +600,7 @@ int othelloSub06GetAllPossibleMoves(Freeboards *freeboards) {
 
 int othelloSub07AiRecurse(Freeboards *board, int depth, int parentScore, int opponentBestScore) {
 	Freeboards *pFVar1;
-	uint whoseTurn;
+	bool whoseTurn;
 	bool bVar3;
 	int _depth;
 	int score;
@@ -624,8 +618,8 @@ int othelloSub07AiRecurse(Freeboards *board, int depth, int parentScore, int opp
 		}
 	}
 	_depth = depth + -1;
-	bestScore = (-(uint)(g_globals2._i0 == 0) & 200) - 100;
-	whoseTurn = (uint)(g_globals2._i0 == 0);
+	whoseTurn = g_globals2._i0 == 0;
+	bestScore = whoseTurn ? 100 : -100;
 	iVar6 = 0;
 	if (0 < local_c) {
 		local_4 = &board->_p0[0];
@@ -635,24 +629,24 @@ int othelloSub07AiRecurse(Freeboards *board, int depth, int parentScore, int opp
 			if (_depth == 0) {
 				score = (int)pFVar1->_score120;
 			} else {
-				if (whoseTurn == 0) {
-					score = othelloSub07AiRecurse(pFVar1, _depth, bestScore, opponentBestScore);
-				} else {
+				if (whoseTurn) {
 					score = othelloSub07AiRecurse(pFVar1, _depth, parentScore, bestScore);
+				} else {
+					score = othelloSub07AiRecurse(pFVar1, _depth, bestScore, opponentBestScore);
 				}
 			}
 			if ((bestScore < score) != whoseTurn) {
-				if (whoseTurn == 0) {
-					bVar3 = true;
-					if (score < opponentBestScore)
-						goto LAB_0041207d;
-				} else {
+				if (whoseTurn) {
 					bVar3 = true;
 					if (parentScore < score) {
 					LAB_0041207d:
 						bVar3 = false;
 					}
-				}
+				} else {
+					bVar3 = true;
+					if (score < opponentBestScore)
+						goto LAB_0041207d;
+				} 
 				bestScore = score;
 				if (bVar3) {
 					for (; iVar6 < local_c; iVar6 += 1) {
@@ -677,7 +671,7 @@ byte othelloSub08Ai(Freeboards **param_1) {
 	byte *pbVar5;
 	byte *pbVar6;
 	int move;
-	int bestMove;
+	int bestMove = 0;
 	int bestScore;
 
 	bestScore = -0x65;
@@ -690,18 +684,16 @@ byte othelloSub08Ai(Freeboards **param_1) {
 		return 0;
 	}
 	move = 0;
-	if (0 < iVar3) {
-		do {
-			g_globals2._i0 = g_globals2._i0 == 0;
-			score = othelloSub07AiRecurse((*param_1)->_p0[move], g_globals._depths24[g_globals._counter272], parentScore, 100);
-			if (bestScore < score) {
-				parentScore = score;
-				bestMove = move;
-				bestScore = score;
-			}
-			move += 1;
-		} while (move < iVar3);
-	}
+	do {
+		g_globals2._i0 = g_globals2._i0 == 0;
+		score = othelloSub07AiRecurse((*param_1)->_p0[move], g_globals._depths24[g_globals._counter272], parentScore, 100);
+		if (bestScore < score) {
+			parentScore = score;
+			bestMove = move;
+			bestScore = score;
+		}
+		move += 1;
+	} while (move < iVar3);
 	pbVar6 = &(*param_1)->_boardstate124[0][0] - 1; // -1 because we increment it before using it
 	pbVar5 = &(*param_1)->_p0[bestMove]->_boardstate124[0][0] - 1;
 	do {
@@ -730,40 +722,43 @@ byte othelloSub08Ai(Freeboards **param_1) {
 }
 
 void othelloSub09InitLines(void) {
-	char *pcVar2;
-	char **ppcVar3;
-	char *pcVar4;
+	char **lines;
+	char *line;
 
-	ppcVar3 = new char *[484]();
-	pcVar4 = new char[0x7e0]();
+	// allocate an array of strings, the lines are null-terminated
+	lines = new char *[484]();
+	line = new char[0x7e0]();
 
 	for (int baseX = 0; baseX < 8; baseX++) {
 		for (int baseY = 0; baseY < 8; baseY++) {
-			g_globals2._lines12[(baseX * 8 + baseY)] = ppcVar3;
+			// assign the array of strings to the current spot
+			g_globals2._lines12[(baseX * 8 + baseY)] = lines;
 			for (int slopeX = -1; slopeX < 2; slopeX++) {
 				for (int slopeY = -1; slopeY < 2; slopeY++) {
+					// don't include current spot in its own line
 					if (slopeX == 0 && slopeY == 0)
 						continue;
 
-					*ppcVar3 = pcVar4;
+					// assign the current line to the current spot in the lines array
+					*lines = line;
 					int x = baseX + slopeX;
-					pcVar2 = pcVar4;
 					int y;
 					for (y = baseY + slopeY;
 						 (((-1 < x && (x < 8)) && (-1 < y)) && (y < 8)); y += slopeY) {
-						*pcVar2 = (char)y + (char)x * 8;
+						*line = (char)y + (char)x * 8;
+						line++;
 						x += slopeX;
-						pcVar2++;
 					}
-					if ((baseX + slopeX != x) || (pcVar4 = pcVar2, baseY + slopeY != y)) {
-						pcVar4 = pcVar2 + 1;
-						ppcVar3++;
-						*pcVar2 = baseX * 8 + baseY;
+					if ((baseX + slopeX != x) || (baseY + slopeY != y)) {
+						*line = baseX * 8 + baseY;
+						line++;
+						lines++;
 					}
 				}
 			}
-			*ppcVar3 = (char *)0x0;
-			ppcVar3++;
+			// append a 0 to the lines array to terminate that set of lines
+			*lines = (char *)0x0;
+			lines++;
 		}
 	}
 	return;
@@ -1020,7 +1015,7 @@ void OthelloGame::testMatch(Common::Array<int> moves, bool playerWin) {
 	op = 0;
 	run(vars);
 
-	for (int i = 0; i < moves.size(); i += 2) {
+	for (uint i = 0; i < moves.size(); i += 2) {
 		if (winner2 != 0)
 			error("early winner? %d, %d", (int)winner, (int)winner2);
 
