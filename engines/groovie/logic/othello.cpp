@@ -777,7 +777,7 @@ uint othelloSub10(Freeboards **freeboards, char x, char y) {
 	if (uVar1 == 0) {
 		return 0;
 	}
-	pbVar3 = (byte *)(uVar1 & 0xffffff00);
+	pbVar3 = 0;
 	if (x == '*') {
 		g_globals._b16 = 1;
 		othelloSub08Ai(freeboards);
@@ -815,7 +815,7 @@ uint othelloSub10(Freeboards **freeboards, char x, char y) {
 			goto LAB_004126bb;
 		}
 	}
-	return (uint)pbVar3 & 0xffffff00;
+	return 0;
 }
 
 byte othelloSub11GetLeader(Freeboards *f){
