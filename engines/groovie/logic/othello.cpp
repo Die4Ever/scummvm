@@ -55,7 +55,7 @@ struct OthelloGlobals {
 
 struct OthelloGlobals2 {
 	int _i0;
-	int (*_funcPointer4)(Freeboards *);
+	int (*_funcPointer4Score)(Freeboards *);
 	Freeboards *_p8;
 	char **_lines12[64];
 	struct Freeboards *_freeboards268;
@@ -88,7 +88,7 @@ void initGlobals() {
 
 
 
-int othelloFuncPointee1(Freeboards *param_1) {
+int othelloFuncPointee1Score(Freeboards *freeboard) {
 	char cVar1;
 	char cVar2;
 	char cVar3;
@@ -114,276 +114,276 @@ int othelloFuncPointee1(Freeboards *param_1) {
 	int local_4;
 
 	local_58[2] = 0;
-	byte *pcVar4 = &param_1->_boardstate124[0][0];
+	byte *board = &freeboard->_boardstate124[0][0];
 	local_58[0] = 0;
-	local_48 = (int)pcVar4[0x38];
-	local_10 = (int)pcVar4[0x3a];
-	local_c = (int)pcVar4[0x3b];
-	local_8 = (int)pcVar4[0x3c];
-	local_44 = (int)pcVar4[0x3f];
-	cVar1 = pcVar4[1];
-	local_4 = (int)pcVar4[0x3d];
-	iVar5 = (int)*pcVar4;
-	local_40 = (int)pcVar4[2];
-	local_3c = (int)pcVar4[3];
-	local_38 = (int)pcVar4[4];
-	local_34 = (int)pcVar4[5];
-	local_58[3] = (int)pcVar4[7];
-	local_2c = (int)pcVar4[0x17];
-	local_24 = (int)pcVar4[0x1f];
-	local_1c = (int)pcVar4[0x27];
-	local_14 = (int)pcVar4[0x2f];
-	local_30 = (int)pcVar4[0x10];
-	local_28 = (int)pcVar4[0x18];
-	local_20 = (int)pcVar4[0x20];
-	local_18 = (int)pcVar4[0x28];
-	cVar2 = pcVar4[2];
+	local_48 = (int)board[0x38];
+	local_10 = (int)board[0x3a];
+	local_c = (int)board[0x3b];
+	local_8 = (int)board[0x3c];
+	local_44 = (int)board[0x3f];
+	cVar1 = board[1];
+	local_4 = (int)board[0x3d];
+	iVar5 = (int)*board;
+	local_40 = (int)board[2];
+	local_3c = (int)board[3];
+	local_38 = (int)board[4];
+	local_34 = (int)board[5];
+	local_58[3] = (int)board[7];
+	local_2c = (int)board[0x17];
+	local_24 = (int)board[0x1f];
+	local_1c = (int)board[0x27];
+	local_14 = (int)board[0x2f];
+	local_30 = (int)board[0x10];
+	local_28 = (int)board[0x18];
+	local_20 = (int)board[0x20];
+	local_18 = (int)board[0x28];
+	cVar2 = board[2];
 
 	char *p0x44da58 = &g_globals._b816[24];
 	local_58[1] = 0;
 	char *ptr = &g_globals._b816[local_48 + 0x18];
 	for (int i = 0x39; i <= 0x3e; i++) {
-		ptr = p0x44da58 + *ptr + pcVar4[i];
+		ptr = p0x44da58 + *ptr + board[i];
 	}
 	int t1 = g_globals._scoringInts[*ptr];
 
 	ptr = &g_globals._b816[local_58[3] + 0x18];
 	for (int i = 0xf; i <= 0x37; i += 8) {
-		ptr = p0x44da58 + *ptr + pcVar4[i];
+		ptr = p0x44da58 + *ptr + board[i];
 	}
 	int t2 = g_globals._scoringInts[*ptr];
 
 	ptr = &g_globals._b816[iVar5 + 0x18];
 	for (int i = 8; i <= 0x30; i += 8) {
-		ptr = p0x44da58 + *ptr + pcVar4[i];
+		ptr = p0x44da58 + *ptr + board[i];
 	}
 	int t3 = g_globals._scoringInts[*ptr];
 
 	ptr = &g_globals._b816[iVar5 + 0x18];
 	for (int i = 1; i <= 7; i++) {
-		ptr = p0x44da58 + *ptr + pcVar4[i];
+		ptr = p0x44da58 + *ptr + board[i];
 	}
 	int t4 = g_globals._scoringInts[*ptr];
 
 	local_58[1] = t1 + t2 + t3 + t4;
 
 	local_58[iVar5] = local_58[iVar5] + 0x32;
-	cVar3 = pcVar4[3];
+	cVar3 = board[3];
 	local_58[cVar1] = local_58[cVar1] + 4;
 	local_58[cVar2] = local_58[cVar2] + 0x10;
-	cVar1 = pcVar4[4];
+	cVar1 = board[4];
 	local_58[cVar3] = local_58[cVar3] + 0xc;
 	local_58[cVar1] = local_58[cVar1] + 0xc;
-	cVar1 = pcVar4[6];
-	local_58[pcVar4[5]] = local_58[pcVar4[5]] + 0x10;
-	cVar2 = pcVar4[7];
+	cVar1 = board[6];
+	local_58[board[5]] = local_58[board[5]] + 0x10;
+	cVar2 = board[7];
 	local_58[cVar1] = local_58[cVar1] + 4;
-	cVar1 = pcVar4[8];
+	cVar1 = board[8];
 	local_58[cVar2] = local_58[cVar2] + 0x32;
-	cVar2 = pcVar4[9];
+	cVar2 = board[9];
 	local_58[cVar1] = local_58[cVar1] + 4;
 	local_58[cVar2] = local_58[cVar2] - (int)g_globals._b816[iVar5 + 8];
-	cVar1 = pcVar4[0xb];
-	local_58[pcVar4[10]] = local_58[pcVar4[10]] - (int)g_globals._b816[local_40 + 0xc];
+	cVar1 = board[0xb];
+	local_58[board[10]] = local_58[board[10]] - (int)g_globals._b816[local_40 + 0xc];
 	local_58[cVar1] = local_58[cVar1] - (int)g_globals._b816[local_3c + 0x10];
-	local_58[pcVar4[0xc]] = local_58[pcVar4[0xc]] - (int)g_globals._b816[local_38 + 0x10];
-	local_58[pcVar4[0xd]] = local_58[pcVar4[0xd]] - (int)g_globals._b816[local_34 + 0xc];
-	local_58[pcVar4[0xe]] = local_58[pcVar4[0xe]] - (int)g_globals._b816[local_58[3] + 8];
-	cVar1 = pcVar4[0x10];
-	local_58[pcVar4[0xf]] = local_58[pcVar4[0xf]] + 4;
-	cVar2 = pcVar4[0x11];
+	local_58[board[0xc]] = local_58[board[0xc]] - (int)g_globals._b816[local_38 + 0x10];
+	local_58[board[0xd]] = local_58[board[0xd]] - (int)g_globals._b816[local_34 + 0xc];
+	local_58[board[0xe]] = local_58[board[0xe]] - (int)g_globals._b816[local_58[3] + 8];
+	cVar1 = board[0x10];
+	local_58[board[0xf]] = local_58[board[0xf]] + 4;
+	cVar2 = board[0x11];
 	local_58[cVar1] = local_58[cVar1] + 0x10;
 	local_58[cVar2] = local_58[cVar2] - (int)g_globals._b816[local_30 + 0xc];
-	cVar1 = pcVar4[0x15];
-	local_58[pcVar4[0x12]] = local_58[pcVar4[0x12]] + 1;
-	cVar2 = pcVar4[0x16];
+	cVar1 = board[0x15];
+	local_58[board[0x12]] = local_58[board[0x12]] + 1;
+	cVar2 = board[0x16];
 	local_58[cVar1] = local_58[cVar1] + 1;
 	local_58[cVar2] = local_58[cVar2] - (int)g_globals._b816[local_2c + 0xc];
-	cVar1 = pcVar4[0x18];
-	local_58[pcVar4[0x17]] = local_58[pcVar4[0x17]] + 0x10;
-	cVar2 = pcVar4[0x19];
-	cVar3 = pcVar4[0x1e];
+	cVar1 = board[0x18];
+	local_58[board[0x17]] = local_58[board[0x17]] + 0x10;
+	cVar2 = board[0x19];
+	cVar3 = board[0x1e];
 	local_58[cVar1] = local_58[cVar1] + 0xc;
 	local_58[cVar2] = local_58[cVar2] - (int)g_globals._b816[local_28 + 0x10];
-	cVar1 = pcVar4[0x1f];
+	cVar1 = board[0x1f];
 	local_58[cVar3] = local_58[cVar3] - (int)g_globals._b816[local_24 + 0x10];
 	local_58[cVar1] = local_58[cVar1] + 0xc;
-	cVar1 = pcVar4[0x21];
-	local_58[pcVar4[0x20]] = local_58[pcVar4[0x20]] + 0xc;
-	cVar2 = pcVar4[0x26];
+	cVar1 = board[0x21];
+	local_58[board[0x20]] = local_58[board[0x20]] + 0xc;
+	cVar2 = board[0x26];
 	local_58[cVar1] = local_58[cVar1] - (int)g_globals._b816[local_20 + 0x10];
 	local_58[cVar2] = local_58[cVar2] - (int)g_globals._b816[local_1c + 0x10];
-	cVar1 = pcVar4[0x28];
-	local_58[pcVar4[0x27]] = local_58[pcVar4[0x27]] + 0xc;
-	cVar2 = pcVar4[0x29];
+	cVar1 = board[0x28];
+	local_58[board[0x27]] = local_58[board[0x27]] + 0xc;
+	cVar2 = board[0x29];
 	local_58[cVar1] = local_58[cVar1] + 0x10;
 	local_58[cVar2] = local_58[cVar2] - (int)g_globals._b816[local_18 + 0xc];
-	cVar1 = pcVar4[0x2d];
-	local_58[pcVar4[0x2a]] = local_58[pcVar4[0x2a]] + 1;
+	cVar1 = board[0x2d];
+	local_58[board[0x2a]] = local_58[board[0x2a]] + 1;
 	local_58[cVar1] = local_58[cVar1] + 1;
-	local_58[pcVar4[0x2e]] = local_58[pcVar4[0x2e]] - (int)g_globals._b816[local_14 + 0xc];
-	local_58[pcVar4[0x2f]] = local_58[pcVar4[0x2f]] + 0x10;
-	cVar1 = pcVar4[0x31];
-	local_58[pcVar4[0x30]] = local_58[pcVar4[0x30]] + 4;
+	local_58[board[0x2e]] = local_58[board[0x2e]] - (int)g_globals._b816[local_14 + 0xc];
+	local_58[board[0x2f]] = local_58[board[0x2f]] + 0x10;
+	cVar1 = board[0x31];
+	local_58[board[0x30]] = local_58[board[0x30]] + 4;
 	local_58[cVar1] = local_58[cVar1] - (int)g_globals._b816[local_48 + 8];
-	cVar1 = pcVar4[0x33];
-	local_58[pcVar4[0x32]] = local_58[pcVar4[0x32]] - (int)g_globals._b816[local_10 + 0xc];
+	cVar1 = board[0x33];
+	local_58[board[0x32]] = local_58[board[0x32]] - (int)g_globals._b816[local_10 + 0xc];
 	local_58[cVar1] = local_58[cVar1] - (int)g_globals._b816[local_c + 0x10];
-	local_58[pcVar4[0x34]] = local_58[pcVar4[0x34]] - (int)g_globals._b816[local_8 + 0x10];
-	cVar1 = pcVar4[0x36];
-	local_58[pcVar4[0x35]] = local_58[pcVar4[0x35]] - (int)g_globals._b816[local_4 + 0xc];
-	cVar2 = pcVar4[0x37];
+	local_58[board[0x34]] = local_58[board[0x34]] - (int)g_globals._b816[local_8 + 0x10];
+	cVar1 = board[0x36];
+	local_58[board[0x35]] = local_58[board[0x35]] - (int)g_globals._b816[local_4 + 0xc];
+	cVar2 = board[0x37];
 	local_58[cVar1] = local_58[cVar1] - (int)g_globals._b816[local_44 + 8];
 	local_58[cVar2] = local_58[cVar2] + 4;
-	cVar1 = pcVar4[0x39];
-	local_58[pcVar4[0x38]] = local_58[pcVar4[0x38]] + 0x32;
-	cVar2 = pcVar4[0x3a];
+	cVar1 = board[0x39];
+	local_58[board[0x38]] = local_58[board[0x38]] + 0x32;
+	cVar2 = board[0x3a];
 	local_58[cVar1] = local_58[cVar1] + 4;
-	cVar1 = pcVar4[0x3b];
+	cVar1 = board[0x3b];
 	local_58[cVar2] = local_58[cVar2] + 0x10;
-	cVar2 = pcVar4[0x3c];
+	cVar2 = board[0x3c];
 	local_58[cVar1] = local_58[cVar1] + 0xc;
-	cVar1 = pcVar4[0x3d];
+	cVar1 = board[0x3d];
 	local_58[cVar2] = local_58[cVar2] + 0xc;
-	cVar2 = pcVar4[0x3e];
+	cVar2 = board[0x3e];
 	local_58[cVar1] = local_58[cVar1] + 0x10;
-	cVar1 = pcVar4[0x3f];
+	cVar1 = board[0x3f];
 	local_58[cVar2] = local_58[cVar2] + 4;
 	local_58[cVar1] = local_58[cVar1] + 0x32;
 	return local_58[1] - local_58[2];
 }
 
-int othelloFuncPointee2(Freeboards *param_1) {
+int othelloFuncPointee2LateGameScore(Freeboards *freeboard) {
 	char cVar1;
 	char cVar2;
 	int local_c[3];
 
-	byte *pcVar3 = &param_1->_boardstate124[0][0];
+	byte *board = &freeboard->_boardstate124[0][0];
 	local_c[0] = 0;
 	local_c[1] = 0;
-	cVar1 = pcVar3[1];
+	cVar1 = board[1];
 	local_c[2] = 0;
-	local_c[*pcVar3] = local_c[*pcVar3] + 1;
-	cVar2 = pcVar3[2];
+	local_c[*board] = local_c[*board] + 1;
+	cVar2 = board[2];
 	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[3];
+	cVar1 = board[3];
 	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[4];
+	cVar2 = board[4];
 	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[5];
+	cVar1 = board[5];
 	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[6];
+	cVar2 = board[6];
 	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[7];
+	cVar1 = board[7];
 	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[8];
+	cVar2 = board[8];
 	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[9];
+	cVar1 = board[9];
 	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[10];
+	cVar2 = board[10];
 	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0xb];
+	cVar1 = board[0xb];
 	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[0xc];
+	cVar2 = board[0xc];
 	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0xd];
+	cVar1 = board[0xd];
 	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[0xe];
+	cVar2 = board[0xe];
 	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0xf];
+	cVar1 = board[0xf];
 	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[0x10];
+	cVar2 = board[0x10];
 	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x11];
-	local_c[cVar2] = local_c[cVar2] + 1;
-	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x13];
-	local_c[pcVar3[0x12]] = local_c[pcVar3[0x12]] + 1;
-	cVar2 = pcVar3[0x14];
-	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x15];
-	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[0x16];
-	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x17];
-	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[0x18];
-	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x19];
-	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[0x1a];
-	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x1b];
-	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[0x1c];
-	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x1d];
-	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[0x1e];
-	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x1f];
-	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[0x20];
-	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x21];
-	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[0x22];
-	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x23];
-	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[0x24];
-	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x25];
+	cVar1 = board[0x11];
 	local_c[cVar2] = local_c[cVar2] + 1;
 	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x27];
-	local_c[pcVar3[0x26]] = local_c[pcVar3[0x26]] + 1;
-	cVar2 = pcVar3[0x28];
+	cVar1 = board[0x13];
+	local_c[board[0x12]] = local_c[board[0x12]] + 1;
+	cVar2 = board[0x14];
 	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x29];
+	cVar1 = board[0x15];
 	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[0x2a];
+	cVar2 = board[0x16];
 	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x2b];
+	cVar1 = board[0x17];
 	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[0x2c];
+	cVar2 = board[0x18];
 	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x2d];
+	cVar1 = board[0x19];
 	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[0x2e];
+	cVar2 = board[0x1a];
 	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x2f];
+	cVar1 = board[0x1b];
 	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[0x30];
+	cVar2 = board[0x1c];
 	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x31];
+	cVar1 = board[0x1d];
 	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[0x32];
+	cVar2 = board[0x1e];
 	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x33];
+	cVar1 = board[0x1f];
 	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[0x34];
+	cVar2 = board[0x20];
 	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x35];
+	cVar1 = board[0x21];
 	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[0x36];
+	cVar2 = board[0x22];
 	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x37];
+	cVar1 = board[0x23];
 	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[0x38];
+	cVar2 = board[0x24];
 	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x39];
+	cVar1 = board[0x25];
 	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[0x3a];
+	local_c[cVar1] = local_c[cVar1] + 1;
+	cVar1 = board[0x27];
+	local_c[board[0x26]] = local_c[board[0x26]] + 1;
+	cVar2 = board[0x28];
+	local_c[cVar1] = local_c[cVar1] + 1;
+	cVar1 = board[0x29];
+	local_c[cVar2] = local_c[cVar2] + 1;
+	cVar2 = board[0x2a];
+	local_c[cVar1] = local_c[cVar1] + 1;
+	cVar1 = board[0x2b];
+	local_c[cVar2] = local_c[cVar2] + 1;
+	cVar2 = board[0x2c];
+	local_c[cVar1] = local_c[cVar1] + 1;
+	cVar1 = board[0x2d];
+	local_c[cVar2] = local_c[cVar2] + 1;
+	cVar2 = board[0x2e];
+	local_c[cVar1] = local_c[cVar1] + 1;
+	cVar1 = board[0x2f];
+	local_c[cVar2] = local_c[cVar2] + 1;
+	cVar2 = board[0x30];
+	local_c[cVar1] = local_c[cVar1] + 1;
+	cVar1 = board[0x31];
+	local_c[cVar2] = local_c[cVar2] + 1;
+	cVar2 = board[0x32];
+	local_c[cVar1] = local_c[cVar1] + 1;
+	cVar1 = board[0x33];
+	local_c[cVar2] = local_c[cVar2] + 1;
+	cVar2 = board[0x34];
+	local_c[cVar1] = local_c[cVar1] + 1;
+	cVar1 = board[0x35];
+	local_c[cVar2] = local_c[cVar2] + 1;
+	cVar2 = board[0x36];
+	local_c[cVar1] = local_c[cVar1] + 1;
+	cVar1 = board[0x37];
+	local_c[cVar2] = local_c[cVar2] + 1;
+	cVar2 = board[0x38];
+	local_c[cVar1] = local_c[cVar1] + 1;
+	cVar1 = board[0x39];
+	local_c[cVar2] = local_c[cVar2] + 1;
+	cVar2 = board[0x3a];
 	local_c[cVar1] = local_c[cVar1] + 1;
 	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar1 = pcVar3[0x3c];
-	local_c[pcVar3[0x3b]] = local_c[pcVar3[0x3b]] + 1;
-	cVar2 = pcVar3[0x3d];
+	cVar1 = board[0x3c];
+	local_c[board[0x3b]] = local_c[board[0x3b]] + 1;
+	cVar2 = board[0x3d];
 	local_c[cVar1] = local_c[cVar1] + 1;
-	cVar1 = pcVar3[0x3e];
+	cVar1 = board[0x3e];
 	local_c[cVar2] = local_c[cVar2] + 1;
-	cVar2 = pcVar3[0x3f];
+	cVar2 = board[0x3f];
 	local_c[cVar1] = local_c[cVar1] + 1;
 	local_c[cVar2] = local_c[cVar2] + 1;
 	return (local_c[1] - local_c[2]) * 4;
@@ -490,10 +490,10 @@ Freeboards *othelloSub02(byte *param_1) {
 	return pFVar2;
 }
 
-void *othelloSub03(Freeboards **param_1) {
-	*param_1 = g_globals._callocHolder;
-	g_globals._callocHolder = (Freeboards *)param_1;
-	return param_1;
+void *othelloSub03LinkBoard(Freeboards *board) {
+	board->_p0[0] = g_globals._callocHolder;
+	g_globals._callocHolder = board;
+	return board;
 }
 
 Freeboards *othelloSub04GetPossibleMove(Freeboards *freeboards, int moveSpot) {
@@ -584,7 +584,7 @@ int othelloSub06GetAllPossibleMoves(Freeboards *freeboards) {
 			Freeboards *possibleMove = othelloSub04GetPossibleMove(freeboards, moveSpot);
 			freeboards->_p0[numPossibleMoves] = possibleMove;
 			numPossibleMoves++;
-			possibleMove->_score120 = g_globals2._funcPointer4(possibleMove);
+			possibleMove->_score120 = g_globals2._funcPointer4Score(possibleMove);
 		}
 	LAB_00412467:
 		line = line + 1;
@@ -614,7 +614,7 @@ int othelloSub07AiRecurse(Freeboards *board, int depth, int parentScore, int opp
 		g_globals2._i0 = (g_globals2._i0 == 0);
 		local_c = othelloSub06GetAllPossibleMoves(board);
 		if (local_c == 0) {
-			return othelloFuncPointee2(board);
+			return othelloFuncPointee2LateGameScore(board);
 		}
 	}
 	_depth = depth + -1;
@@ -650,20 +650,20 @@ int othelloSub07AiRecurse(Freeboards *board, int depth, int parentScore, int opp
 				bestScore = score;
 				if (bVar3) {
 					for (; iVar6 < local_c; iVar6 += 1) {
-						othelloSub03(&board->_p0[iVar6]->_p0[0]);
+						othelloSub03LinkBoard(board->_p0[iVar6]);
 					}
 					return score;
 				}
 			}
 			iVar6 += 1;
-			othelloSub03((Freeboards **)pFVar1);
+			othelloSub03LinkBoard(pFVar1);
 			local_4 = local_4 + 1;
 		} while (iVar6 < local_c);
 	}
 	return bestScore;
 }
 
-byte othelloSub08Ai(Freeboards **param_1) {
+byte othelloSub08Ai(Freeboards **pBoard) {
 	byte *pbVar1;
 	Freeboards *pFVar2;
 	int iVar3;
@@ -679,14 +679,15 @@ byte othelloSub08Ai(Freeboards **param_1) {
 	if (g_globals._b16 == 0) {
 		g_globals2._i0 = 1;
 	}
-	iVar3 = othelloSub06GetAllPossibleMoves(*param_1);
+	Freeboards *board = *pBoard;
+	iVar3 = othelloSub06GetAllPossibleMoves(board);
 	if (iVar3 == 0) {
 		return 0;
 	}
 	move = 0;
 	do {
 		g_globals2._i0 = g_globals2._i0 == 0;
-		score = othelloSub07AiRecurse((*param_1)->_p0[move], g_globals._depths24[g_globals._counter272], parentScore, 100);
+		score = othelloSub07AiRecurse(board->_p0[move], g_globals._depths24[g_globals._counter272], parentScore, 100);
 		if (bestScore < score) {
 			parentScore = score;
 			bestMove = move;
@@ -694,8 +695,8 @@ byte othelloSub08Ai(Freeboards **param_1) {
 		}
 		move += 1;
 	} while (move < iVar3);
-	pbVar6 = &(*param_1)->_boardstate124[0][0] - 1; // -1 because we increment it before using it
-	pbVar5 = &(*param_1)->_p0[bestMove]->_boardstate124[0][0] - 1;
+	pbVar6 = &board->_boardstate124[0][0] - 1; // -1 because we increment it before using it
+	pbVar5 = &board->_p0[bestMove]->_boardstate124[0][0] - 1;
 	do {
 		do {
 			pbVar5 = pbVar5 + 1;
@@ -707,14 +708,14 @@ byte othelloSub08Ai(Freeboards **param_1) {
 	if (0 < iVar3) {
 		do {
 			if (bestMove != iVar7) {
-				othelloSub03((Freeboards **)(*param_1)->_p0[iVar7]);
+				othelloSub03LinkBoard(board->_p0[iVar7]);
 			}
 			iVar7 += 1;
 		} while (iVar7 < iVar3);
 	}
-	pFVar2 = (Freeboards *)(*param_1)->_p0[bestMove];
-	othelloSub03((Freeboards **)*param_1);
-	*param_1 = pFVar2;
+	pFVar2 = board->_p0[bestMove];
+	othelloSub03LinkBoard(board);
+	*pBoard = pFVar2;
 	if (g_globals._b16 == 0) {
 		g_globals._counter272 += 1;
 	}
@@ -764,7 +765,7 @@ void othelloSub09InitLines(void) {
 	return;
 }
 
-uint othelloSub10(Freeboards **freeboards, char x, char y) {
+uint othelloSub10MakeMove(Freeboards **freeboards, char x, char y) {
 	uint uVar1;
 	void *pvVar2;
 	byte *pbVar3;
@@ -772,8 +773,9 @@ uint othelloSub10(Freeboards **freeboards, char x, char y) {
 	uint uVar7;
 	uint uVar8;
 
+	Freeboards *board = *freeboards;
 	g_globals2._i0 = 0;
-	uVar1 = othelloSub06GetAllPossibleMoves((Freeboards *)*freeboards);
+	uVar1 = othelloSub06GetAllPossibleMoves(board);
 	if (uVar1 == 0) {
 		return 0;
 	}
@@ -789,7 +791,7 @@ uint othelloSub10(Freeboards **freeboards, char x, char y) {
 	}
 
 	if ((((-1 < y) && (y < 8)) && (-1 < x)) && (x < 8)) {
-		pFVar4 = *freeboards;
+		pFVar4 = board;
 		pbVar3 = &pFVar4->_boardstate124[y][0];
 		if (pbVar3[x] == 0) {
 			uVar8 = 0;
@@ -804,13 +806,13 @@ uint othelloSub10(Freeboards **freeboards, char x, char y) {
 			if (0 < (int)uVar1) {
 				do {
 					if (uVar8 != uVar7) {
-						othelloSub03((Freeboards **)(*freeboards)->_p0[uVar7]);
+						othelloSub03LinkBoard(board->_p0[uVar7]);
 					}
 					uVar7 += 1;
 				} while ((int)uVar7 < (int)uVar1);
 			}
-			pFVar4 = (Freeboards *)(*freeboards)->_p0[uVar8];
-			pvVar2 = othelloSub03((Freeboards **)*freeboards);
+			pFVar4 = board->_p0[uVar8];
+			pvVar2 = othelloSub03LinkBoard(board);
 			*freeboards = pFVar4;
 			goto LAB_004126bb;
 		}
@@ -849,7 +851,7 @@ void othelloRun(byte *vars) {
 	switch (op) {
 	case 0: // init/restart
 		*vars = 0;
-		g_globals2._funcPointer4 = othelloFuncPointee1;
+		g_globals2._funcPointer4Score = othelloFuncPointee1Score;
 		othelloSub09InitLines();
 		if (g_globals._callocHolder != (Freeboards *)0x0) {
 			g_globals._callocHolder = (Freeboards *)0x0;
@@ -875,14 +877,14 @@ void othelloRun(byte *vars) {
 		}
 		if (g_globals._counter272 < 0x3c) {
 			if (g_globals._i292 < g_globals._counter272) {
-				g_globals2._funcPointer4 = othelloFuncPointee2;
+				g_globals2._funcPointer4Score = othelloFuncPointee2LateGameScore;
 			}
 			g_globals._b816[4] = 0;
 			byte x = vars[3];
 			byte y = vars[2];
 			// top left spot is 0, 0
 			warning("OthelloGame player moved to %d, %d", (int)x, (int)y);
-			uVar2 = othelloSub10(&g_globals2._freeboards268, x, y);
+			uVar2 = othelloSub10MakeMove(&g_globals2._freeboards268, x, y);
 			vars[4] = (byte)uVar2;
 		} else {
 			bVar1 = othelloSub11GetLeader(g_globals2._freeboards268);
@@ -901,10 +903,10 @@ void othelloRun(byte *vars) {
 		}
 		if (g_globals._counter272 < 0x3c) {
 			if (g_globals._i292 < g_globals._counter272) {
-				g_globals2._funcPointer4 = othelloFuncPointee2;
+				g_globals2._funcPointer4Score = othelloFuncPointee2LateGameScore;
 			}
 			vars[3] = 0x2a;
-			uVar2 = othelloSub10(&g_globals2._freeboards268, '*', vars[2]);
+			uVar2 = othelloSub10MakeMove(&g_globals2._freeboards268, '*', vars[2]);
 			vars[4] = (byte)uVar2;
 			if ((byte)uVar2 == 0) {
 				g_globals._b816[4] = 1;
@@ -928,7 +930,7 @@ void othelloRun(byte *vars) {
 		}
 		if (g_globals._counter272 < 0x3c) {
 			if (g_globals._i292 < g_globals._counter272) {
-				g_globals2._funcPointer4 = othelloFuncPointee2;
+				g_globals2._funcPointer4Score = othelloFuncPointee2LateGameScore;
 			}
 			uVar1 = othelloSub08Ai(&g_globals2._freeboards268);
 			vars[4] = uVar1;
