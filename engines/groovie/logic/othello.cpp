@@ -604,7 +604,7 @@ int othelloSub06GetAllPossibleMoves(Freeboards *freeboards) {
 	} while (true);
 }
 
-int othelloSub07AiRecurse(int *param_1, int depth, int parentScore, int opponentBestScore) {
+int othelloSub07AiRecurse(Freeboards *board, int depth, int parentScore, int opponentBestScore) {
 	Freeboards *pFVar1;
 	uint whoseTurn;
 	bool bVar3;
@@ -615,12 +615,12 @@ int othelloSub07AiRecurse(int *param_1, int depth, int parentScore, int opponent
 	int bestScore;
 	Freeboards **local_4;
 
-	local_c = othelloSub06GetAllPossibleMoves((Freeboards *)param_1);
+	local_c = othelloSub06GetAllPossibleMoves(board);
 	if (local_c == 0) {
 		g_globals2._i0 = (g_globals2._i0 == 0);
-		local_c = othelloSub06GetAllPossibleMoves((Freeboards *)param_1);
+		local_c = othelloSub06GetAllPossibleMoves(board);
 		if (local_c == 0) {
-			return othelloFuncPointee2((Freeboards *)param_1);
+			return othelloFuncPointee2(board);
 		}
 	}
 	_depth = depth + -1;
@@ -628,7 +628,7 @@ int othelloSub07AiRecurse(int *param_1, int depth, int parentScore, int opponent
 	whoseTurn = (uint)(g_globals2._i0 == 0);
 	iVar6 = 0;
 	if (0 < local_c) {
-		local_4 = (Freeboards **)param_1;
+		local_4 = &board->_p0[0];
 		do {
 			pFVar1 = *local_4;
 			g_globals2._i0 = whoseTurn;
@@ -636,9 +636,9 @@ int othelloSub07AiRecurse(int *param_1, int depth, int parentScore, int opponent
 				score = (int)pFVar1->_score120;
 			} else {
 				if (whoseTurn == 0) {
-					score = othelloSub07AiRecurse((int *)pFVar1, _depth, bestScore, opponentBestScore);
+					score = othelloSub07AiRecurse(pFVar1, _depth, bestScore, opponentBestScore);
 				} else {
-					score = othelloSub07AiRecurse((int *)pFVar1, _depth, parentScore, bestScore);
+					score = othelloSub07AiRecurse(pFVar1, _depth, parentScore, bestScore);
 				}
 			}
 			if ((bestScore < score) != whoseTurn) {
@@ -656,7 +656,7 @@ int othelloSub07AiRecurse(int *param_1, int depth, int parentScore, int opponent
 				bestScore = score;
 				if (bVar3) {
 					for (; iVar6 < local_c; iVar6 += 1) {
-						othelloSub03((Freeboards **)param_1[iVar6]);
+						othelloSub03(&board->_p0[iVar6]->_p0[0]);
 					}
 					return score;
 				}
@@ -685,7 +685,7 @@ byte othelloSub08Ai(Freeboards **param_1) {
 	if (g_globals._b16 == 0) {
 		g_globals2._i0 = 1;
 	}
-	iVar3 = othelloSub06GetAllPossibleMoves((Freeboards *)*param_1);
+	iVar3 = othelloSub06GetAllPossibleMoves(*param_1);
 	if (iVar3 == 0) {
 		return 0;
 	}
@@ -693,7 +693,7 @@ byte othelloSub08Ai(Freeboards **param_1) {
 	if (0 < iVar3) {
 		do {
 			g_globals2._i0 = g_globals2._i0 == 0;
-			score = othelloSub07AiRecurse((int *)(*param_1)->_p0[move], g_globals._depths24[g_globals._counter272], parentScore, 100);
+			score = othelloSub07AiRecurse((*param_1)->_p0[move], g_globals._depths24[g_globals._counter272], parentScore, 100);
 			if (bestScore < score) {
 				parentScore = score;
 				bestMove = move;
@@ -729,62 +729,43 @@ byte othelloSub08Ai(Freeboards **param_1) {
 	return 1;
 }
 
-/* WARNING: Could not reconcile some variable overlaps */
-
 void othelloSub09InitLines(void) {
-	int iVar1;
 	char *pcVar2;
 	char **ppcVar3;
 	char *pcVar4;
-	int iVar5;
-	int iVar6;
-	int iVar7;
-	int local_18;
-	char local_10;
-	int local_c;
-	int local_4;
 
 	ppcVar3 = new char *[484]();
 	pcVar4 = new char[0x7e0]();
-	local_4 = 0;
-	local_10 = '\0';
-	local_c = 0;
-	do {
-		local_18 = 0;
-		do {
-			iVar5 = -1;
-			g_globals2._lines12[(local_c + local_18)] = ppcVar3;
-			do {
-				iVar6 = -1;
-				do {
-					if ((iVar5 != 0) || (iVar6 != 0)) {
-						*ppcVar3 = pcVar4;
-						iVar1 = local_4 + iVar5;
-						pcVar2 = pcVar4;
-						for (iVar7 = local_18 + iVar6;
-							 (((-1 < iVar1 && (iVar1 < 8)) && (-1 < iVar7)) && (iVar7 < 8)); iVar7 += iVar6) {
-							*pcVar2 = (char)iVar7 + (char)iVar1 * '\b';
-							iVar1 = iVar1 + iVar5;
-							pcVar2 = pcVar2 + 1;
-						}
-						if ((local_4 + iVar5 != iVar1) || (pcVar4 = pcVar2, local_18 + iVar6 != iVar7)) {
-							pcVar4 = pcVar2 + 1;
-							ppcVar3 = ppcVar3 + 1;
-							*pcVar2 = local_10 + (char)local_18;
-						}
+
+	for (int baseX = 0; baseX < 8; baseX++) {
+		for (int baseY = 0; baseY < 8; baseY++) {
+			g_globals2._lines12[(baseX * 8 + baseY)] = ppcVar3;
+			for (int slopeX = -1; slopeX < 2; slopeX++) {
+				for (int slopeY = -1; slopeY < 2; slopeY++) {
+					if (slopeX == 0 && slopeY == 0)
+						continue;
+
+					*ppcVar3 = pcVar4;
+					int x = baseX + slopeX;
+					pcVar2 = pcVar4;
+					int y;
+					for (y = baseY + slopeY;
+						 (((-1 < x && (x < 8)) && (-1 < y)) && (y < 8)); y += slopeY) {
+						*pcVar2 = (char)y + (char)x * 8;
+						x += slopeX;
+						pcVar2++;
 					}
-					iVar6 += 1;
-				} while (iVar6 < 2);
-				iVar5 += 1;
-			} while (iVar5 < 2);
+					if ((baseX + slopeX != x) || (pcVar4 = pcVar2, baseY + slopeY != y)) {
+						pcVar4 = pcVar2 + 1;
+						ppcVar3++;
+						*pcVar2 = baseX * 8 + baseY;
+					}
+				}
+			}
 			*ppcVar3 = (char *)0x0;
-			ppcVar3 = ppcVar3 + 1;
-			local_18 += 1;
-		} while (local_18 < 8);
-		local_c += 8;
-		local_10 += '\b';
-		local_4 += 1;
-	} while (local_c < 0x40);
+			ppcVar3++;
+		}
+	}
 	return;
 }
 
