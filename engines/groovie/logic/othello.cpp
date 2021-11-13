@@ -53,6 +53,8 @@ int _cornersScores[105];
 int _isAiTurn;
 int (*_funcPointer4Score)(Freeboard *);
 char **_lines[64];
+char *_linesStorage[484];
+char _lineStorage[2016];
 Freeboard _board;
 
 bool g_globalsInited = false;
@@ -423,8 +425,8 @@ byte othelloSub08Ai(Freeboard *pBoard) {
 
 void othelloSub09InitLines(void) {
 	// allocate an array of strings, the lines are null-terminated
-	char **lines = new char *[484]();
-	char *line = new char[0x7e0]();
+	char **lines = &_linesStorage[0];
+	char *line = &_lineStorage[0];
 
 	for (int baseX = 0; baseX < 8; baseX++) {
 		for (int baseY = 0; baseY < 8; baseY++) {
@@ -453,7 +455,7 @@ void othelloSub09InitLines(void) {
 				}
 			}
 			// append a 0 to the lines array to terminate that set of lines
-			*lines = (char *)0x0;
+			*lines = NULL;
 			lines++;
 		}
 	}
