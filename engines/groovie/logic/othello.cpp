@@ -88,172 +88,93 @@ void initGlobals() {
 
 
 
-int othelloFuncPointee1Score(Freeboards *freeboard) {
-	char cVar1;
-	char cVar2;
-	char cVar3;
-	int topLeft;
-	int scores[3];
-	int topRight;
-	int bottomRight;
-	int local_40;
-	int local_3c;
-	int local_38;
-	int local_34;
-	int local_30;
-	int local_2c;
-	int local_28;
-	int local_24;
-	int local_20;
-	int local_1c;
-	int local_18;
-	int local_14;
-	int local_10;
-	int local_c;
-	int local_8;
-	int local_4;
+int scoreEdge(byte *board, int x, int y, int slopeX, int slopeY) {
+	char *p_b816_24 = &g_globals._b816[24];
+	char *ptr = &p_b816_24[board[x * 8 + y]];
 
+	// we don't score either corner in this function
+	x += slopeX;
+	y += slopeY;
+	int endX = x + slopeX * 5;
+	int endY = y + slopeY * 5;
+
+	for (int i = x * 8 + y; i <= endX * 8 + endY; i += slopeX * 8 + slopeY) {
+		ptr = &p_b816_24[*ptr + board[i]];
+	}
+	return g_globals._scoringInts[*ptr];
+}
+
+int othelloFuncPointee1Score(Freeboards *freeboard) {
 	// 1 is AI, 2 is player
+	// in the early game the AI's search depth can't see far enough, so instead of the score simply being
+	int scores[3];
 	scores[0] = 0;
 	scores[1] = 0;
 	scores[2] = 0;
 	byte *board = &freeboard->_boardstate124[0][0];
 	int bottomLeft = (int)board[7];
-	topLeft = (int)*board;
-	topRight = (int)board[0x38];
-	bottomRight = (int)board[0x3f];
+	int topLeft = (int)*board;
+	int topRight = (int)board[0x38];
+	int bottomRight = (int)board[0x3f];
 
-	cVar1 = board[1];
-	cVar2 = board[2];
-	local_40 = (int)board[2];
-	local_3c = (int)board[3];
-	local_38 = (int)board[4];
-	local_34 = (int)board[5];
+	int scoreRightEdge = scoreEdge(board, 7, 0, 0, 1);
+	int scoreBottomEdge = scoreEdge(board, 0, 7, 1, 0);
+	int scoreTopEdge = scoreEdge(board, 0, 0, 1, 0);
+	int scoreLeftEdge = scoreEdge(board, 0, 0, 0, 1);
+	scores[1] = scoreRightEdge + scoreBottomEdge + scoreTopEdge + scoreLeftEdge;
 
-	local_10 = (int)board[0x3a];
-	local_c = (int)board[0x3b];
-	local_8 = (int)board[0x3c];
-	local_4 = (int)board[0x3d];
-
-	local_2c = (int)board[0x17];
-	local_24 = (int)board[0x1f];
-	local_1c = (int)board[0x27];
-	local_14 = (int)board[0x2f];
-	local_30 = (int)board[0x10];
-	local_28 = (int)board[0x18];
-	local_20 = (int)board[0x20];
-	local_18 = (int)board[0x28];
-
-	char *p0x44da58 = &g_globals._b816[24];
-	char *ptr = &g_globals._b816[topRight + 0x18];
-	for (int i = 0x39; i <= 0x3e; i++) {
-		ptr = p0x44da58 + *ptr + board[i];
-	}
-	int t1 = g_globals._scoringInts[*ptr];
-
-	ptr = &g_globals._b816[bottomLeft + 0x18];
-	for (int i = 0xf; i <= 0x37; i += 8) {
-		ptr = p0x44da58 + *ptr + board[i];
-	}
-	int t2 = g_globals._scoringInts[*ptr];
-
-	ptr = &g_globals._b816[topLeft + 0x18];
-	for (int i = 8; i <= 0x30; i += 8) {
-		ptr = p0x44da58 + *ptr + board[i];
-	}
-	int t3 = g_globals._scoringInts[*ptr];
-
-	ptr = &g_globals._b816[topLeft + 0x18];
-	for (int i = 1; i <= 7; i++) {
-		ptr = p0x44da58 + *ptr + board[i];
-	}
-	int t4 = g_globals._scoringInts[*ptr];
-
-	scores[1] = t1 + t2 + t3 + t4;
-
-	scores[topLeft] = scores[topLeft] + 0x32;
-	cVar3 = board[3];
-	scores[cVar1] = scores[cVar1] + 4;
-	scores[cVar2] = scores[cVar2] + 0x10;
-	cVar1 = board[4];
-	scores[cVar3] = scores[cVar3] + 0xc;
-	scores[cVar1] = scores[cVar1] + 0xc;
-	cVar1 = board[6];
-	scores[board[5]] = scores[board[5]] + 0x10;
-	cVar2 = board[7];
-	scores[cVar1] = scores[cVar1] + 4;
-	cVar1 = board[8];
-	scores[cVar2] = scores[cVar2] + 0x32;
-	cVar2 = board[9];
-	scores[cVar1] = scores[cVar1] + 4;
-	scores[cVar2] = scores[cVar2] - (int)g_globals._b816[topLeft + 8];
-	cVar1 = board[0xb];
-	scores[board[10]] = scores[board[10]] - (int)g_globals._b816[local_40 + 0xc];
-	scores[cVar1] = scores[cVar1] - (int)g_globals._b816[local_3c + 0x10];
-	scores[board[0xc]] = scores[board[0xc]] - (int)g_globals._b816[local_38 + 0x10];
-	scores[board[0xd]] = scores[board[0xd]] - (int)g_globals._b816[local_34 + 0xc];
-	scores[board[0xe]] = scores[board[0xe]] - (int)g_globals._b816[bottomLeft + 8];
-	cVar1 = board[0x10];
-	scores[board[0xf]] = scores[board[0xf]] + 4;
-	cVar2 = board[0x11];
-	scores[cVar1] = scores[cVar1] + 0x10;
-	scores[cVar2] = scores[cVar2] - (int)g_globals._b816[local_30 + 0xc];
-	cVar1 = board[0x15];
-	scores[board[0x12]] = scores[board[0x12]] + 1;
-	cVar2 = board[0x16];
-	scores[cVar1] = scores[cVar1] + 1;
-	scores[cVar2] = scores[cVar2] - (int)g_globals._b816[local_2c + 0xc];
-	cVar1 = board[0x18];
-	scores[board[0x17]] = scores[board[0x17]] + 0x10;
-	cVar2 = board[0x19];
-	cVar3 = board[0x1e];
-	scores[cVar1] = scores[cVar1] + 0xc;
-	scores[cVar2] = scores[cVar2] - (int)g_globals._b816[local_28 + 0x10];
-	cVar1 = board[0x1f];
-	scores[cVar3] = scores[cVar3] - (int)g_globals._b816[local_24 + 0x10];
-	scores[cVar1] = scores[cVar1] + 0xc;
-	cVar1 = board[0x21];
-	scores[board[0x20]] = scores[board[0x20]] + 0xc;
-	cVar2 = board[0x26];
-	scores[cVar1] = scores[cVar1] - (int)g_globals._b816[local_20 + 0x10];
-	scores[cVar2] = scores[cVar2] - (int)g_globals._b816[local_1c + 0x10];
-	cVar1 = board[0x28];
-	scores[board[0x27]] = scores[board[0x27]] + 0xc;
-	cVar2 = board[0x29];
-	scores[cVar1] = scores[cVar1] + 0x10;
-	scores[cVar2] = scores[cVar2] - (int)g_globals._b816[local_18 + 0xc];
-	cVar1 = board[0x2d];
-	scores[board[0x2a]] = scores[board[0x2a]] + 1;
-	scores[cVar1] = scores[cVar1] + 1;
-	scores[board[0x2e]] = scores[board[0x2e]] - (int)g_globals._b816[local_14 + 0xc];
-	scores[board[0x2f]] = scores[board[0x2f]] + 0x10;
-	cVar1 = board[0x31];
-	scores[board[0x30]] = scores[board[0x30]] + 4;
-	scores[cVar1] = scores[cVar1] - (int)g_globals._b816[topRight + 8];
-	cVar1 = board[0x33];
-	scores[board[0x32]] = scores[board[0x32]] - (int)g_globals._b816[local_10 + 0xc];
-	scores[cVar1] = scores[cVar1] - (int)g_globals._b816[local_c + 0x10];
-	scores[board[0x34]] = scores[board[0x34]] - (int)g_globals._b816[local_8 + 0x10];
-	cVar1 = board[0x36];
-	scores[board[0x35]] = scores[board[0x35]] - (int)g_globals._b816[local_4 + 0xc];
-	cVar2 = board[0x37];
-	scores[cVar1] = scores[cVar1] - (int)g_globals._b816[bottomRight + 8];
-	scores[cVar2] = scores[cVar2] + 4;
-	cVar1 = board[0x39];
-	scores[board[0x38]] = scores[board[0x38]] + 0x32;
-	cVar2 = board[0x3a];
-	scores[cVar1] = scores[cVar1] + 4;
-	cVar1 = board[0x3b];
-	scores[cVar2] = scores[cVar2] + 0x10;
-	cVar2 = board[0x3c];
-	scores[cVar1] = scores[cVar1] + 0xc;
-	cVar1 = board[0x3d];
-	scores[cVar2] = scores[cVar2] + 0xc;
-	cVar2 = board[0x3e];
-	scores[cVar1] = scores[cVar1] + 0x10;
-	cVar1 = board[0x3f];
-	scores[cVar2] = scores[cVar2] + 4;
-	scores[cVar1] = scores[cVar1] + 0x32;
+	scores[topLeft] += 0x32;
+	scores[board[1]] += 4;
+	scores[board[2]] += 0x10;
+	scores[board[3]] += 0xc;
+	scores[board[4]] += 0xc;
+	scores[board[5]] += 0x10;
+	scores[board[6]] += 4;
+	scores[board[7]] += 0x32;
+	scores[board[8]] += 4;
+	scores[board[9]] -= g_globals._b816[topLeft + 8];
+	scores[board[10]] -= g_globals._b816[board[2] + 0xc];
+	scores[board[0xb]] -= g_globals._b816[board[3] + 0x10];
+	scores[board[0xc]] -= g_globals._b816[board[4] + 0x10];
+	scores[board[0xd]] -= g_globals._b816[board[5] + 0xc];
+	scores[board[0xe]] -= g_globals._b816[bottomLeft + 8];
+	scores[board[0xf]] += 4;
+	scores[board[0x10]] += 0x10;
+	scores[board[0x11]] -= g_globals._b816[board[0x10] + 0xc];
+	scores[board[0x12]] += 1;
+	scores[board[0x15]] += 1;
+	scores[board[0x16]] -= g_globals._b816[board[0x17] + 0xc];
+	scores[board[0x17]] += 0x10;
+	scores[board[0x18]] += 0xc;
+	scores[board[0x19]] -= g_globals._b816[board[0x18] + 0x10];
+	scores[board[0x1e]] -= g_globals._b816[board[0x1f] + 0x10];
+	scores[board[0x1f]] += 0xc;
+	scores[board[0x20]] += 0xc;
+	scores[board[0x21]] -= g_globals._b816[board[0x20] + 0x10];
+	scores[board[0x26]] -= g_globals._b816[board[0x27] + 0x10];
+	scores[board[0x27]] += 0xc;
+	scores[board[0x28]] += 0x10;
+	scores[board[0x29]] -= g_globals._b816[board[0x28] + 0xc];
+	scores[board[0x2a]] += 1;
+	scores[board[0x2d]] += 1;
+	scores[board[0x2e]] -= g_globals._b816[board[0x2f] + 0xc];
+	scores[board[0x2f]] += 0x10;
+	scores[board[0x30]] += 4;
+	scores[board[0x31]] -= g_globals._b816[topRight + 8];
+	scores[board[0x32]] -= g_globals._b816[board[0x3a] + 0xc];
+	scores[board[0x33]] -= g_globals._b816[board[0x3b] + 0x10];
+	scores[board[0x34]] -= g_globals._b816[board[0x3c] + 0x10];
+	scores[board[0x35]] -= g_globals._b816[board[0x3d] + 0xc];
+	scores[board[0x36]] -= g_globals._b816[bottomRight + 8];
+	scores[board[0x37]] += 4;
+	scores[board[0x38]] += 0x32;
+	scores[board[0x39]] += 4;
+	scores[board[0x3a]] += 0x10;
+	scores[board[0x3b]] += 0xc;
+	scores[board[0x3c]] += 0xc;
+	scores[board[0x3d]] += 0x10;
+	scores[board[0x3e]] += 4;
+	scores[board[0x3f]] += 0x32;
 	return scores[1] - scores[2];
 }
 
@@ -262,6 +183,7 @@ int othelloFuncPointee2LateGameScore(Freeboards *freeboard) {
 
 	byte *board = &freeboard->_boardstate124[0][0];
 	// 1 is AI, 2 is player
+	// in the late game, we simply score the same way we determine the winner, because the AI's search depth can see to the end of the game
 	scores[0] = 0;
 	scores[1] = 0;
 	scores[2] = 0;
