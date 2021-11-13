@@ -47,8 +47,8 @@ void sortPossibleMoves(Freeboard (&boards)[30], int numPossibleMoves) {
 }
 
 int OthelloGame::scoreEdge(byte (&board)[8][8], int x, int y, int slopeX, int slopeY) {
-	char *scores = &_edgesScores[0];
-	char *ptr = &scores[board[x][y]];
+	const char *scores = &_edgesScores[0];
+	const char *ptr = &scores[board[x][y]];
 
 	// we don't score either corner in this function
 	x += slopeX;
@@ -86,14 +86,14 @@ int OthelloGame::scoreEarlyGame(Freeboard *freeboard) {
 
 	//subtract points for bad spots relative to the opponent
 	//diagonal from the corners
-	char *diagFromCorners = &_scores[0][0];
+	const char *diagFromCorners = &_scores[0][0];
 	scores[b[1][1]] -= diagFromCorners[topLeft];
 	scores[b[1][6]] -= diagFromCorners[bottomLeft];
 	scores[b[6][1]] -= diagFromCorners[topRight];
 	scores[b[6][6]] -= diagFromCorners[bottomRight];
 
 	// 2 away from the edge
-	char *twoAwayFromEdge = &_scores[1][0];
+	const char *twoAwayFromEdge = &_scores[1][0];
 	scores[b[1][2]] -= twoAwayFromEdge[b[0][2]];
 	scores[b[1][5]] -= twoAwayFromEdge[b[0][5]];
 	scores[b[2][1]] -= twoAwayFromEdge[b[2][0]];
@@ -104,7 +104,7 @@ int OthelloGame::scoreEarlyGame(Freeboard *freeboard) {
 	scores[b[6][5]] -= twoAwayFromEdge[b[7][5]];
 
 	// 3 away from the edge
-	char *threeAwayFromEdge = &_scores[2][0];
+	const char *threeAwayFromEdge = &_scores[2][0];
 	scores[b[1][3]] -= threeAwayFromEdge[b[0][3]];
 	scores[b[1][4]] -= threeAwayFromEdge[b[0][4]];
 	scores[b[3][1]] -= threeAwayFromEdge[b[3][0]];
@@ -182,6 +182,10 @@ int OthelloGame::scoreBoard(Freeboard *board) {
 }
 
 void OthelloGame::restart(void) {
+	_counter = 0;
+	_isLateGame = false;
+	_board._score = 0;
+
 	// clear the board
 	memset(_board._boardstate, EMPTY_PIECE, sizeof(_board._boardstate));
 	// set the starting pieces
@@ -234,7 +238,7 @@ Freeboard OthelloGame::getPossibleMove(Freeboard *freeboard, int moveSpot) {
 	char **line = _lines[moveSpot];
 
 	// check every line until we hit the null-terminating pointer
-	for(line = _lines[moveSpot]; *line != NULL; line++) {
+	for (line = _lines[moveSpot]; *line != NULL; line++) {
 		char *lineSpot = *line;
 		int piece = board[*lineSpot];
 		char *_lineSpot;
@@ -266,7 +270,7 @@ int OthelloGame::getAllPossibleMoves(Freeboard *freeboard, Freeboard (&boards)[3
 	int numPossibleMoves = 0;
 	char ***line = &_lines[0];
 	do {
-		if(freeboard->_boardstate[moveSpot / 8][moveSpot % 8] == 0) {
+		if (freeboard->_boardstate[moveSpot / 8][moveSpot % 8] == 0) {
 			char **lineSpot = *line;
 			char *testSpot;
 			// loop through a list of slots in line with piece moveSpot, looping away from moveSpot
@@ -343,7 +347,7 @@ int OthelloGame::aiRecurse(Freeboard *board, int depth, int parentScore, int opp
 			}
 		}
 	}
-	
+
 	return bestScore;
 }
 
@@ -437,7 +441,8 @@ uint OthelloGame::makeMove(Freeboard *freeboard, uint8 x, uint8 y) {
 	if (y < 8 && x < 8 && board->_boardstate[y][x] == 0) {
 		// find the pre-made board the represents this move
 		uint newBoardSlot = 0;
-		for (; newBoardSlot < numPossibleMoves && possibleMoves[newBoardSlot]._boardstate[y][x] == 0; newBoardSlot++) {}
+		for (; newBoardSlot < numPossibleMoves && possibleMoves[newBoardSlot]._boardstate[y][x] == 0; newBoardSlot++) {
+		}
 		if (newBoardSlot == numPossibleMoves)
 			return 0;
 
@@ -468,10 +473,7 @@ byte OthelloGame::getLeader(Freeboard *f) {
 
 void OthelloGame::opInit(byte *vars) {
 	vars[0] = 0;
-	_isLateGame = false;
-	initLines();
 	restart();
-	_counter = 0;
 
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
@@ -550,21 +552,24 @@ void OthelloGame::op5(byte *vars) {
 	vars[4] = 1;
 }
 
-OthelloGame::OthelloGame() : _random("OthelloGame") {
-	int t_depths[60] = {1, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 7, 6, 5, 4, 3, 2, 1, 1};
-	memcpy(_depths, t_depths, sizeof(t_depths));
-	_movesLateGame = 52;
-	int8 t_lookupPlayer[3] = {21, 40, 31};
-	memcpy(_lookupPlayer, t_lookupPlayer, sizeof(t_lookupPlayer));
+OthelloGame::OthelloGame()
+	: _random("OthelloGame"),
+	  _depths{1, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 7, 6, 5, 4, 3, 2, 1, 1},
+	  _lookupPlayer{21, 40, 31},
+	  _scores{30, 0, 0, 0, 4, 0, 0, 0, 5, 0, 0, 0},
+	  _edgesScores{0, 3, 6, 9, 3, 15, 12, 18, 6, 0, 45, 6, 0, 3, 27, 12, 60, 15, 9, 18, 36, 21, 24, 27, 30, 24, 36, 33, 39, 27, 21, 3, 27, 21, 24, 69, 33, 18, 36, 30, 39, 78, 42, 45, 48, 51, 45, 57, 54, 60, 48, 42, 87, 48, 42, 45, 6, 54, 102, 57, 51, 60, 15, 63, 66, 69, 72, 66, 78, 75, 81, 69, 63, 24, 69, 63, 66, 69, 75, 39, 78, 72, 81, 78, 84, 87, 90, 93, 87, 99, 96, 102, 90, 84, 87, 90, 84, 87, 48, 96, 102, 99, 93, 102, 57, 0, 0, 0, 0, 0, 0, 0},
+	  _cornersScores{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -20, 0, 0, 0, 20, 0, -20, 0, 0, 0, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 0, 20, 20, 20, 40, 20, 0, 20, 20, 20, 40, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -40, -20, -20, -20, 0, -20, -40, -20, -20, -20, 0, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 20, 40, 40, 40, 40, 40, 20, 40, 40, 40, 40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -20, -40, -40, -40, -40, -40, -20},
+	_movesLateGame(52)
+{
+	_isLateGame = false;
+	_counter = 0;
+	_isAiTurn = 0;
+	_flag1 = 0;
 	_flag2 = 0;
-	int8 t_scores[12] = {30, 0, 0, 0, 4, 0, 0, 0, 5, 0, 0, 0};
-	memcpy(_scores, t_scores, sizeof(t_scores));
-	int8 t_edgesScores[112] = {0, 3, 6, 9, 3, 15, 12, 18, 6, 0, 45, 6, 0, 3, 27, 12, 60, 15, 9, 18, 36, 21, 24, 27, 30, 24, 36, 33, 39, 27, 21, 3, 27, 21, 24, 69, 33, 18, 36, 30, 39, 78, 42, 45, 48, 51, 45, 57, 54, 60, 48, 42, 87, 48, 42, 45, 6, 54, 102, 57, 51, 60, 15, 63, 66, 69, 72, 66, 78, 75, 81, 69, 63, 24, 69, 63, 66, 69, 75, 39, 78, 72, 81, 78, 84, 87, 90, 93, 87, 99, 96, 102, 90, 84, 87, 90, 84, 87, 48, 96, 102, 99, 93, 102, 57, 0, 0, 0, 0, 0, 0, 0};
-	memcpy(_edgesScores, t_edgesScores, sizeof(t_edgesScores));
-	int t_cornersScores[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -20, 0, 0, 0, 20, 0, -20, 0, 0, 0, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 0, 20, 20, 20, 40, 20, 0, 20, 20, 20, 40, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -40, -20, -20, -20, 0, -20, -40, -20, -20, -20, 0, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 20, 40, 40, 40, 40, 40, 20, 40, 40, 40, 40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -20, -40, -40, -40, -40, -40, -20};
-	memcpy(_cornersScores, t_cornersScores, sizeof(t_cornersScores));
+	initLines();
+
 #if 1
-//#if 0
+	//#if 0
 	test();
 #endif
 }
@@ -573,7 +578,7 @@ void OthelloGame::run(byte *scriptVariables) {
 	// TODO
 	byte vars[1024];
 	memcpy(vars, scriptVariables, sizeof(vars));
-	
+
 	byte op = vars[1];
 	warning("OthelloGame op %d", (int)op);
 

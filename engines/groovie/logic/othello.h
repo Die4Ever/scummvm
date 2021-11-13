@@ -39,7 +39,7 @@ namespace Groovie {
  */
 struct Freeboard {
 	int _score;
-	byte _boardstate[8][8]; // 0 is empty, 1 or 2 is player or ai?
+	byte _boardstate[8][8]; // 0 is empty, 1 is player, 2 is AI
 
 	// for sorting an array of pointers
 	friend bool operator<(const Freeboard &a, const Freeboard &b) {
@@ -80,14 +80,14 @@ private:
 	Common::RandomSource _random;
 	byte _flag1;
 	char _flag2;
-	int _depths[60];
+	const int _depths[60];
 	int _counter;
-	int _movesLateGame; // this is 52, seems to be a marker of when to change the function pointer to an aleternate scoring algorithm for the late game
-	bool _isLateGame; // used to choose the scoring function, true means scoreLateGame
-	char _lookupPlayer[3]; // used to convert from internal values that represent piece colors to what the script uses in vars, {21, 40, 31}
-	char _scores[3][4];
-	char _edgesScores[112];
-	int _cornersScores[105];
+	const int _movesLateGame;    // this is 52, seems to be a marker of when to change the function pointer to an aleternate scoring algorithm for the late game
+	bool _isLateGame;      // used to choose the scoring function, true means scoreLateGame
+	const char _lookupPlayer[3]; // used to convert from internal values that represent piece colors to what the script uses in vars, {21, 40, 31}
+	const char _scores[3][4];
+	const char _edgesScores[112];
+	const int _cornersScores[105];
 	int _isAiTurn;
 	char **_lines[64];
 	char *_linesStorage[484];
