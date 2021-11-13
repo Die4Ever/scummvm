@@ -49,8 +49,10 @@ struct OthelloGlobals {
 	int _callocCount;
 	int _counter272;
 	int _i292;// this is 52, seems to be a marker of when to change the function pointerto an aleternate scoring algorithm for the late game
-	char _b816[136];
-	int _scoringInts[105];
+	char _b816[8];
+	char _scores[12];
+	char _edgesScores[112];
+	int _cornersScores[105];
 };
 
 struct OthelloGlobals2 {
@@ -77,20 +79,23 @@ void initGlobals() {
 	memcpy(g_globals._depths24, t_b24, sizeof(t_b24));
 	g_globals._callocCount = 64;
 	g_globals._i292 = 52;
-	int8 t_b816[] = {21, 40, 31, 0, 0, 0, 0, 0, 30, 0, 0, 0, 4, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 3, 6, 9, 3, 15, 12, 18, 6, 0, 45, 6, 0, 3, 27, 12, 60, 15, 9, 18, 36, 21, 24, 27, 30, 24, 36, 33, 39, 27, 21, 3, 27, 21, 24, 69, 33, 18, 36, 30, 39, 78, 42, 45, 48, 51, 45, 57, 54, 60, 48, 42, 87, 48, 42, 45, 6, 54, 102, 57, 51, 60, 15, 63, 66, 69, 72, 66, 78, 75, 81, 69, 63, 24, 69, 63, 66, 69, 75, 39, 78, 72, 81, 78, 84, 87, 90, 93, 87, 99, 96, 102, 90, 84, 87, 90, 84, 87, 48, 96, 102, 99, 93, 102, 57, 0, 0, 0, 0, 0, 0, 0};
+	int8 t_b816[8] = {21, 40, 31, 0, 0, 0, 0, 0};
 	memcpy(g_globals._b816, t_b816, sizeof(t_b816));
-	int t_scoringInts[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -20, 0, 0, 0, 20, 0, -20, 0, 0, 0, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 0, 20, 20, 20, 40, 20, 0, 20, 20, 20, 40, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -40, -20, -20, -20, 0, -20, -40, -20, -20, -20, 0, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 20, 40, 40, 40, 40, 40, 20, 40, 40, 40, 40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -20, -40, -40, -40, -40, -40, -20};
-	memcpy(g_globals._scoringInts, t_scoringInts, sizeof(t_scoringInts));
+	int8 t_scores[12] = {30, 0, 0, 0, 4, 0, 0, 0, 5, 0, 0, 0};
+	memcpy(g_globals._scores, t_scores, sizeof(t_scores));
+	int8 t_edgesScores[112] = {0, 3, 6, 9, 3, 15, 12, 18, 6, 0, 45, 6, 0, 3, 27, 12, 60, 15, 9, 18, 36, 21, 24, 27, 30, 24, 36, 33, 39, 27, 21, 3, 27, 21, 24, 69, 33, 18, 36, 30, 39, 78, 42, 45, 48, 51, 45, 57, 54, 60, 48, 42, 87, 48, 42, 45, 6, 54, 102, 57, 51, 60, 15, 63, 66, 69, 72, 66, 78, 75, 81, 69, 63, 24, 69, 63, 66, 69, 75, 39, 78, 72, 81, 78, 84, 87, 90, 93, 87, 99, 96, 102, 90, 84, 87, 90, 84, 87, 48, 96, 102, 99, 93, 102, 57, 0, 0, 0, 0, 0, 0, 0};
+	memcpy(g_globals._edgesScores, t_edgesScores, sizeof(t_edgesScores));
+	int t_cornersScores[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -20, 0, 0, 0, 20, 0, -20, 0, 0, 0, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 0, 20, 20, 20, 40, 20, 0, 20, 20, 20, 40, -20, -20, -20, -20, -20, -20, -20, -20, -20, -20, -40, -20, -20, -20, 0, -20, -40, -20, -20, -20, 0, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 20, 40, 40, 40, 40, 40, 20, 40, 40, 40, 40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -40, -20, -40, -40, -40, -40, -40, -20};
+	memcpy(g_globals._cornersScores, t_cornersScores, sizeof(t_cornersScores));
 	g_globalsInited = true;
 }
 
 // end of ghidra globals
 
 
-
-int scoreEdge(byte *board, int x, int y, int slopeX, int slopeY) {
-	char *p_b816_24 = &g_globals._b816[24];
-	char *ptr = &p_b816_24[board[x * 8 + y]];
+int scoreEdge(byte (&board)[8][8], int x, int y, int slopeX, int slopeY) {
+	char *scores = &g_globals._edgesScores[0];
+	char *ptr = &scores[board[x][y]];
 
 	// we don't score either corner in this function
 	x += slopeX;
@@ -98,10 +103,12 @@ int scoreEdge(byte *board, int x, int y, int slopeX, int slopeY) {
 	int endX = x + slopeX * 5;
 	int endY = y + slopeY * 5;
 
-	for (int i = x * 8 + y; i <= endX * 8 + endY; i += slopeX * 8 + slopeY) {
-		ptr = &p_b816_24[*ptr + board[i]];
+	while (x <= endX && y <= endY) {
+		ptr = &scores[*ptr + board[x][y]];
+		x += slopeX;
+		y += slopeY;
 	}
-	return g_globals._scoringInts[*ptr];
+	return g_globals._cornersScores[*ptr];
 }
 
 int othelloFuncPointee1Score(Freeboards *freeboard) {
@@ -111,70 +118,94 @@ int othelloFuncPointee1Score(Freeboards *freeboard) {
 	scores[0] = 0;
 	scores[1] = 0;
 	scores[2] = 0;
-	byte *board = &freeboard->_boardstate124[0][0];
-	int bottomLeft = (int)board[7];
-	int topLeft = (int)*board;
-	int topRight = (int)board[0x38];
-	int bottomRight = (int)board[0x3f];
-
-	int scoreRightEdge = scoreEdge(board, 7, 0, 0, 1);
-	int scoreBottomEdge = scoreEdge(board, 0, 7, 1, 0);
-	int scoreTopEdge = scoreEdge(board, 0, 0, 1, 0);
-	int scoreLeftEdge = scoreEdge(board, 0, 0, 0, 1);
+	
+	byte (&b)[8][8] = freeboard->_boardstate124;
+	
+	int scoreRightEdge = scoreEdge(b, 7, 0, 0, 1);
+	int scoreBottomEdge = scoreEdge(b, 0, 7, 1, 0);
+	int scoreTopEdge = scoreEdge(b, 0, 0, 1, 0);
+	int scoreLeftEdge = scoreEdge(b, 0, 0, 0, 1);
 	scores[1] = scoreRightEdge + scoreBottomEdge + scoreTopEdge + scoreLeftEdge;
 
+	int topLeft = b[0][0];
+	int bottomLeft = b[0][7];
+	int topRight = b[7][0];
+	int bottomRight = b[7][7];
+
+	//subtract points for bad spots relative to the opponent
+	//diagonal from the corners
+	char *diagFromCorners = &g_globals._scores[0];
+	scores[b[1][1]] -= diagFromCorners[topLeft];
+	scores[b[1][6]] -= diagFromCorners[bottomLeft];
+	scores[b[6][1]] -= diagFromCorners[topRight];
+	scores[b[6][6]] -= diagFromCorners[bottomRight];
+
+	// 2 away from the edge
+	char *twoAwayFromEdge = &g_globals._scores[4];
+	scores[b[1][2]] -= twoAwayFromEdge[b[0][2]];
+	scores[b[1][5]] -= twoAwayFromEdge[b[0][5]];
+	scores[b[2][1]] -= twoAwayFromEdge[b[2][0]];
+	scores[b[2][6]] -= twoAwayFromEdge[b[2][7]];
+	scores[b[5][1]] -= twoAwayFromEdge[b[5][0]];
+	scores[b[5][6]] -= twoAwayFromEdge[b[5][7]];
+	scores[b[6][2]] -= twoAwayFromEdge[b[7][2]];
+	scores[b[6][5]] -= twoAwayFromEdge[b[7][5]];
+
+	// 3 away from the edge
+	char *threeAwayFromEdge = &g_globals._scores[8];
+	scores[b[1][3]] -= threeAwayFromEdge[b[0][3]];
+	scores[b[1][4]] -= threeAwayFromEdge[b[0][4]];
+	scores[b[3][1]] -= threeAwayFromEdge[b[3][0]];
+	scores[b[3][6]] -= threeAwayFromEdge[b[3][7]];
+	scores[b[4][1]] -= threeAwayFromEdge[b[4][0]];
+	scores[b[4][6]] -= threeAwayFromEdge[b[4][7]];
+	scores[b[6][3]] -= threeAwayFromEdge[b[7][3]];
+	scores[b[6][4]] -= threeAwayFromEdge[b[7][4]];
+
+	// corners
 	scores[topLeft] += 0x32;
-	scores[board[1]] += 4;
-	scores[board[2]] += 0x10;
-	scores[board[3]] += 0xc;
-	scores[board[4]] += 0xc;
-	scores[board[5]] += 0x10;
-	scores[board[6]] += 4;
-	scores[board[7]] += 0x32;
-	scores[board[8]] += 4;
-	scores[board[9]] -= g_globals._b816[topLeft + 8];
-	scores[board[10]] -= g_globals._b816[board[2] + 0xc];
-	scores[board[0xb]] -= g_globals._b816[board[3] + 0x10];
-	scores[board[0xc]] -= g_globals._b816[board[4] + 0x10];
-	scores[board[0xd]] -= g_globals._b816[board[5] + 0xc];
-	scores[board[0xe]] -= g_globals._b816[bottomLeft + 8];
-	scores[board[0xf]] += 4;
-	scores[board[0x10]] += 0x10;
-	scores[board[0x11]] -= g_globals._b816[board[0x10] + 0xc];
-	scores[board[0x12]] += 1;
-	scores[board[0x15]] += 1;
-	scores[board[0x16]] -= g_globals._b816[board[0x17] + 0xc];
-	scores[board[0x17]] += 0x10;
-	scores[board[0x18]] += 0xc;
-	scores[board[0x19]] -= g_globals._b816[board[0x18] + 0x10];
-	scores[board[0x1e]] -= g_globals._b816[board[0x1f] + 0x10];
-	scores[board[0x1f]] += 0xc;
-	scores[board[0x20]] += 0xc;
-	scores[board[0x21]] -= g_globals._b816[board[0x20] + 0x10];
-	scores[board[0x26]] -= g_globals._b816[board[0x27] + 0x10];
-	scores[board[0x27]] += 0xc;
-	scores[board[0x28]] += 0x10;
-	scores[board[0x29]] -= g_globals._b816[board[0x28] + 0xc];
-	scores[board[0x2a]] += 1;
-	scores[board[0x2d]] += 1;
-	scores[board[0x2e]] -= g_globals._b816[board[0x2f] + 0xc];
-	scores[board[0x2f]] += 0x10;
-	scores[board[0x30]] += 4;
-	scores[board[0x31]] -= g_globals._b816[topRight + 8];
-	scores[board[0x32]] -= g_globals._b816[board[0x3a] + 0xc];
-	scores[board[0x33]] -= g_globals._b816[board[0x3b] + 0x10];
-	scores[board[0x34]] -= g_globals._b816[board[0x3c] + 0x10];
-	scores[board[0x35]] -= g_globals._b816[board[0x3d] + 0xc];
-	scores[board[0x36]] -= g_globals._b816[bottomRight + 8];
-	scores[board[0x37]] += 4;
-	scores[board[0x38]] += 0x32;
-	scores[board[0x39]] += 4;
-	scores[board[0x3a]] += 0x10;
-	scores[board[0x3b]] += 0xc;
-	scores[board[0x3c]] += 0xc;
-	scores[board[0x3d]] += 0x10;
-	scores[board[0x3e]] += 4;
-	scores[board[0x3f]] += 0x32;
+	scores[bottomLeft] += 0x32;
+	scores[topRight] += 0x32;
+	scores[bottomRight] += 0x32;
+
+	// left column
+	scores[b[0][1]] += 4;
+	scores[b[0][2]] += 0x10;
+	scores[b[0][3]] += 0xc;
+	scores[b[0][4]] += 0xc;
+	scores[b[0][5]] += 0x10;
+	scores[b[0][6]] += 4;
+
+	// top row
+	scores[b[1][0]] += 4;
+	scores[b[2][0]] += 0x10;
+	scores[b[3][0]] += 0xc;
+	scores[b[4][0]] += 0xc;
+	scores[b[5][0]] += 0x10;
+	scores[b[6][0]] += 4;
+
+	// bottom row
+	scores[b[1][7]] += 4;
+	scores[b[2][7]] += 0x10;
+	scores[b[3][7]] += 0xc;
+	scores[b[4][7]] += 0xc;
+	scores[b[5][7]] += 0x10;
+	scores[b[6][7]] += 4;
+
+	// away from the edges (interesting we don't score the center/starting spots?)
+	scores[b[2][2]] += 1;
+	scores[b[2][5]] += 1;
+	scores[b[5][2]] += 1;
+	scores[b[5][5]] += 1;
+
+	// right column
+	scores[b[7][1]] += 4;
+	scores[b[7][2]] += 0x10;
+	scores[b[7][3]] += 0xc;
+	scores[b[7][4]] += 0xc;
+	scores[b[7][5]] += 0x10;
+	scores[b[7][6]] += 4;
+
 	return scores[1] - scores[2];
 }
 
