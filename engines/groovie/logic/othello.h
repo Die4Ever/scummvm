@@ -35,18 +35,64 @@
 namespace Groovie {
 
 /*
- * Othello/Reversi puzzle in Clandestiny and UHP.
+ * Othello/Reversi Cursed Coins puzzle in Clandestiny and UHP.
  */
+struct Freeboard {
+	int _score;
+	byte _boardstate[8][8]; // 0 is empty, 1 or 2 is player or ai?
+
+	// for sorting an array of pointers
+	friend bool operator<(const Freeboard &a, const Freeboard &b) {
+		return a._score > b._score;
+	}
+};
+
 class OthelloGame {
 public:
 	OthelloGame();
 	void run(byte *scriptVariables);
 
 private:
+	int scoreEdge(byte (&board)[8][8], int x, int y, int slopeX, int slopeY);
+	int scoreEarlyGame(Freeboard *freeboard);
+	int scoreLateGame(Freeboard *freeboard);
+	int scoreBoard(Freeboard *board);
+	void restart(void);
+	void setClickable(Freeboard *nextBoard, Freeboard *currentBoard, byte *vars);
+	void readBoardStateFromVars(byte *vars);
+	Freeboard getPossibleMove(Freeboard *freeboard, int moveSpot);
+	int getAllPossibleMoves(Freeboard *freeboard, Freeboard (&boards)[30]);
+	int aiRecurse(Freeboard *board, int depth, int parentScore, int opponentBestScore);
+	byte aiDoBestMove(Freeboard *pBoard);
+	void initLines(void);
+	uint makeMove(Freeboard *freeboard, uint8 x, uint8 y);
+	byte getLeader(Freeboard *f);
+	void opInit(byte *vars);
+	void tickBoard();
+	void opPlayerMove(byte *vars);
+	void op3(byte *vars);
+	void opAiMove(byte *vars);
+	void op5(byte *vars);
+
 	void test();
 	void testMatch(Common::Array<int> moves, bool playerWin);
 
 	Common::RandomSource _random;
+	byte _flag1;
+	char _flag2;
+	int _depths[60];
+	int _counter;
+	int _movesLateGame; // this is 52, seems to be a marker of when to change the function pointer to an aleternate scoring algorithm for the late game
+	bool _isLateGame; // used to choose the scoring function, true means scoreLateGame
+	char _lookupPlayer[3]; // used to convert from internal values that represent piece colors to what the script uses in vars, {21, 40, 31}
+	char _scores[3][4];
+	char _edgesScores[112];
+	int _cornersScores[105];
+	int _isAiTurn;
+	char **_lines[64];
+	char *_linesStorage[484];
+	char _lineStorage[2016];
+	Freeboard _board;
 };
 
 } // End of Groovie namespace
