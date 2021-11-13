@@ -31,42 +31,46 @@
 
 namespace Groovie {
 
-struct Freeboards {
-	Freeboards *_p0[30];
+struct Freeboard {
+	Freeboard *_p0[30];
 	int _score120;
 	byte _boardstate124[8][8];// 0 is empty, 1 or 2 is player or ai?
 
 	// for sorting an array of pointers
-	bool operator()(const Freeboards *a, const Freeboards *b) const {
+	bool operator()(const Freeboard *a, const Freeboard *b) const {
 		return a->_score120 > b->_score120;
 	}
 };
 
 struct OthelloGlobals {
-	struct Freeboards *_callocHolder;
+	struct Freeboard *_callocHolder;
 	byte _b16;
 	int _depths24[60];
 	int _callocCount;
-	int _counter272;
-	int _i292;// this is 52, seems to be a marker of when to change the function pointerto an aleternate scoring algorithm for the late game
-	char _b816[8];
-	char _scores[12];
+	int _counter;
+	int _movesLateGame;// this is 52, seems to be a marker of when to change the function pointer to an aleternate scoring algorithm for the late game
+	char _lookupPlayer[4];
+	char _flag;
+	char _scores[3][4];
 	char _edgesScores[112];
 	int _cornersScores[105];
 };
 
 struct OthelloGlobals2 {
-	int _i0;
-	int (*_funcPointer4Score)(Freeboards *);
-	Freeboards *_p8;
-	char **_lines12[64];
-	struct Freeboards *_freeboards268;
-	byte _b272[12];
+	int _isAiTurn;
+	int (*_funcPointer4Score)(Freeboard *);
+	Freeboard *_nextBoard;
+	char **_lines[64];
+	struct Freeboard *_currentBoard;
 };
 
 bool g_globalsInited = false;
 OthelloGlobals g_globals;
 OthelloGlobals2 g_globals2;
+
+const int EMPTY_PIECE = 0;
+const int AI_PIECE = 1;
+const int PLAYER_PIECE = 2;
 
 
 void initGlobals() {
@@ -78,9 +82,10 @@ void initGlobals() {
 	int t_b24[60] = {1, 4, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 7, 6, 5, 4, 3, 2, 1, 1};
 	memcpy(g_globals._depths24, t_b24, sizeof(t_b24));
 	g_globals._callocCount = 64;
-	g_globals._i292 = 52;
-	int8 t_b816[8] = {21, 40, 31, 0, 0, 0, 0, 0};
-	memcpy(g_globals._b816, t_b816, sizeof(t_b816));
+	g_globals._movesLateGame = 52;
+	int8 t_b816[4] = {21, 40, 31, 0};
+	memcpy(g_globals._lookupPlayer, t_b816, sizeof(t_b816));
+	g_globals._flag = 0;
 	int8 t_scores[12] = {30, 0, 0, 0, 4, 0, 0, 0, 5, 0, 0, 0};
 	memcpy(g_globals._scores, t_scores, sizeof(t_scores));
 	int8 t_edgesScores[112] = {0, 3, 6, 9, 3, 15, 12, 18, 6, 0, 45, 6, 0, 3, 27, 12, 60, 15, 9, 18, 36, 21, 24, 27, 30, 24, 36, 33, 39, 27, 21, 3, 27, 21, 24, 69, 33, 18, 36, 30, 39, 78, 42, 45, 48, 51, 45, 57, 54, 60, 48, 42, 87, 48, 42, 45, 6, 54, 102, 57, 51, 60, 15, 63, 66, 69, 72, 66, 78, 75, 81, 69, 63, 24, 69, 63, 66, 69, 75, 39, 78, 72, 81, 78, 84, 87, 90, 93, 87, 99, 96, 102, 90, 84, 87, 90, 84, 87, 48, 96, 102, 99, 93, 102, 57, 0, 0, 0, 0, 0, 0, 0};
@@ -111,8 +116,7 @@ int scoreEdge(byte (&board)[8][8], int x, int y, int slopeX, int slopeY) {
 	return g_globals._cornersScores[*ptr];
 }
 
-int othelloFuncPointee1Score(Freeboards *freeboard) {
-	// 1 is AI, 2 is player
+int othelloFuncPointee1Score(Freeboard *freeboard) {
 	// in the early game the AI's search depth can't see far enough, so instead of the score simply being
 	int scores[3];
 	scores[0] = 0;
@@ -125,7 +129,7 @@ int othelloFuncPointee1Score(Freeboards *freeboard) {
 	int scoreBottomEdge = scoreEdge(b, 0, 7, 1, 0);
 	int scoreTopEdge = scoreEdge(b, 0, 0, 1, 0);
 	int scoreLeftEdge = scoreEdge(b, 0, 0, 0, 1);
-	scores[1] = scoreRightEdge + scoreBottomEdge + scoreTopEdge + scoreLeftEdge;
+	scores[AI_PIECE] = scoreRightEdge + scoreBottomEdge + scoreTopEdge + scoreLeftEdge;
 
 	int topLeft = b[0][0];
 	int bottomLeft = b[0][7];
@@ -134,14 +138,14 @@ int othelloFuncPointee1Score(Freeboards *freeboard) {
 
 	//subtract points for bad spots relative to the opponent
 	//diagonal from the corners
-	char *diagFromCorners = &g_globals._scores[0];
+	char *diagFromCorners = &g_globals._scores[0][0];
 	scores[b[1][1]] -= diagFromCorners[topLeft];
 	scores[b[1][6]] -= diagFromCorners[bottomLeft];
 	scores[b[6][1]] -= diagFromCorners[topRight];
 	scores[b[6][6]] -= diagFromCorners[bottomRight];
 
 	// 2 away from the edge
-	char *twoAwayFromEdge = &g_globals._scores[4];
+	char *twoAwayFromEdge = &g_globals._scores[1][0];
 	scores[b[1][2]] -= twoAwayFromEdge[b[0][2]];
 	scores[b[1][5]] -= twoAwayFromEdge[b[0][5]];
 	scores[b[2][1]] -= twoAwayFromEdge[b[2][0]];
@@ -152,7 +156,7 @@ int othelloFuncPointee1Score(Freeboards *freeboard) {
 	scores[b[6][5]] -= twoAwayFromEdge[b[7][5]];
 
 	// 3 away from the edge
-	char *threeAwayFromEdge = &g_globals._scores[8];
+	char *threeAwayFromEdge = &g_globals._scores[2][0];
 	scores[b[1][3]] -= threeAwayFromEdge[b[0][3]];
 	scores[b[1][4]] -= threeAwayFromEdge[b[0][4]];
 	scores[b[3][1]] -= threeAwayFromEdge[b[3][0]];
@@ -206,85 +210,67 @@ int othelloFuncPointee1Score(Freeboards *freeboard) {
 	scores[b[7][5]] += 0x10;
 	scores[b[7][6]] += 4;
 
-	return scores[1] - scores[2];
+	return scores[AI_PIECE] - scores[PLAYER_PIECE];
 }
 
-int othelloFuncPointee2LateGameScore(Freeboards *freeboard) {
-	int scores[3];
-
+int othelloFuncPointee2LateGameScore(Freeboard *freeboard) {
 	byte *board = &freeboard->_boardstate124[0][0];
-	// 1 is AI, 2 is player
 	// in the late game, we simply score the same way we determine the winner, because the AI's search depth can see to the end of the game
+	int scores[3];
 	scores[0] = 0;
 	scores[1] = 0;
 	scores[2] = 0;
 	for (int i = 0; i < 64; i++) {
 		scores[board[i]]++;
 	}
-	return (scores[1] - scores[2]) * 4;
+	return (scores[AI_PIECE] - scores[PLAYER_PIECE]) * 4;
 }
 
 void *othelloCalloc1(void) {
-	Freeboards *pFVar2;
-	int iVar4;
-	int iVar5;
-
-	g_globals._callocHolder = new Freeboards[g_globals._callocCount]();
-	iVar5 = 0;
-	if (0 < g_globals._callocCount) {
-		iVar4 = 0;
-		do {
-			Freeboards *node = &g_globals._callocHolder[iVar5];
-			if (iVar5 > 0) {
-				Freeboards *prev = &g_globals._callocHolder[iVar5 - 1];
-				prev->_p0[0] = node;
-			}
-			iVar4 += 0x9c;
-			iVar5 += 1;
-		} while (iVar5 < g_globals._callocCount);
+	g_globals._callocHolder = new Freeboard[g_globals._callocCount]();
+	for (int i = 1; i < g_globals._callocCount; i++) {
+		Freeboard *node = &g_globals._callocHolder[i];
+		Freeboard *prev = &g_globals._callocHolder[i - 1];
+		prev->_p0[0] = node;
 	}
-	pFVar2 = g_globals._callocHolder;
+	
+	Freeboard *retboard = g_globals._callocHolder;
 	g_globals._callocHolder[g_globals._callocCount + -1]._p0[0] = NULL;
 	g_globals._callocCount = 10;
-	return pFVar2;
+	return retboard;
 }
 
-Freeboards *othelloCalloc2(void) {
-	Freeboards *pFVar2;
-
-	if (g_globals._callocHolder == (Freeboards *)0x0) {
+Freeboard *othelloCalloc2(void) {
+	if (g_globals._callocHolder == NULL) {
 		othelloCalloc1();
 	}
-	pFVar2 = g_globals._callocHolder;
-	Freeboards **ppvVar1 = &(g_globals._callocHolder)->_p0[0];
-	g_globals._callocHolder = (g_globals._callocHolder)->_p0[0];
-	*ppvVar1 = NULL;
-	return pFVar2;
+	Freeboard *newboard = g_globals._callocHolder;
+	g_globals._callocHolder = newboard->_p0[0];
+	newboard->_p0[0] = NULL;
+	return newboard;
 }
 
-Freeboards *othelloInit(void) {
-	Freeboards *pfVar1;
-
-	pfVar1 = othelloCalloc2();
+Freeboard *othelloInit(void) {
+	Freeboard *board = othelloCalloc2();
 	// clear the board
-	memset(pfVar1->_boardstate124, 0, sizeof(pfVar1->_boardstate124));
-	// set the starting pieces, 1 is AI, 2 is player, 0 is empty
-	pfVar1->_boardstate124[4][4] = 1; // 2 - (g_globals._i296 == g_globals._i268);
-	pfVar1->_boardstate124[3][3] = pfVar1->_boardstate124[4][4];
-	pfVar1->_boardstate124[4][3] = 2; // (g_globals._i296 == g_globals._i268) + 1;
-	pfVar1->_boardstate124[3][4] = pfVar1->_boardstate124[4][3];
-	return pfVar1;
+	memset(board->_boardstate124, EMPTY_PIECE, sizeof(board->_boardstate124));
+	// set the starting pieces
+	board->_boardstate124[4][4] = AI_PIECE; // 2 - (g_globals._i296 == g_globals._i268);
+	board->_boardstate124[3][3] = board->_boardstate124[4][4];
+	board->_boardstate124[4][3] = PLAYER_PIECE; // (g_globals._i296 == g_globals._i268) + 1;
+	board->_boardstate124[3][4] = board->_boardstate124[4][3];
+	return board;
 }
 
 int xyToVar(int x, int y) {
-	return x * 10 + y + 0x19;
+	return x * 10 + y + 25;
 }
 
-void othelloSub01SetClickable(Freeboards *param_1, Freeboards *param_2, byte *vars) {
-	if (param_1 == 0x0) {
+void othelloSub01SetClickable(Freeboard *board1, Freeboard *board2, byte *vars) {
+	if (board1 == NULL) {
 		for (int x = 0; x < 8; x++) {
 			for (int y = 0; y < 8; y++) {
-				vars[xyToVar(x, y)] = g_globals._b816[param_2->_boardstate124[x][y]];
+				vars[xyToVar(x, y)] = g_globals._lookupPlayer[board2->_boardstate124[x][y]];
 			}
 		}
 		return;
@@ -292,9 +278,9 @@ void othelloSub01SetClickable(Freeboards *param_1, Freeboards *param_2, byte *va
 
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
-			byte b = g_globals._b816[param_2->_boardstate124[x][y]];
+			byte b = g_globals._lookupPlayer[board2->_boardstate124[x][y]];
 			vars[xyToVar(x, y)] = b;
-			if (param_1->_boardstate124[x][y] == b && b != 0) {
+			if (board1->_boardstate124[x][y] == b && b != 0) {
 				vars[xyToVar(x, y)] += 32;
 			}
 		}
@@ -302,55 +288,47 @@ void othelloSub01SetClickable(Freeboards *param_1, Freeboards *param_2, byte *va
 	return;
 }
 
-Freeboards *othelloSub02(byte *param_1) {
-	Freeboards *pFVar2;
-
-	pFVar2 = othelloCalloc2();
+Freeboard *othelloSub02(byte *vars) {
+	Freeboard *board = othelloCalloc2();
 
 	for (int x = 0; x < 8; x++) {
 		for (int y = 0; y < 8; y++) {
-			byte b = param_1[xyToVar(x, y)];
-			if (b == g_globals._b816[0]) {
-				pFVar2->_boardstate124[x][y] = 0;
+			byte b = vars[xyToVar(x, y)];
+			if (b == g_globals._lookupPlayer[0]) {
+				board->_boardstate124[x][y] = EMPTY_PIECE;
 			}
-			if (b == g_globals._b816[1]) {
-				pFVar2->_boardstate124[x][y] = 1;
+			if (b == g_globals._lookupPlayer[1]) {
+				board->_boardstate124[x][y] = AI_PIECE;
 			}
-			if (b == g_globals._b816[2]) {
-				pFVar2->_boardstate124[x][y] = 2;
+			if (b == g_globals._lookupPlayer[2]) {
+				board->_boardstate124[x][y] = PLAYER_PIECE;
 			}
 		}
 	}
 
-	return pFVar2;
+	return board;
 }
 
-void *othelloSub03LinkBoard(Freeboards *board) {
+void *othelloSub03LinkBoard(Freeboard *board) {
 	board->_p0[0] = g_globals._callocHolder;
 	g_globals._callocHolder = board;
 	return board;
 }
 
-Freeboards *othelloSub04GetPossibleMove(Freeboards *freeboards, int moveSpot) {
+Freeboard *othelloSub04GetPossibleMove(Freeboard *freeboard, int moveSpot) {
 	// we make a new board with the piece placed and captures completed
-	byte *board;
-	char **line;
-	Freeboards *newboard;
-	int player;
-	int opponent;
-
-	player = (g_globals2._i0 == 0) + 1;
-	opponent = 2 - (uint)(g_globals2._i0 == 0);
+	int player = g_globals2._isAiTurn ? AI_PIECE : PLAYER_PIECE;
+	int opponent = g_globals2._isAiTurn ? PLAYER_PIECE : AI_PIECE;
 
 	// copy the board
-	newboard = othelloCalloc2();
-	memcpy(newboard->_boardstate124, freeboards->_boardstate124, sizeof(newboard->_boardstate124));
+	Freeboard *newboard = othelloCalloc2();
+	memcpy(newboard->_boardstate124, freeboard->_boardstate124, sizeof(newboard->_boardstate124));
 
-	board = &newboard->_boardstate124[0][0];
-	line = g_globals2._lines12[moveSpot];
+	byte *board = &newboard->_boardstate124[0][0];
+	char **line = g_globals2._lines[moveSpot];
 
 	// check every line until we hit the null-terminating pointer
-	for(line = g_globals2._lines12[moveSpot]; *line != NULL; line++) {
+	for(line = g_globals2._lines[moveSpot]; *line != NULL; line++) {
 		char *lineSpot = *line;
 		int piece = board[*lineSpot];
 		char *_lineSpot;
@@ -375,217 +353,171 @@ Freeboards *othelloSub04GetPossibleMove(Freeboards *freeboards, int moveSpot) {
 	return newboard;
 }
 
-void othelloSub05SortPossibleMoves(Freeboards *f, int numPossibleMoves) {
+void othelloSub05SortPossibleMoves(Freeboard *f, int numPossibleMoves) {
 	if (numPossibleMoves < 2)
 		return;
 
 	Common::sort(&f->_p0[0], &f->_p0[numPossibleMoves], *f);
 }
 
-int othelloSub06GetAllPossibleMoves(Freeboards *freeboards) {
-	char **lineSpot;
-	char *testSpot;
-	char opponent;
-	int moveSpot;
-	byte player;
-	int numPossibleMoves;
-	char ***line;
-
-	moveSpot = 0;
-	player = (g_globals2._i0 == 0) + 1;
-	numPossibleMoves = 0;
-	line = &g_globals2._lines12[0];
-	opponent = '\x02' - (g_globals2._i0 == 0);
+int othelloSub06GetAllPossibleMoves(Freeboard *freeboard) {
+	int moveSpot = 0;
+	byte player = g_globals2._isAiTurn ? AI_PIECE : PLAYER_PIECE;
+	byte opponent = g_globals2._isAiTurn ? PLAYER_PIECE : AI_PIECE;
+	int numPossibleMoves = 0;
+	char ***line = &g_globals2._lines[0];
 	do {
-		if(freeboards->_boardstate124[moveSpot / 8][moveSpot % 8] == '\0') {
-			lineSpot = *line;
+		if(freeboard->_boardstate124[moveSpot / 8][moveSpot % 8] == 0) {
+			char **lineSpot = *line;
+			char *testSpot;
 			// loop through a list of slots in line with piece moveSpot, looping away from moveSpot
 			do {
 				do {
 					// skip all spots that aren't the opponent
 					testSpot = *lineSpot;
-					lineSpot = lineSpot + 1;
-					if (testSpot == 0x0) // end of the null terminated line?
-						goto LAB_00412467;
-				} while (freeboards->_boardstate124[*testSpot / 8][*testSpot % 8] != opponent);
+					lineSpot++;
+					if (testSpot == NULL) // end of the null terminated line?
+						goto LAB_OUT;
+				} while (freeboard->_boardstate124[*testSpot / 8][*testSpot % 8] != opponent);
 				do {
 					// we found the opponent, skip to the first piece that doesn't belong to the opponent
 					testSpot++;
-				} while (freeboards->_boardstate124[*testSpot / 8][*testSpot % 8] == opponent);
+				} while (freeboard->_boardstate124[*testSpot / 8][*testSpot % 8] == opponent);
 				// start over again if didn't find a piece of our own on the other side
-			} while (freeboards->_boardstate124[*testSpot / 8][*testSpot % 8] != player);
+			} while (freeboard->_boardstate124[*testSpot / 8][*testSpot % 8] != player);
 			// so we found (empty space)(opponent+)(our own piece)
 			// add this to the list of possible moves
-			Freeboards *possibleMove = othelloSub04GetPossibleMove(freeboards, moveSpot);
-			freeboards->_p0[numPossibleMoves] = possibleMove;
+			Freeboard *possibleMove = othelloSub04GetPossibleMove(freeboard, moveSpot);
+			freeboard->_p0[numPossibleMoves] = possibleMove;
 			numPossibleMoves++;
 			possibleMove->_score120 = g_globals2._funcPointer4Score(possibleMove);
 		}
-	LAB_00412467:
-		line = line + 1;
-		moveSpot += 1;
-		if (0x3f < moveSpot) {
+	LAB_OUT:
+		line++;
+		moveSpot++;
+		if (moveSpot > 63) {
 			// null terminate the list
-			othelloSub05SortPossibleMoves(freeboards, numPossibleMoves);
-			freeboards->_p0[numPossibleMoves] = 0;
+			othelloSub05SortPossibleMoves(freeboard, numPossibleMoves);
+			freeboard->_p0[numPossibleMoves] = 0;
 			return numPossibleMoves;
 		}
 	} while (true);
 }
 
-int othelloSub07AiRecurse(Freeboards *board, int depth, int parentScore, int opponentBestScore) {
-	Freeboards *pFVar1;
-	bool whoseTurn;
-	bool bVar3;
-	int _depth;
-	int score;
-	int iVar6;
-	int local_c;
-	int bestScore;
-	Freeboards **local_4;
-
-	local_c = othelloSub06GetAllPossibleMoves(board);
-	if (local_c == 0) {
-		g_globals2._i0 = (g_globals2._i0 == 0);
-		local_c = othelloSub06GetAllPossibleMoves(board);
-		if (local_c == 0) {
+int othelloSub07AiRecurse(Freeboard *board, int depth, int parentScore, int opponentBestScore) {
+	int numPossibleMoves = othelloSub06GetAllPossibleMoves(board);
+	if (numPossibleMoves == 0) {
+		g_globals2._isAiTurn = !g_globals2._isAiTurn;
+		numPossibleMoves = othelloSub06GetAllPossibleMoves(board);
+		if (numPossibleMoves == 0) {
 			return othelloFuncPointee2LateGameScore(board);
 		}
 	}
-	_depth = depth + -1;
-	whoseTurn = g_globals2._i0 == 0;
-	bestScore = whoseTurn ? 100 : -100;
-	iVar6 = 0;
-	if (0 < local_c) {
-		local_4 = &board->_p0[0];
-		do {
-			pFVar1 = *local_4;
-			g_globals2._i0 = whoseTurn;
-			if (_depth == 0) {
-				score = (int)pFVar1->_score120;
+
+	int _depth = depth - 1;
+	bool isPlayerTurn = !g_globals2._isAiTurn;
+	int bestScore = isPlayerTurn ? 100 : -100;
+	Freeboard **boardsIter = &board->_p0[0];
+	for (int i = 0; i < numPossibleMoves; i++, boardsIter++) {
+		Freeboard *tBoard = *boardsIter;
+		g_globals2._isAiTurn = isPlayerTurn; // reset and flip the global for whose turn it is before recursing
+		int score;
+		if (_depth == 0) {
+			score = (int)tBoard->_score120;
+		} else {
+			if (isPlayerTurn) {
+				score = othelloSub07AiRecurse(tBoard, _depth, parentScore, bestScore);
 			} else {
-				if (whoseTurn) {
-					score = othelloSub07AiRecurse(pFVar1, _depth, parentScore, bestScore);
-				} else {
-					score = othelloSub07AiRecurse(pFVar1, _depth, bestScore, opponentBestScore);
-				}
+				score = othelloSub07AiRecurse(tBoard, _depth, bestScore, opponentBestScore);
 			}
-			if ((bestScore < score) != whoseTurn) {
-				if (whoseTurn) {
-					bVar3 = true;
-					if (parentScore < score) {
-					LAB_0041207d:
-						bVar3 = false;
-					}
-				} else {
-					bVar3 = true;
-					if (score < opponentBestScore)
-						goto LAB_0041207d;
-				} 
-				bestScore = score;
-				if (bVar3) {
-					for (; iVar6 < local_c; iVar6 += 1) {
-						othelloSub03LinkBoard(board->_p0[iVar6]);
-					}
-					return score;
-				}
+		}
+		if ((bestScore < score) != isPlayerTurn) {
+			bool done = true;
+			if (isPlayerTurn) {
+				if (parentScore < score)
+					done = false;
+			} else {
+				if (score < opponentBestScore)
+					done = false;
 			}
-			iVar6 += 1;
-			othelloSub03LinkBoard(pFVar1);
-			local_4 = local_4 + 1;
-		} while (iVar6 < local_c);
+			bestScore = score;
+			if (done) {
+				for ( ; i < numPossibleMoves; i++) {
+					othelloSub03LinkBoard(board->_p0[i]);
+				}
+				return score;
+			}
+		}
+		othelloSub03LinkBoard(tBoard);
 	}
+	
 	return bestScore;
 }
 
-byte othelloSub08Ai(Freeboards **pBoard) {
-	byte *pbVar1;
-	Freeboards *pFVar2;
-	int iVar3;
-	int score;
-	byte *pbVar5;
-	byte *pbVar6;
-	int move;
+byte othelloSub08Ai(Freeboard **pBoard) {
+	int bestScore = -101;
 	int bestMove = 0;
-	int bestScore;
-
-	bestScore = -0x65;
 	int parentScore = -100;
 	if (g_globals._b16 == 0) {
-		g_globals2._i0 = 1;
+		g_globals2._isAiTurn = 1;
 	}
-	Freeboards *board = *pBoard;
-	iVar3 = othelloSub06GetAllPossibleMoves(board);
-	if (iVar3 == 0) {
+
+	Freeboard *board = *pBoard;
+	int numPossibleMoves = othelloSub06GetAllPossibleMoves(board);
+	if (numPossibleMoves == 0) {
 		return 0;
 	}
-	move = 0;
-	do {
-		g_globals2._i0 = g_globals2._i0 == 0;
-		score = othelloSub07AiRecurse(board->_p0[move], g_globals._depths24[g_globals._counter272], parentScore, 100);
+
+	for (int move = 0; move < numPossibleMoves; move++) {
+		g_globals2._isAiTurn = !g_globals2._isAiTurn; // flip before recursing
+		int score = othelloSub07AiRecurse(board->_p0[move], g_globals._depths24[g_globals._counter], parentScore, 100);
 		if (bestScore < score) {
 			parentScore = score;
 			bestMove = move;
 			bestScore = score;
 		}
-		move += 1;
-	} while (move < iVar3);
-	pbVar6 = &board->_boardstate124[0][0] - 1; // -1 because we increment it before using it
-	pbVar5 = &board->_p0[bestMove]->_boardstate124[0][0] - 1;
-	do {
-		do {
-			pbVar5 = pbVar5 + 1;
-			pbVar1 = pbVar6 + 1;
-			pbVar6 = pbVar6 + 1;
-		} while (*pbVar5 == *pbVar1);
-	} while (*pbVar1 != 0);
-	int iVar7 = 0;
-	if (0 < iVar3) {
-		do {
-			if (bestMove != iVar7) {
-				othelloSub03LinkBoard(board->_p0[iVar7]);
-			}
-			iVar7 += 1;
-		} while (iVar7 < iVar3);
 	}
-	pFVar2 = board->_p0[bestMove];
+
+	// link up the non-best boards? does this put them back in the memory pool?
+	for (int i = 0; i < numPossibleMoves; i++) {
+		if (bestMove != i)
+			othelloSub03LinkBoard(board->_p0[i]);
+	}
+
+	Freeboard *bestBoard = board->_p0[bestMove];
 	othelloSub03LinkBoard(board);
-	*pBoard = pFVar2;
+	*pBoard = bestBoard;
 	if (g_globals._b16 == 0) {
-		g_globals._counter272 += 1;
+		g_globals._counter += 1;
 	}
 	return 1;
 }
 
 void othelloSub09InitLines(void) {
-	char **lines;
-	char *line;
-
 	// allocate an array of strings, the lines are null-terminated
-	lines = new char *[484]();
-	line = new char[0x7e0]();
+	char **lines = new char *[484]();
+	char *line = new char[0x7e0]();
 
 	for (int baseX = 0; baseX < 8; baseX++) {
 		for (int baseY = 0; baseY < 8; baseY++) {
 			// assign the array of strings to the current spot
-			g_globals2._lines12[(baseX * 8 + baseY)] = lines;
+			g_globals2._lines[(baseX * 8 + baseY)] = lines;
 			for (int slopeX = -1; slopeX < 2; slopeX++) {
 				for (int slopeY = -1; slopeY < 2; slopeY++) {
 					// don't include current spot in its own line
 					if (slopeX == 0 && slopeY == 0)
 						continue;
 
-					// assign the current line to the current spot in the lines array
+					// assign the current line to the current spot in the lines array, uint saves us from bounds checking for below 0
 					*lines = line;
-					int x = baseX + slopeX;
-					int y;
-					for (y = baseY + slopeY;
-						 (((-1 < x && (x < 8)) && (-1 < y)) && (y < 8)); y += slopeY) {
-						*line = (char)y + (char)x * 8;
+					uint x = baseX + slopeX;
+					uint y;
+					for (y = baseY + slopeY; x < 8 && y < 8; y += slopeY) {
+						*line = x * 8 + y;
 						line++;
 						x += slopeX;
 					}
-					if ((baseX + slopeX != x) || (baseY + slopeY != y)) {
+					if (baseX + slopeX != (int)x || baseY + slopeY != (int)y) {
 						*line = baseX * 8 + baseY;
 						line++;
 						lines++;
@@ -597,65 +529,49 @@ void othelloSub09InitLines(void) {
 			lines++;
 		}
 	}
-	return;
 }
 
-uint othelloSub10MakeMove(Freeboards **freeboards, char x, char y) {
-	uint uVar1;
-	void *pvVar2;
-	byte *pbVar3;
-	Freeboards *pFVar4;
-	uint uVar7;
-	uint uVar8;
-
-	Freeboards *board = *freeboards;
-	g_globals2._i0 = 0;
-	uVar1 = othelloSub06GetAllPossibleMoves(board);
-	if (uVar1 == 0) {
+uint othelloSub10MakeMove(Freeboard **freeboard, uint8 x, uint8 y) {
+	Freeboard *board = *freeboard;
+	g_globals2._isAiTurn = 0;
+	uint numPossibleMoves = othelloSub06GetAllPossibleMoves(board);
+	if (numPossibleMoves == 0)
 		return 0;
-	}
-	pbVar3 = 0;
+
 	if (x == '*') {
 		g_globals._b16 = 1;
-		othelloSub08Ai(freeboards);
-		pvVar2 = 0;
+		othelloSub08Ai(freeboard);
 		g_globals._b16 = 0;
-	LAB_004126bb:
-		g_globals._counter272 += 1;
+		g_globals._counter += 1;
 		return 1;
 	}
 
-	if ((((-1 < y) && (y < 8)) && (-1 < x)) && (x < 8)) {
-		pFVar4 = board;
-		pbVar3 = &pFVar4->_boardstate124[y][0];
-		if (pbVar3[x] == 0) {
-			uVar8 = 0;
-			while (pFVar4->_p0[0]->_boardstate124[y][x] == 0) {
-				pFVar4 = (Freeboards *)(pFVar4->_p0 + 1);
-				uVar8 += 1;
-				if (uVar8 == uVar1) {
-					return 0;
-				}
-			}
-			uVar7 = 0;
-			if (0 < (int)uVar1) {
-				do {
-					if (uVar8 != uVar7) {
-						othelloSub03LinkBoard(board->_p0[uVar7]);
-					}
-					uVar7 += 1;
-				} while ((int)uVar7 < (int)uVar1);
-			}
-			pFVar4 = board->_p0[uVar8];
-			pvVar2 = othelloSub03LinkBoard(board);
-			*freeboards = pFVar4;
-			goto LAB_004126bb;
+	// uint saves us from bounds checking below 0, not yet sure why this function uses y, x instead of x, y but it works
+	if (y < 8 && x < 8 && board->_boardstate124[y][x] == 0) {
+		// find the pre-made board the represents this move
+		uint newBoardSlot = 0;
+		Freeboard *newBoard = board;
+		for (; newBoardSlot < numPossibleMoves && newBoard->_p0[0]->_boardstate124[y][x] == 0; newBoardSlot++) {
+			newBoard = (Freeboard *)(newBoard->_p0 + 1);
 		}
+		if (newBoardSlot == numPossibleMoves)
+			return 0;
+
+		for (uint i = 0; i < numPossibleMoves; i++) {
+			if (i != newBoardSlot)
+				othelloSub03LinkBoard(board->_p0[i]);
+		}
+		newBoard = board->_p0[newBoardSlot];
+		othelloSub03LinkBoard(board);
+		*freeboard = newBoard;
+		g_globals._counter += 1;
+		return 1;
 	}
+
 	return 0;
 }
 
-byte othelloSub11GetLeader(Freeboards *f){
+byte othelloSub11GetLeader(Freeboard *f){
 	byte counters[4] = {};
 
 	for (int x = 0; x < 8; x++) {
@@ -672,122 +588,122 @@ byte othelloSub11GetLeader(Freeboards *f){
 	return 3;
 }
 
-void othelloRun(byte *vars) {
-	byte bVar1;
-	uint uVar2;
-	uint uVar1;
-	int iVar3;
-	Freeboards *pFVar4;
-	void **piVar4x;
+void OthelloOpInit(byte *vars) {
+	vars[0] = 0;
+	g_globals2._funcPointer4Score = othelloFuncPointee1Score;
+	othelloSub09InitLines();
+	if (g_globals._callocHolder != (Freeboard *)0x0) {
+		g_globals._callocHolder = (Freeboard *)0x0;
+		g_globals._callocCount = 0x40;
+	}
+	othelloCalloc1();
+	g_globals2._currentBoard = othelloInit();
+	g_globals2._nextBoard = othelloCalloc2();
+	g_globals._counter = 0;
+	othelloSub01SetClickable(0x0, g_globals2._currentBoard, vars);
+	vars[4] = 1;
+}
 
+void OthelloAdvanceBoard() {
+	Freeboard *board = g_globals2._currentBoard;
+	void **pp = (void **)&g_globals2._nextBoard->_p0[0];
+	for (int i = 39; i != 0; i--) {
+		*pp = board->_p0[0];
+		board = (Freeboard *)(board->_p0 + 1);
+		pp = pp + 1;
+	}
+
+	if (g_globals._counter < 60) {
+		if (g_globals._movesLateGame < g_globals._counter) {
+			g_globals2._funcPointer4Score = othelloFuncPointee2LateGameScore;
+		}
+	}
+}
+
+void OthelloOpPlayerMove(byte *vars) {
+	OthelloAdvanceBoard();
+
+	if (g_globals._counter < 60) {
+		g_globals._flag = 0;
+		byte x = vars[3];
+		byte y = vars[2];
+		// top left spot is 0, 0
+		warning("OthelloGame player moved to %d, %d", (int)x, (int)y);
+		vars[4] = othelloSub10MakeMove(&g_globals2._currentBoard, x, y);
+	} else {
+		vars[0] = othelloSub11GetLeader(g_globals2._currentBoard);
+		vars[4] = 1;
+	}
+	othelloSub01SetClickable(g_globals2._nextBoard, g_globals2._currentBoard, vars);
+}
+
+void OthelloOp3(byte *vars) {
+	OthelloAdvanceBoard();
+
+	if (g_globals._counter < 60) {
+		vars[3] = '*';
+		uint move = othelloSub10MakeMove(&g_globals2._currentBoard, '*', vars[2]);
+		vars[4] = move;
+		if (move == 0) {
+			g_globals._flag = 1;
+		} else {
+			g_globals._flag = 0;
+		}
+	} else {
+		vars[0] = othelloSub11GetLeader(g_globals2._currentBoard);
+		vars[4] = 1;
+	}
+	othelloSub01SetClickable(g_globals2._nextBoard, g_globals2._currentBoard, vars);
+}
+
+void OthelloOpAiMove(byte *vars) {
+	OthelloAdvanceBoard();
+
+	if (g_globals._counter < 60) {
+		uint move = othelloSub08Ai(&g_globals2._currentBoard);
+		vars[4] = move;
+		if (move == 0 && g_globals._flag != 0) {
+			vars[0] = othelloSub11GetLeader(g_globals2._currentBoard);
+		}
+	} else {
+		vars[0] = othelloSub11GetLeader(g_globals2._currentBoard);
+		vars[4] = 0;
+	}
+	othelloSub01SetClickable(g_globals2._nextBoard, g_globals2._currentBoard, vars);
+}
+
+void OthelloOp5(byte *vars) {
+	g_globals._counter = (int)(char)vars[2];
+	g_globals2._currentBoard = othelloSub02(vars);
+	othelloSub09InitLines();
+	othelloSub06GetAllPossibleMoves((Freeboard *)g_globals2._currentBoard);
+	vars[4] = 1;
+}
+
+void othelloRun(byte *vars) {
 	byte op = vars[1];
 	warning("OthelloGame op %d", (int)op);
 
 	switch (op) {
 	case 0: // init/restart
-		*vars = 0;
-		g_globals2._funcPointer4Score = othelloFuncPointee1Score;
-		othelloSub09InitLines();
-		if (g_globals._callocHolder != (Freeboards *)0x0) {
-			g_globals._callocHolder = (Freeboards *)0x0;
-			g_globals._callocCount = 0x40;
-		}
-		othelloCalloc1();
-		g_globals2._freeboards268 = othelloInit();
-		g_globals2._p8 = othelloCalloc2();
-		g_globals._counter272 = 0;
-		othelloSub01SetClickable(0x0, g_globals2._freeboards268, vars);
-		vars[4] = 1;
-		return;
+		OthelloOpInit(vars);
+		break;
 	case 1: // win/lose?
-		g_globals._b816[4] = 1;
-		return;
+		g_globals._flag = 1;
+		break;
 	case 2: // player move
-		pFVar4 = g_globals2._freeboards268;
-		piVar4x = (void **)g_globals2._p8;
-		for (iVar3 = 0x27; iVar3 != 0; iVar3 += -1) {
-			*piVar4x = pFVar4->_p0[0];
-			pFVar4 = (Freeboards *)(pFVar4->_p0 + 1);
-			piVar4x = piVar4x + 1;
-		}
-		if (g_globals._counter272 < 0x3c) {
-			if (g_globals._i292 < g_globals._counter272) {
-				g_globals2._funcPointer4Score = othelloFuncPointee2LateGameScore;
-			}
-			g_globals._b816[4] = 0;
-			byte x = vars[3];
-			byte y = vars[2];
-			// top left spot is 0, 0
-			warning("OthelloGame player moved to %d, %d", (int)x, (int)y);
-			uVar2 = othelloSub10MakeMove(&g_globals2._freeboards268, x, y);
-			vars[4] = (byte)uVar2;
-		} else {
-			bVar1 = othelloSub11GetLeader(g_globals2._freeboards268);
-			*vars = bVar1;
-			vars[4] = 1;
-		}
-		othelloSub01SetClickable(g_globals2._p8, g_globals2._freeboards268, vars);
-		return;
+		OthelloOpPlayerMove(vars);
+		break;
 	case 3: // ???
-		pFVar4 = g_globals2._freeboards268;
-		piVar4x = (void **)g_globals2._p8;
-		for (iVar3 = 0x27; iVar3 != 0; iVar3 += -1) {
-			*piVar4x = pFVar4->_p0[0];
-			pFVar4 = (Freeboards *)(pFVar4->_p0 + 1);
-			piVar4x = piVar4x + 1;
-		}
-		if (g_globals._counter272 < 0x3c) {
-			if (g_globals._i292 < g_globals._counter272) {
-				g_globals2._funcPointer4Score = othelloFuncPointee2LateGameScore;
-			}
-			vars[3] = 0x2a;
-			uVar2 = othelloSub10MakeMove(&g_globals2._freeboards268, '*', vars[2]);
-			vars[4] = (byte)uVar2;
-			if ((byte)uVar2 == 0) {
-				g_globals._b816[4] = 1;
-			} else {
-				g_globals._b816[4] = 0;
-			}
-		} else {
-			bVar1 = othelloSub11GetLeader(g_globals2._freeboards268);
-			*vars = bVar1;
-			vars[4] = 1;
-		}
-		othelloSub01SetClickable(g_globals2._p8, g_globals2._freeboards268, vars);
-		return;
+		OthelloOp3(vars);
+		break;
 	case 4: // ai move
-		pFVar4 = g_globals2._freeboards268;
-		piVar4x = (void **)g_globals2._p8;
-		for (iVar3 = 0x27; iVar3 != 0; iVar3 += -1) {
-			*piVar4x = pFVar4->_p0[0];
-			pFVar4 = (Freeboards *)(pFVar4->_p0 + 1);
-			piVar4x = piVar4x + 1;
-		}
-		if (g_globals._counter272 < 0x3c) {
-			if (g_globals._i292 < g_globals._counter272) {
-				g_globals2._funcPointer4Score = othelloFuncPointee2LateGameScore;
-			}
-			uVar1 = othelloSub08Ai(&g_globals2._freeboards268);
-			vars[4] = uVar1;
-			if ((uVar1 == 0) && (g_globals._b816[4] != 0)) {
-				bVar1 = othelloSub11GetLeader(g_globals2._freeboards268);
-				*vars = bVar1;
-			}
-		} else {
-			bVar1 = othelloSub11GetLeader(g_globals2._freeboards268);
-			*vars = bVar1;
-			vars[4] = 0;
-		}
-		othelloSub01SetClickable(g_globals2._p8, g_globals2._freeboards268, vars);
-		return;
+		OthelloOpAiMove(vars);
+		break;
 	case 5: // ???
-		g_globals._counter272 = (int)(char)vars[2];
-		g_globals2._freeboards268 = othelloSub02(vars);
-		othelloSub09InitLines();
-		othelloSub06GetAllPossibleMoves((Freeboards *)g_globals2._freeboards268);
-		vars[4] = 1;
+		OthelloOp5(vars);
+		break;
 	}
-	return;
 }
 
 OthelloGame::OthelloGame() : _random("OthelloGame") {
