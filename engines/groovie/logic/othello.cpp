@@ -500,7 +500,7 @@ void OthelloGame::opPlayerMove(byte *vars) {
 		byte x = vars[3];
 		byte y = vars[2];
 		// top left spot is 0, 0
-		warning("OthelloGame player moved to %d, %d", (int)x, (int)y);
+		debugC(1, kDebugLogic, "OthelloGame player moved to %d, %d", (int)x, (int)y);
 		vars[4] = makeMove(&_board, x, y);
 	} else {
 		vars[0] = getLeader(&_board);
@@ -575,7 +575,7 @@ OthelloGame::OthelloGame()
 
 void OthelloGame::run(byte *vars) {
 	byte op = vars[1];
-	warning("OthelloGame op %d", (int)op);
+	debugC(1, kDebugLogic, "OthelloGame op %d", (int)op);
 
 	switch (op) {
 	case 0: // init/restart
