@@ -47,8 +47,8 @@ void sortPossibleMoves(Freeboard (&boards)[30], int numPossibleMoves) {
 }
 
 int OthelloGame::scoreEdge(byte (&board)[8][8], int x, int y, int slopeX, int slopeY) {
-	const char *scores = &_edgesScores[0];
-	const char *ptr = &scores[board[x][y]];
+	const int8 *scores = &_edgesScores[0];
+	const int8 *ptr = &scores[board[x][y]];
 
 	// we don't score either corner in this function
 	x += slopeX;
@@ -86,14 +86,14 @@ int OthelloGame::scoreEarlyGame(Freeboard *freeboard) {
 
 	//subtract points for bad spots relative to the opponent
 	//diagonal from the corners
-	const char *diagFromCorners = &_scores[0][0];
+	const int8 *diagFromCorners = &_scores[0][0];
 	scores[b[1][1]] -= diagFromCorners[topLeft];
 	scores[b[1][6]] -= diagFromCorners[bottomLeft];
 	scores[b[6][1]] -= diagFromCorners[topRight];
 	scores[b[6][6]] -= diagFromCorners[bottomRight];
 
 	// 2 away from the edge
-	const char *twoAwayFromEdge = &_scores[1][0];
+	const int8 *twoAwayFromEdge = &_scores[1][0];
 	scores[b[1][2]] -= twoAwayFromEdge[b[0][2]];
 	scores[b[1][5]] -= twoAwayFromEdge[b[0][5]];
 	scores[b[2][1]] -= twoAwayFromEdge[b[2][0]];
@@ -104,7 +104,7 @@ int OthelloGame::scoreEarlyGame(Freeboard *freeboard) {
 	scores[b[6][5]] -= twoAwayFromEdge[b[7][5]];
 
 	// 3 away from the edge
-	const char *threeAwayFromEdge = &_scores[2][0];
+	const int8 *threeAwayFromEdge = &_scores[2][0];
 	scores[b[1][3]] -= threeAwayFromEdge[b[0][3]];
 	scores[b[1][4]] -= threeAwayFromEdge[b[0][4]];
 	scores[b[3][1]] -= threeAwayFromEdge[b[3][0]];
@@ -189,9 +189,9 @@ void OthelloGame::restart(void) {
 	// clear the board
 	memset(_board._boardstate, EMPTY_PIECE, sizeof(_board._boardstate));
 	// set the starting pieces
-	_board._boardstate[4][4] = AI_PIECE; // 2 - (g_globals._i296 == g_globals._i268);
+	_board._boardstate[4][4] = AI_PIECE;
 	_board._boardstate[3][3] = _board._boardstate[4][4];
-	_board._boardstate[4][3] = PLAYER_PIECE; // (g_globals._i296 == g_globals._i268) + 1;
+	_board._boardstate[4][3] = PLAYER_PIECE;
 	_board._boardstate[3][4] = _board._boardstate[4][3];
 }
 
@@ -235,13 +235,13 @@ Freeboard OthelloGame::getPossibleMove(Freeboard *freeboard, int moveSpot) {
 	memcpy(newboard._boardstate, freeboard->_boardstate, sizeof(newboard._boardstate));
 
 	byte *board = &newboard._boardstate[0][0];
-	char **line = _lines[moveSpot];
+	int8 **line = _lines[moveSpot];
 
 	// check every line until we hit the null-terminating pointer
 	for (line = _lines[moveSpot]; *line != NULL; line++) {
-		char *lineSpot = *line;
+		int8 *lineSpot = *line;
 		int piece = board[*lineSpot];
-		char *_lineSpot;
+		int8 *_lineSpot;
 		// we already know the current moveSpot is the player's piece
 		// if these 2 loops were a regex replacement, they would be something like s/(O+)P/(P+)P/
 		for (_lineSpot = lineSpot; piece == opponent; _lineSpot++) {
@@ -268,11 +268,11 @@ int OthelloGame::getAllPossibleMoves(Freeboard *freeboard, Freeboard (&boards)[3
 	byte player = _isAiTurn ? AI_PIECE : PLAYER_PIECE;
 	byte opponent = _isAiTurn ? PLAYER_PIECE : AI_PIECE;
 	int numPossibleMoves = 0;
-	char ***line = &_lines[0];
+	int8 ***line = &_lines[0];
 	do {
 		if (freeboard->_boardstate[moveSpot / 8][moveSpot % 8] == 0) {
-			char **lineSpot = *line;
-			char *testSpot;
+			int8 **lineSpot = *line;
+			int8 *testSpot;
 			// loop through a list of slots in line with piece moveSpot, looping away from moveSpot
 			do {
 				do {
@@ -282,10 +282,10 @@ int OthelloGame::getAllPossibleMoves(Freeboard *freeboard, Freeboard (&boards)[3
 					if (testSpot == NULL) // end of the null terminated line?
 						goto LAB_OUT;
 				} while (freeboard->_boardstate[*testSpot / 8][*testSpot % 8] != opponent);
-				do {
-					// we found the opponent, skip to the first piece that doesn't belong to the opponent
-					testSpot++;
-				} while (freeboard->_boardstate[*testSpot / 8][*testSpot % 8] == opponent);
+
+				// we found the opponent, skip to the first piece that doesn't belong to the opponent
+				for (; freeboard->_boardstate[*testSpot / 8][*testSpot % 8] == opponent; testSpot++) {}
+
 				// start over again if didn't find a piece of our own on the other side
 			} while (freeboard->_boardstate[*testSpot / 8][*testSpot % 8] != player);
 			// so we found (empty space)(opponent+)(our own piece)
@@ -385,8 +385,8 @@ byte OthelloGame::aiDoBestMove(Freeboard *pBoard) {
 
 void OthelloGame::initLines(void) {
 	// allocate an array of strings, the lines are null-terminated
-	char **lines = &_linesStorage[0];
-	char *line = &_lineStorage[0];
+	int8 **lines = &_linesStorage[0];
+	int8 *line = &_lineStorage[0];
 
 	for (int baseX = 0; baseX < 8; baseX++) {
 		for (int baseY = 0; baseY < 8; baseY++) {
@@ -546,7 +546,7 @@ void OthelloGame::opAiMove(byte *vars) {
 }
 
 void OthelloGame::op5(byte *vars) {
-	_counter = (int)(char)vars[2];
+	_counter = vars[2];
 	readBoardStateFromVars(vars);
 	initLines();
 	vars[4] = 1;
@@ -568,17 +568,12 @@ OthelloGame::OthelloGame()
 	_flag2 = 0;
 	initLines();
 
-#if 1
-	//#if 0
+#if 0
 	test();
 #endif
 }
 
-void OthelloGame::run(byte *scriptVariables) {
-	// TODO
-	byte vars[1024];
-	memcpy(vars, scriptVariables, sizeof(vars));
-
+void OthelloGame::run(byte *vars) {
 	byte op = vars[1];
 	warning("OthelloGame op %d", (int)op);
 
@@ -602,13 +597,6 @@ void OthelloGame::run(byte *scriptVariables) {
 		op5(vars);
 		break;
 	}
-
-	for (int i = 0; i < sizeof(vars); i++) {
-		if (vars[i] != scriptVariables[i]) {
-			warning("OthelloGame vars[%d] changed from %d to %d", i, (int)scriptVariables[i], (int)vars[i]);
-		}
-	}
-	memcpy(scriptVariables, vars, sizeof(vars));
 }
 
 void OthelloGame::test() {
