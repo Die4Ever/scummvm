@@ -23,11 +23,15 @@
 #ifndef GROOVIE_RESOURCE_H
 #define GROOVIE_RESOURCE_H
 
+#include "common/hash-str.h"
+
 namespace Common {
 class MacResManager;
 }
 
 namespace Groovie {
+
+class GroovieEngine;
 
 struct ResInfo {
 	uint16 gjd;
@@ -38,6 +42,7 @@ struct ResInfo {
 
 class ResMan {
 public:
+	ResMan(GroovieEngine* vm);
 	virtual ~ResMan() {}
 
 	Common::SeekableReadStream *open(uint32 fileRef);
@@ -49,11 +54,14 @@ protected:
 	Common::Array<Common::String> _gjds;
 
 	uint16 _lastGjd;
+	GroovieEngine* _vm;
+
+	Common::StringMap _skippedFrDeResources;
 };
 
 class ResMan_t7g : public ResMan {
 public:
-	ResMan_t7g(Common::MacResManager *macResFork = 0);
+	ResMan_t7g(GroovieEngine* vm, Common::MacResManager *macResFork = 0);
 	~ResMan_t7g() {}
 
 	uint32 getRef(Common::String name, Common::String scriptname);
@@ -65,7 +73,7 @@ private:
 
 class ResMan_v2 : public ResMan {
 public:
-	ResMan_v2();
+	ResMan_v2(GroovieEngine* vm);
 	~ResMan_v2() {}
 
 	uint32 getRef(Common::String name, Common::String scriptname);

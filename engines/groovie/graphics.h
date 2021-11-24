@@ -38,8 +38,6 @@ public:
 	void update();
 	void change();
 	void mergeFgAndBg();
-	void switchToFullScreen(bool fullScreen);
-	bool isFullScreen() { return (_foreground.h == 480); }
 	void updateScreen(Graphics::Surface *source);
 	Graphics::Surface _foreground;	// The main surface that most things are drawn to
 	Graphics::Surface _background;	// Used occasionally, mostly (only?) in puzzles

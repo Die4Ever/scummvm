@@ -38,8 +38,9 @@
 namespace Groovie {
 
 VDXPlayer::VDXPlayer(GroovieEngine *vm) :
-	VideoPlayer(vm), _origX(0), _origY(0), _flagOnePrev(false),
-	_fg(&_vm->_graphicsMan->_foreground), _bg(&_vm->_graphicsMan->_background) {
+		VideoPlayer(vm), _origX(0), _origY(0), _flagOnePrev(false), _fg(
+				&_vm->_graphicsMan->_foreground), _bg(
+				&_vm->_graphicsMan->_background), mFrameSkipCounter(0) {
 }
 
 VDXPlayer::~VDXPlayer() {
@@ -56,7 +57,11 @@ void VDXPlayer::setOrigin(int16 x, int16 y) {
 }
 
 uint16 VDXPlayer::loadInternal() {
-	if (DebugMan.isDebugChannelEnabled(kDebugVideo)) {
+	
+//	LOGD("VDXPlayer::loadInternal");
+	
+	if (DebugMan.isDebugChannelEnabled(kGroovieDebugVideo) ||
+	DebugMan.isDebugChannelEnabled(kGroovieDebugAll)) {
 		int8 i;
 		debugN(1, "Groovie::VDX: New VDX: bitflags are ");
 		for (i = 15; i >= 0; i--) {
@@ -74,21 +79,21 @@ uint16 VDXPlayer::loadInternal() {
 	// - 7
 	// - 8 Just show the first frame
 	// - 9 Start a palette fade in
-	_flagZero =		((_flags & (1 << 0)) != 0);
-	_flagOne =		((_flags & (1 << 1)) != 0);
-	_flag2Byte =	(_flags & (1 << 2)) ? 0xFF : 0x00;
-	_flagThree =	((_flags & (1 << 3)) != 0);
-	_flagFour =		((_flags & (1 << 4)) != 0);
-	_flagFive =		((_flags & (1 << 5)) != 0);
-	_flagSix =		((_flags & (1 << 6)) != 0);
-	_flagSeven =	((_flags & (1 << 7)) != 0);
-	_flagEight =	((_flags & (1 << 8)) != 0);
-	_flagNine =		((_flags & (1 << 9)) != 0);
+	_flagZero = ((_flags & (1 << 0)) != 0);
+	_flagOne = ((_flags & (1 << 1)) != 0);
+	_flag2Byte = (_flags & (1 << 2)) ? 0xFF : 0x00;
+	_flagThree = ((_flags & (1 << 3)) != 0);
+	_flagFour = ((_flags & (1 << 4)) != 0);
+	_flagFive = ((_flags & (1 << 5)) != 0);
+	_flagSix = ((_flags & (1 << 6)) != 0);
+	_flagSeven = ((_flags & (1 << 7)) != 0);
+	_flagEight = ((_flags & (1 << 8)) != 0);
+	_flagNine = ((_flags & (1 << 9)) != 0);
 
 	// Enable highspeed if we're not obeying fps, and not marked as special
 	// This will be disabled in chunk audio if we're actually an audio vdx
-	if (_vm->_modeSpeed == kGroovieSpeedFast && ((_flags & (1 << 15)) == 0))
-		setOverrideSpeed(true);
+	if (!_vm->isPlayingVoice() && _vm->_modeSpeed == kGroovieSpeedFast && ((_flags & (1 << 15)) == 0))
+	setOverrideSpeed(true);
 
 	if (_flagOnePrev && !_flagOne && !_flagEight) {
 		_flagSeven = true;
@@ -98,31 +103,31 @@ uint16 VDXPlayer::loadInternal() {
 	_flagOnePrev = _flagOne;
 
 	//_flagTransparent =	_flagOne;
-	_flagFirstFrame =	_flagEight;
+	_flagFirstFrame = _flagEight;
 	//_flagSkipPalette =	_flagSeven;
-	_flagSkipPalette =	false;
+	_flagSkipPalette = false;
 	//_flagSkipStill =	_flagFive || _flagSeven;
 	//_flagUpdateStill =	_flagNine || _flagSix;
 
 	// Begin reading the file
-	debugC(1, kDebugVideo, "Groovie::VDX: Playing video");
+	debugC(1, kGroovieDebugVideo | kGroovieDebugAll, "Groovie::VDX: Playing video");
 
 	if (_file->readUint16LE() != VDX_IDENT) {
 		error("Groovie::VDX: This does not appear to be a 7th guest VDX file");
 		return 0;
 	} else {
-		debugC(5, kDebugVideo, "Groovie::VDX: VDX file identified correctly");
+		debugC(5, kGroovieDebugVideo | kGroovieDebugAll, "Groovie::VDX: VDX file identified correctly");
 	}
 
 	uint16 tmp;
 
 	// Skip unknown data: 6 bytes, ref Martine
 	tmp = _file->readUint16LE();
-	debugC(2, kDebugVideo | kDebugUnknown, "Groovie::VDX: Martine1 = 0x%04X", tmp);
+	debugC(2, kGroovieDebugVideo | kGroovieDebugUnknown | kGroovieDebugAll, "Groovie::VDX: Martine1 = 0x%04X", tmp);
 	tmp = _file->readUint16LE();
-	debugC(2, kDebugVideo | kDebugUnknown, "Groovie::VDX: Martine2 = 0x%04X", tmp);
+	debugC(2, kGroovieDebugVideo | kGroovieDebugUnknown | kGroovieDebugAll, "Groovie::VDX: Martine2 = 0x%04X", tmp);
 	tmp = _file->readUint16LE();
-	debugC(2, kDebugVideo | kDebugUnknown, "Groovie::VDX: Martine3 (FPS?) = %d", tmp);
+	debugC(2, kGroovieDebugVideo | kGroovieDebugUnknown | kGroovieDebugAll, "Groovie::VDX: Martine3 (FPS?) = %d", tmp);
 
 	return tmp;
 }
@@ -143,37 +148,52 @@ bool VDXPlayer::playFrameInternal() {
 		if (_file->eos())
 			break;
 
-		debugC(5, kDebugVideo | kDebugUnknown, "Groovie::VDX: Edward = 0x%04X", tmp);
+		debugC(5, kGroovieDebugVideo | kGroovieDebugUnknown | kGroovieDebugAll,
+				"Groovie::VDX: Edward = 0x%04X", tmp);
 
 		// Read the chunk data and decompress if needed
 		if (compSize)
 			vdxData = _file->readStream(compSize);
 
 		if (lengthmask && lengthbits) {
-			Common::ReadStream *decompData = new LzssReadStream(vdxData, lengthmask, lengthbits);
+			Common::ReadStream *decompData = new LzssReadStream(vdxData,
+					lengthmask, lengthbits);
 			delete vdxData;
 			vdxData = decompData;
 		}
 
 		// Use the current chunk
 		switch (currRes) {
-			case 0x00:
-				debugC(6, kDebugVideo, "Groovie::VDX: Replay frame");
-				break;
-			case 0x20:
-				debugC(5, kDebugVideo, "Groovie::VDX: Still frame");
-				getStill(vdxData);
-				break;
-			case 0x25:
-				debugC(5, kDebugVideo, "Groovie::VDX: Animation frame");
-				getDelta(vdxData);
-				break;
-			case 0x80:
-				debugC(5, kDebugVideo, "Groovie::VDX: Sound resource");
+		case 0x00:
+			debugC(6, kGroovieDebugVideo | kGroovieDebugAll,
+					"Groovie::VDX: Replay frame");
+			break;
+		case 0x20:
+			debugC(5, kGroovieDebugVideo | kGroovieDebugAll,
+					"Groovie::VDX: Still frame");
+			getStill(vdxData);
+			break;
+		case 0x25:
+			debugC(5, kGroovieDebugVideo | kGroovieDebugAll,
+					"Groovie::VDX: Animation frame");
+			getDelta(vdxData);
+			break;
+		case 0x80:
+			debugC(5, kGroovieDebugVideo | kGroovieDebugAll,
+					"Groovie::VDX: Sound resource");
+			if (_vm->isPlayingVoice() || _vm->getMuteOriginalVoice()) {
+				// Playing a new voiceover file - just skip this sound chunk
+				if (getOverrideSpeed())
+					setOverrideSpeed(false);
+
+				vdxData->read(_uselessSoundChunkBuffer, 60000);
+			} else {
+				// Play only if not playing a new voiceover file
 				chunkSound(vdxData);
-				break;
-			default:
-				error("Groovie::VDX: Invalid resource type: %d", currRes);
+			}
+			break;
+		default:
+			error("Groovie::VDX: Invalid resource type: %d", currRes);
 		}
 		delete vdxData;
 		vdxData = 0;
@@ -181,36 +201,64 @@ bool VDXPlayer::playFrameInternal() {
 
 	// Wait until the current frame can be shown
 
-	if (!DebugMan.isDebugChannelEnabled(kDebugFast)) {
+	if (!DebugMan.isDebugChannelEnabled(kGroovieDebugFast)) {
 		waitFrame();
 	}
 	// TODO: Move it to a better place
 	// Update the screen
-	if (currRes == 0x25) {
-		//if (_flagSeven) {
-			//_vm->_graphicsMan->mergeFgAndBg();
-		//}
-		_vm->_graphicsMan->updateScreen(_bg);
+
+	// Check whether to skip the current frame, for fast-forward
+	bool skipFrame = (_vm->isFastForwarding() && mFrameSkipCounter != 0);
+
+	if (!skipFrame) {
+		if (currRes == 0x25) {
+			// Delta frame - copy the current bitmap to the system
+			if (_vm->getNavigationState() != OPEN_HOUSE_GAME_TO_MENU) {
+				_vm->_graphicsMan->updateScreen(_bg);
+			}
+		} else if (currRes != 0x20) {
+			// Another frame - just signal the system to update anyway (for overlays)
+			_vm->_graphicsMan->change();
+		}
 	}
 
 	// Report the end of the video if we reached the end of the file or if we
 	// just wanted to play one frame.
-	if (_file->eos() || _flagFirstFrame) {
+	if ((_file->eos() && !_vm->isPlayingVoice()) || _flagFirstFrame) {
 		_origX = _origY = 0;
+		mFrameSkipCounter = 0;
+
+		// When fast forwarding, always update with the last frame, if it wasn't a still chunk
+		if (_vm->isFastForwarding()
+				&& _vm->getNavigationState() != OPEN_HOUSE_GAME_TO_MENU
+				&& currRes != 0x20) {
+			_vm->_graphicsMan->updateScreen(_bg);
+		}
+        
 		return 1;
 	} else {
+
+		++mFrameSkipCounter;
+		if (mFrameSkipCounter == FAST_FORWARD_SKIPPED_FRAMES) {
+			mFrameSkipCounter = 0;
+		}
+
 		return 0;
 	}
 }
 
-static const uint16 vdxBlockMapLookup[] = {
-0xc800, 0xec80, 0xfec8, 0xffec, 0xfffe, 0x3100, 0x7310, 0xf731, 0xff73, 0xfff7, 0x6c80, 0x36c8, 0x136c, 0x6310, 0xc631, 0x8c63,
-0xf000, 0xff00, 0xfff0, 0x1111, 0x3333, 0x7777, 0x6666, 0xcccc, 0x0ff0, 0x00ff, 0xffcc, 0x0076, 0xff33, 0x0ee6, 0xccff, 0x6770,
-0x33ff, 0x6ee0, 0x4800, 0x2480, 0x1248, 0x0024, 0x0012, 0x2100, 0x4210, 0x8421, 0x0042, 0x0084, 0xf888, 0x0044, 0x0032, 0x111f,
-0x22e0, 0x4c00, 0x888f, 0x4470, 0x2300, 0xf111, 0x0e22, 0x00c4, 0xf33f, 0xfccf, 0xff99, 0x99ff, 0x4444, 0x2222, 0xccee, 0x7733,
-0x00f8, 0x00f1, 0x00bb, 0x0cdd, 0x0f0f, 0x0f88, 0x13f1, 0x19b3, 0x1f80, 0x226f, 0x27ec, 0x3077, 0x3267, 0x37e4, 0x38e3, 0x3f90,
-0x44cf, 0x4cd9, 0x4c99, 0x5555, 0x603f, 0x6077, 0x6237, 0x64c9, 0x64cd, 0x6cd9, 0x70ef, 0x0f00, 0x00f0, 0x0000, 0x4444, 0x2222
-};
+static const uint16 vdxBlockMapLookup[] = { 0xc800, 0xec80, 0xfec8, 0xffec,
+		0xfffe, 0x3100, 0x7310, 0xf731, 0xff73, 0xfff7, 0x6c80, 0x36c8, 0x136c,
+		0x6310, 0xc631, 0x8c63, 0xf000, 0xff00, 0xfff0, 0x1111, 0x3333, 0x7777,
+		0x6666, 0xcccc, 0x0ff0, 0x00ff, 0xffcc, 0x0076, 0xff33, 0x0ee6, 0xccff,
+		0x6770, 0x33ff, 0x6ee0, 0x4800, 0x2480, 0x1248, 0x0024, 0x0012, 0x2100,
+		0x4210, 0x8421, 0x0042, 0x0084, 0xf888, 0x0044, 0x0032, 0x111f, 0x22e0,
+		0x4c00, 0x888f, 0x4470, 0x2300, 0xf111, 0x0e22, 0x00c4, 0xf33f, 0xfccf,
+		0xff99, 0x99ff, 0x4444, 0x2222, 0xccee, 0x7733, 0x00f8, 0x00f1, 0x00bb,
+		0x0cdd, 0x0f0f, 0x0f88, 0x13f1, 0x19b3, 0x1f80, 0x226f, 0x27ec, 0x3077,
+		0x3267, 0x37e4, 0x38e3, 0x3f90, 0x44cf, 0x4cd9, 0x4c99, 0x5555, 0x603f,
+		0x6077, 0x6237, 0x64c9, 0x64cd, 0x6cd9, 0x70ef, 0x0f00, 0x00f0, 0x0000,
+		0x4444, 0x2222 };
 
 void VDXPlayer::getDelta(Common::ReadStream *in) {
 	uint16 k, l;
@@ -244,7 +292,7 @@ void VDXPlayer::getDelta(Common::ReadStream *in) {
 
 		// Apply the palette
 		if (!_flagSeven) {
-		//if (!_flagSix && !_flagSeven) {
+			//if (!_flagSix && !_flagSeven) {
 			setPalette(_palBuf);
 		}
 	}
@@ -259,7 +307,8 @@ void VDXPlayer::getDelta(Common::ReadStream *in) {
 		if (currOpCode < 0x60) {
 			param1 = in->readByte();
 			param2 = in->readByte();
-			expandColorMap(colors, vdxBlockMapLookup[currOpCode], param1, param2);
+			expandColorMap(colors, vdxBlockMapLookup[currOpCode], param1,
+					param2);
 			decodeBlockDelta(offset, colors, 640);
 			offset += TILE_SIZE;
 		} else if (currOpCode > 0x7f) {
@@ -269,7 +318,8 @@ void VDXPlayer::getDelta(Common::ReadStream *in) {
 			expandColorMap(colors, (param1 << 8) + currOpCode, param2, param3);
 			decodeBlockDelta(offset, colors, 640);
 			offset += TILE_SIZE;
-		} else switch (currOpCode) {
+		} else
+			switch (currOpCode) {
 			case 0x60: /* Fill tile with the 16 colors given as parameters */
 				for (l = 0; l < 16; l++) {
 					colors[l] = in->readByte();
@@ -336,20 +386,23 @@ void VDXPlayer::getDelta(Common::ReadStream *in) {
 				break;
 			default:
 				error("Groovie::VDX: Broken somehow");
-		}
+			}
 		currOpCode = in->readByte();
 	}
 }
 
 void VDXPlayer::getStill(Common::ReadStream *in) {
 	uint16 numXTiles = in->readUint16LE();
-	debugC(5, kDebugVideo, "Groovie::VDX: numXTiles=%d", numXTiles);
+	debugC(5, kGroovieDebugVideo | kGroovieDebugAll,
+			"Groovie::VDX: numXTiles=%d", numXTiles);
 	uint16 numYTiles = in->readUint16LE();
-	debugC(5, kDebugVideo, "Groovie::VDX: numYTiles=%d", numYTiles);
+	debugC(5, kGroovieDebugVideo | kGroovieDebugAll,
+			"Groovie::VDX: numYTiles=%d", numYTiles);
 
 	// It's skipped in the original:
 	uint16 colorDepth = in->readUint16LE();
-	debugC(5, kDebugVideo, "Groovie::VDX: colorDepth=%d", colorDepth);
+	debugC(5, kGroovieDebugVideo | kGroovieDebugAll,
+			"Groovie::VDX: colorDepth=%d", colorDepth);
 
 	uint16 imageWidth = TILE_SIZE * numXTiles;
 
@@ -357,7 +410,7 @@ void VDXPlayer::getStill(Common::ReadStream *in) {
 	byte *buf;
 	if (_flagOne) {
 		// Paint to the foreground
-		buf = (byte *)_fg->getPixels();
+		buf = (byte *) _fg->getPixels();
 		if (_flag2Byte) {
 			mask = 0xff;
 		} else {
@@ -369,7 +422,7 @@ void VDXPlayer::getStill(Common::ReadStream *in) {
 		_flagFirstFrame = true;
 	} else {
 		// Paint to the background
-		buf = (byte *)_bg->getPixels();
+		buf = (byte *) _bg->getPixels();
 	}
 
 	// Read the palette
@@ -408,28 +461,31 @@ void VDXPlayer::getStill(Common::ReadStream *in) {
 		}
 
 		if (!_flagOne) {
-			_vm->_graphicsMan->updateScreen(_bg);
+			if (_vm->getNavigationState() != OPEN_HOUSE_GAME_TO_MENU)
+				_vm->_graphicsMan->updateScreen(_bg);
 		}
 		/*
-		if (_flagSix) {
-			if (_flagOne) {
-				_vm->_graphicsMan->updateScreen(_fg);
-			} else {
-				_vm->_graphicsMan->updateScreen(_bg);
-			}
-			_flagSix = 0;
-		}
-		*/
+		 if (_flagSix) {
+		 if (_flagOne) {
+		 _vm->_graphicsMan->updateScreen(_fg);
+		 } else {
+		 _vm->_graphicsMan->updateScreen(_bg);
+		 }
+		 _flagSix = 0;
+		 }
+		 */
 	} else {
 		// Skip the remaining data
-		debugC(10, kDebugVideo, "Groovie::VDX: Skipping still frame");
+		debugC(10, kGroovieDebugVideo | kGroovieDebugAll,
+				"Groovie::VDX: Skipping still frame");
 		while (!in->eos()) {
 			in->readByte();
 		}
 	}
 }
 
-void VDXPlayer::expandColorMap(byte *out, uint16 colorMap, uint8 color1, uint8 color0) {
+void VDXPlayer::expandColorMap(byte *out, uint16 colorMap, uint8 color1,
+		uint8 color0) {
 	// It's a bit faster to start from the end
 	out += 16;
 	for (int i = 16; i; i--) {
@@ -444,7 +500,8 @@ void VDXPlayer::expandColorMap(byte *out, uint16 colorMap, uint8 color1, uint8 c
 	}
 }
 
-void VDXPlayer::decodeBlockStill(byte *buf, byte *colors, uint16 imageWidth, uint8 mask) {
+void VDXPlayer::decodeBlockStill(byte *buf, byte *colors, uint16 imageWidth,
+		uint8 mask) {
 	assert(TILE_SIZE == 4);
 
 	for (int y = TILE_SIZE; y; y--) {
@@ -469,7 +526,7 @@ void VDXPlayer::decodeBlockStill(byte *buf, byte *colors, uint16 imageWidth, uin
 			// Point to the start of the next line
 			buf += imageWidth - TILE_SIZE;
 		} else {
-			*((uint32 *)buf) = *((uint32 *)colors);
+			*((uint32 *) buf) = *((uint32 *) colors);
 			colors += 4;
 
 			// Point to the start of the next line
@@ -478,16 +535,17 @@ void VDXPlayer::decodeBlockStill(byte *buf, byte *colors, uint16 imageWidth, uin
 	}
 }
 
-void VDXPlayer::decodeBlockDelta(uint32 offset, byte *colors, uint16 imageWidth) {
+void VDXPlayer::decodeBlockDelta(uint32 offset, byte *colors,
+		uint16 imageWidth) {
 	assert(TILE_SIZE == 4);
 
 	byte *dest;
 	// TODO: Verify just the else block is required
 	//if (_flagOne) {
-		// Paint to the foreground
-		//dest = (byte *)_fg->getPixels() + offset;
+	// Paint to the foreground
+	//dest = (byte *)_fg->getPixels() + offset;
 	//} else {
-		dest = (byte *)_bg->getPixels() + offset;
+	dest = (byte *) _bg->getPixels() + offset;
 	//}
 
 	// Move the pointers to the beginning of the current block
@@ -495,7 +553,7 @@ void VDXPlayer::decodeBlockDelta(uint32 offset, byte *colors, uint16 imageWidth)
 	dest += blockOff;
 	byte *fgBuf = 0;
 	if (_flagSeven) {
-		fgBuf = (byte *)_fg->getPixels() + offset + blockOff;
+		fgBuf = (byte *) _fg->getPixels() + offset + blockOff;
 		//byte *bgBuf = (byte *)_bg->getPixels() + offset + blockOff;
 	}
 
@@ -516,7 +574,7 @@ void VDXPlayer::decodeBlockDelta(uint32 offset, byte *colors, uint16 imageWidth)
 			fgBuf += imageWidth;
 		} else {
 			// Paint directly
-			*((uint32 *)dest) = *((uint32 *)colors);
+			*((uint32 *) dest) = *((uint32 *) colors);
 			colors += 4;
 		}
 
@@ -532,12 +590,13 @@ void VDXPlayer::chunkSound(Common::ReadStream *in) {
 	if (!_audioStream) {
 		_audioStream = Audio::makeQueuingAudioStream(22050, false);
 		Audio::SoundHandle sound_handle;
-		g_system->getMixer()->playStream(Audio::Mixer::kPlainSoundType, &sound_handle, _audioStream);
+		g_system->getMixer()->playStream(Audio::Mixer::kPlainSoundType,
+				&sound_handle, _audioStream);
 	}
 
-	byte *data = (byte *)malloc(60000);
+	byte *data = (byte *) malloc(60000);
 	int chunksize = in->read(data, 60000);
-	if (!DebugMan.isDebugChannelEnabled(kDebugFast)) {
+	if (!DebugMan.isDebugChannelEnabled(kGroovieDebugFast) && !_vm->isFastForwarding()) {
 		_audioStream->queueBuffer(data, chunksize, DisposeAfterUse::YES, Audio::FLAG_UNSIGNED);
 	}
 }
@@ -549,20 +608,23 @@ void VDXPlayer::fadeIn(uint8 *targetpal) {
 
 	// TODO: Is it required? If so, move to an appropiate place
 	// Copy the foreground to the background
-	memcpy((byte *)_vm->_graphicsMan->_foreground.getPixels(), (byte *)_vm->_graphicsMan->_background.getPixels(), 640 * 320);
+	memcpy((byte *) _vm->_graphicsMan->_foreground.getPixels(),
+			(byte *) _vm->_graphicsMan->_background.getPixels(), 640 * 320);
 
 	// Start a fadein
 	_vm->_graphicsMan->fadeIn(targetpal);
 
 	// Show the background
-	_vm->_graphicsMan->updateScreen(_bg);
+	if (_vm->getNavigationState() != OPEN_HOUSE_GAME_TO_MENU)
+		_vm->_graphicsMan->updateScreen(_bg);
 }
 
 void VDXPlayer::setPalette(uint8 *palette) {
 	if (_flagSkipPalette)
 		return;
 
-	debugC(7, kDebugVideo, "Groovie::VDX: Setting palette");
+	debugC(7, kGroovieDebugVideo | kGroovieDebugAll,
+			"Groovie::VDX: Setting palette");
 	_syst->getPaletteManager()->setPalette(palette, 0, 256);
 }
 

@@ -25,6 +25,8 @@
 
 #include "groovie/player.h"
 
+#define FAST_FORWARD_SKIPPED_FRAMES 10
+
 namespace Common {
 class ReadStream;
 }
@@ -43,6 +45,9 @@ protected:
 	bool playFrameInternal();
 
 private:
+
+	byte _uselessSoundChunkBuffer[60000];
+
 	Graphics::Surface *_fg, *_bg;
 	uint8 _palBuf[3 * 256];
 
@@ -67,6 +72,8 @@ private:
 	bool _flagFirstFrame;
 	//bool _flagTransparent;
 	//bool _flagUpdateStill;
+
+	uint16 mFrameSkipCounter;
 
 	void getStill(Common::ReadStream *in);
 	void getDelta(Common::ReadStream *in);

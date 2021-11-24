@@ -54,7 +54,7 @@ static const GroovieGameDescription gameDescriptions[] = {
 		{
 			"t7g", "",
 			AD_ENTRY1s("script.grv", "d1b8033b40aa67c076039881eccce90d", 16659),
-			Common::EN_ANY, Common::kPlatformDOS, ADGF_NO_FLAGS,
+			Common::UNK_LANG, Common::kPlatformDOS, ADGF_NO_FLAGS,
 			GUIO5(GUIO_MIDIADLIB, GUIO_MIDIMT32, GUIO_MIDIGM, GUIO_NOASPECT, GAMEOPTION_T7G_FAST_MOVIE_SPEED)
 		},
 		kGroovieT7G, 0
@@ -65,7 +65,7 @@ static const GroovieGameDescription gameDescriptions[] = {
 		{
 			"t7g", "",
 			AD_ENTRY1s("T7GMac", "acdc4a58dd3f007f65e99b99d78e0bce", 1814029),
-			Common::EN_ANY, Common::kPlatformMacintosh, ADGF_MACRESFORK,
+			Common::UNK_LANG, Common::kPlatformMacintosh, ADGF_MACRESFORK,
 			GUIO5(GUIO_MIDIADLIB, GUIO_MIDIMT32, GUIO_MIDIGM, GUIO_NOASPECT, GAMEOPTION_T7G_FAST_MOVIE_SPEED)
 		},
 		kGroovieT7G, 0
@@ -398,6 +398,12 @@ SaveStateDescriptor GroovieMetaEngine::querySaveMetaInfos(const char *target, in
 
 	return desc;
 }
+
+
+MetaEngine* groovieEnginePlugin() {
+	return new GroovieMetaEngine();
+}
+
 
 } // End of namespace Groovie
 

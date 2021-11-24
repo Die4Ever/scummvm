@@ -21,14 +21,39 @@
  */
 
 #include "common/debug.h"
+#include "common/events.h"
 
 #include "groovie/player.h"
 #include "groovie/groovie.h"
+#include "common/config-manager.h"
+
+#include "enhanced/constants/Constants.h"
 
 namespace Groovie {
 
 VideoPlayer::VideoPlayer(GroovieEngine *vm) :
-	_vm(vm), _syst(vm->_system), _file(NULL), _audioStream(NULL), _fps(0), _overrideSpeed(false) {
+    _vm(vm), _syst(vm->_system), _subtitles(*_vm->_subtitles), _file(NULL), _audioStream(NULL), _fps(0), _overrideSpeed(false),
+    _flags(0), _begunPlaying(false), _millisBetweenFrames(0), _lastFrameTime(0), _firstTimeFrame(0) {
+	 
+#ifndef USE_SUBTITLES_ENHANCED_NATIVE_UI
+    
+        // Check for subtitles
+        _useSubtitles = ConfMan.getBool("subtitles");
+        
+        if (_useSubtitles)
+        {
+            int16 w = g_system->getOverlayWidth();
+            int16 h = g_system->getOverlayHeight();
+            
+#ifdef DEBUG
+            LOGD("SubtitlePlayer::ScummVM Overlay Height: %d", h);
+            LOGD("SubtitlePlayer::ScummVM Overlay Width: %d", w);
+#endif
+            _subtitles.setBBox(Common::Rect(w*0.03125, h - h*0.15, w - w*0.03125, h - h*0.0185));
+            _subtitles.setColor(0xff, 0xff, 0xff);
+            _subtitles.setFont("FreeSans.ttf");
+        }
+#endif
 }
 
 bool VideoPlayer::load(Common::SeekableReadStream *file, uint16 flags) {
@@ -67,13 +92,23 @@ bool VideoPlayer::playFrame() {
 		end = playFrameInternal();
 	}
 
+#ifndef USE_SUBTITLES_ENHANCED_NATIVE_UI
+    
+    if (_useSubtitles && !_vm->isFastForwarding())
+    {
+        uint32 currTime = _syst->getMillis();
+        g_system->showOverlay();
+        _subtitles.drawSubtitle(currTime - _firstTimeFrame, true);
+    }
+    
+#endif
 	// The file has been completely processed
 	if (end) {
 		_file = NULL;
 
 		// Wait for pending audio
 		if (_audioStream) {
-			if (_audioStream->endOfData()) {
+			if (_audioStream->endOfData() || _vm->isFastForwarding()) {
 				// Mark the audio stream as finished (no more data will be appended)
 				_audioStream->finish();
 			} else {
@@ -81,7 +116,7 @@ bool VideoPlayer::playFrame() {
 				end = false;
 			}
 		}
-	}
+    }
 
 	return end;
 }
@@ -91,16 +126,30 @@ void VideoPlayer::waitFrame() {
 	if (!_begunPlaying) {
 		_begunPlaying = true;
 		_lastFrameTime = currTime;
-	} else {
+#ifndef USE_SUBTITLES_ENHANCED_NATIVE_UI
+        if (_useSubtitles && !_vm->isFastForwarding())
+        {
+            _firstTimeFrame = currTime;
+            g_system->showOverlay();
+            g_system->updateScreen();
+        }
+#endif
+	} else if (!_vm->isFastForwarding()){
 		uint32 millisDiff = currTime - _lastFrameTime;
-		if (millisDiff < _millisBetweenFrames) {
-			debugC(7, kDebugVideo, "Groovie::Player: Delaying %d (currTime=%d, _lastFrameTime=%d, millisDiff=%d, _millisBetweenFrame=%d)",
-					_millisBetweenFrames - millisDiff, currTime, _lastFrameTime, millisDiff, _millisBetweenFrames);
-			_syst->delayMillis(_millisBetweenFrames - millisDiff);
+
+		while (millisDiff < _millisBetweenFrames) {
+			debugC(7, kGroovieDebugVideo | kGroovieDebugAll, "Groovie::Player: Delaying %d (currTime=%d, lastFrameTime=%d, millisDiff=%d, millisBetweenFrame=%d)",
+				_millisBetweenFrames - millisDiff, currTime, _lastFrameTime, millisDiff, _millisBetweenFrames);
+			Common::Event ev;
+			g_system->getEventManager()->pollEvent(ev);
+			_syst->delayMillis(MIN<uint32>(10, millisDiff));
+			//warning("VideoPlayer::waitFrame delay is : %d", _millisBetweenFrames - millisDiff);
+			g_system->updateScreen();
 			currTime = _syst->getMillis();
-			debugC(7, kDebugVideo, "Groovie::Player: Finished delay at %d", currTime);
+			millisDiff = currTime - _lastFrameTime;
+			debugC(7, kGroovieDebugVideo | kGroovieDebugAll, "Groovie::Player: Finished delay at %d", currTime);
 		}
-		debugC(6, kDebugVideo, "Groovie::Player: Frame displayed at %d (%f FPS)", currTime, 1000.0 / (currTime - _lastFrameTime));
+		debugC(6, kGroovieDebugVideo | kGroovieDebugAll, "Groovie::Player: Frame displayed at %d (%f FPS)", currTime, 1000.0 / (currTime - _lastFrameTime));
 		_lastFrameTime = currTime;
 	}
 }

@@ -25,6 +25,7 @@
 
 #include "common/system.h"
 #include "audio/audiostream.h"
+#include "video/subtitles.h"
 
 namespace Groovie {
 
@@ -39,7 +40,11 @@ public:
 	bool playFrame();
 	virtual void resetFlags() {}
 	virtual void setOrigin(int16 x, int16 y) {}
-
+    
+    void loadSubtitles(const char *fname) { _subtitles.loadSRTFile(fname); }
+#ifndef USE_SUBTITLES_ENHANCED_NATIVE_UI
+    bool _useSubtitles;
+#endif
 protected:
 	// To be implemented by subclasses
 	virtual uint16 loadInternal() = 0;
@@ -54,7 +59,6 @@ protected:
 	uint16 _flags;
 	Audio::QueuingAudioStream *_audioStream;
 
-
 private:
 	// Synchronization stuff
 	bool _begunPlaying;
@@ -62,6 +66,8 @@ private:
 	uint16 _fps;
 	uint16 _millisBetweenFrames;
 	uint32 _lastFrameTime;
+    uint32 _firstTimeFrame;
+	;;Video::Subtitles &_subtitles;
 
 protected:
 	void waitFrame();
