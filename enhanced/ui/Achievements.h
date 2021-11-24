@@ -1,0 +1,49 @@
+//
+//  Achievements.h
+//  scummvm
+//
+//  Created by Omer Gilad on 1/28/16.
+//
+//
+
+#ifndef Achievements_h
+#define Achievements_h
+
+
+
+#ifdef TARGET_T7G
+
+#define CAKE_PUZZLE 0
+#define CANS_PUZZLE 1
+#define TELESCOPE_PUZZLE 2
+#define SPIDERS_PUZZLE 3
+#define LOVERS_BED_PUZZLE 4
+#define BISHOPS_PUZZLE 5
+#define HEART_BLOOD_FLOW_PUZZLE 6
+#define QUEENS_PUZZLE 7
+#define GRATE_PUZZLE 8
+#define MAZE_PUZZLE 9
+#define CRYPTS_PUZZLE 10
+#define CARDS_PUZZLE 11
+#define KNIGHTS_PUZZLE 12
+#define COINS_PUZZLE 13
+#define FLIPPING_MANSION_PUZZLE 14
+#define BLOCKS_PUZZLE 15
+#define STEPPING_STONES_PUZZLE 16
+#define MICROSCOPE_MINI_GAME 17
+#define PIANO_PUZZLE 18
+#define STAUFS_PAINTING_PUZZLE 19
+#define KNIVES_PUZZLE 20
+#define SKYSCRAPER_PUZZLE 21
+#define DISCOVER_THE_PLANT_SECRET_PASSAGE 22
+#define DISCOVER_THE_BILLIARD_SECRET_PASSAGE 23
+#define DISCOVER_THE_FIREPLACE_SECRET_PASSAGE 24
+#define DISCOVER_THE_BATHROOM_SECRET_PASSAGE 25
+#define COMPLETE_THE_GAME 26
+#define DISCOVER_OPEN_HOUSE 27
+
+#endif
+
+
+
+#endif /* Achievements_h */
