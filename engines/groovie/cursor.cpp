@@ -34,8 +34,9 @@ namespace Groovie {
 
 // Cursor Manager
 
-GrvCursorMan::GrvCursorMan(OSystem *system) :
-	_syst(system), _lastTime(0), _current(255), _cursor(NULL) {
+GrvCursorMan::GrvCursorMan(OSystem *system, GroovieEngine* vm) :
+		_syst(system), _vm(vm), _lastTime(0), _current(255), _cursor(NULL), mCursorVisible(
+				false) {
 }
 
 GrvCursorMan::~GrvCursorMan() {
@@ -49,6 +50,18 @@ GrvCursorMan::~GrvCursorMan() {
 
 void GrvCursorMan::show(bool visible) {
 	CursorMan.showMouse(visible);
+
+	if (mCursorVisible == false && visible) {
+		// Stop fast forward
+		_vm->fastForward(false);
+
+		// Set the appropriate nav. state if needed
+		if (_vm->getNavigationState() == MENU_TO_GAME) {
+			_vm->setNavigationState(NORMAL);
+		}
+	}
+
+	mCursorVisible = visible;
 }
 
 uint8 GrvCursorMan::getStyle() {
@@ -56,15 +69,15 @@ uint8 GrvCursorMan::getStyle() {
 }
 
 void GrvCursorMan::setStyle(uint8 newStyle) {
-	// Reset the animation
+// Reset the animation
 	_lastFrame = 254;
 	_lastTime = 1;
 
-	// Save the new cursor
+// Save the new cursor
 	_current = newStyle;
 	_cursor = _cursors[newStyle];
 
-	// Show the first frame
+// Show the first frame
 	_cursor->enable();
 	animate();
 }
@@ -81,10 +94,9 @@ void GrvCursorMan::animate() {
 	}
 }
 
-
 // t7g Cursor
 
-class Cursor_t7g : public Cursor {
+class Cursor_t7g: public Cursor {
 public:
 	Cursor_t7g(uint8 *img, uint8 *pal);
 
@@ -97,7 +109,7 @@ private:
 };
 
 Cursor_t7g::Cursor_t7g(uint8 *img, uint8 *pal) :
-	_pal(pal) {
+		_pal(pal) {
 
 	_width = img[0];
 	_height = img[1];
@@ -107,39 +119,45 @@ Cursor_t7g::Cursor_t7g(uint8 *img, uint8 *pal) :
 
 	_img = img + 5;
 
-	debugC(1, kDebugCursor, "Groovie::Cursor: width: %d, height: %d, frames:%d", _width, _height, _numFrames);
-	debugC(1, kDebugCursor | kDebugUnknown, "Groovie::Cursor: elinor: 0x%02X (%d), 0x%02X (%d)", elinor1, elinor1, elinor2, elinor2);
+	debugC(1, kGroovieDebugCursor | kGroovieDebugAll,
+			"Groovie::Cursor: width: %d, height: %d, frames:%d", _width,
+			_height, _numFrames);
+	debugC(1, kGroovieDebugCursor | kGroovieDebugUnknown | kGroovieDebugAll,
+			"Groovie::Cursor: elinor: 0x%02X (%d), 0x%02X (%d)", elinor1,
+			elinor1, elinor2, elinor2);
 }
 
 void Cursor_t7g::enable() {
-	// Apply the palette
+// Apply the palette
 	CursorMan.replaceCursorPalette(_pal, 0, 32);
 }
 
 void Cursor_t7g::showFrame(uint16 frame) {
-	// Set the mouse cursor
+// Set the mouse cursor
 	int offset = _width * _height * frame;
-	CursorMan.replaceCursor((const byte *)_img + offset, _width, _height, _width >> 1, _height >> 1, 0);
+	CursorMan.replaceCursor((const byte *) _img + offset, _width, _height,
+			_width >> 1, _height >> 1, 0);
 }
-
 
 // t7g Cursor Manager
 
 #define NUM_IMGS 9
-static const uint16 cursorDataOffsets[NUM_IMGS] = {
-0x0000, 0x182f, 0x3b6d, 0x50cc, 0x6e79, 0x825d, 0x96d7, 0xa455, 0xa776
-};
+static const uint16 cursorDataOffsets[NUM_IMGS] = { 0x0000, 0x182f, 0x3b6d,
+		0x50cc, 0x6e79, 0x825d, 0x96d7, 0xa455, 0xa776 };
 
 #define NUM_PALS 7
 //Pals: 0xb794, 0xb7f4, 0xb854, 0xb8b4, 0xb914, 0xb974, 0xb9d4
 
 #define NUM_STYLES 11
 // pyramid is cursor 8, eyes are 9 & 10
-const uint GrvCursorMan_t7g::_cursorImg[NUM_STYLES] = {3, 5, 4, 3, 1, 0, 2, 6, 7, 8, 8};
-const uint GrvCursorMan_t7g::_cursorPal[NUM_STYLES] = {0, 0, 0, 0, 2, 0, 1, 3, 5, 4, 6};
+const uint GrvCursorMan_t7g::_cursorImg[NUM_STYLES] = { 3, 5, 4, 3, 1, 0, 2, 6,
+		7, 8, 8 };
+const uint GrvCursorMan_t7g::_cursorPal[NUM_STYLES] = { 0, 0, 0, 0, 2, 0, 1, 3,
+		5, 4, 6 };
 
-GrvCursorMan_t7g::GrvCursorMan_t7g(OSystem *system, Common::MacResManager *macResFork) :
-	GrvCursorMan(system) {
+GrvCursorMan_t7g::GrvCursorMan_t7g(OSystem *system, GroovieEngine* vm,
+		Common::MacResManager *macResFork) :
+		GrvCursorMan(system, vm) {
 
 	Common::SeekableReadStream *robgjd = 0;
 
@@ -154,21 +172,22 @@ GrvCursorMan_t7g::GrvCursorMan_t7g(OSystem *system, Common::MacResManager *macRe
 	if (!robgjd)
 		error("Groovie::Cursor: Couldn't open rob.gjd");
 
-	// Load the images
+// Load the images
 	for (uint imgnum = 0; imgnum < NUM_IMGS; imgnum++) {
 		robgjd->seek(cursorDataOffsets[imgnum]);
 		_images.push_back(loadImage(*robgjd));
 	}
 
-	// Load the palettes
+// Load the palettes
 	robgjd->seek(-0x60 * NUM_PALS, SEEK_END);
 	for (uint palnum = 0; palnum < NUM_PALS; palnum++) {
 		_palettes.push_back(loadPalette(*robgjd));
 	}
 
-	// Build the cursors
+// Build the cursors
 	for (uint cursor = 0; cursor < NUM_STYLES; cursor++) {
-		Cursor *s = new Cursor_t7g(_images[_cursorImg[cursor]], _palettes[_cursorPal[cursor]]);
+		Cursor *s = new Cursor_t7g(_images[_cursorImg[cursor]],
+				_palettes[_cursorPal[cursor]]);
 		_cursors.push_back(s);
 	}
 
@@ -176,12 +195,12 @@ GrvCursorMan_t7g::GrvCursorMan_t7g(OSystem *system, Common::MacResManager *macRe
 }
 
 GrvCursorMan_t7g::~GrvCursorMan_t7g() {
-	// Delete the images
+// Delete the images
 	for (uint img = 0; img < _images.size(); img++) {
 		delete[] _images[img];
 	}
 
-	// Delete the palettes
+// Delete the palettes
 	for (uint pal = 0; pal < _palettes.size(); pal++) {
 		delete[] _palettes[pal];
 	}
@@ -231,10 +250,9 @@ byte *GrvCursorMan_t7g::loadPalette(Common::SeekableReadStream &file) {
 	return palette;
 }
 
-
 // v2 Cursor
 
-class Cursor_v2 : public Cursor {
+class Cursor_v2: public Cursor {
 public:
 	Cursor_v2(Common::File &file);
 	~Cursor_v2();
@@ -243,7 +261,7 @@ public:
 	void showFrame(uint16 frame);
 
 private:
-	// Currently locked to 16bit
+// Currently locked to 16bit
 	byte *_img;
 
 	Graphics::PixelFormat _format;
@@ -260,32 +278,39 @@ Cursor_v2::Cursor_v2(Common::File &file) {
 	_width = file.readUint16LE();
 	_height = file.readUint16LE();
 
-	_img = new byte[_width * _height * _numFrames * 4];
+	_img = new byte[_width * _height * _numFrames * 2];
 
-	debugC(1, kDebugCursor, "Groovie::Cursor: width: %d, height: %d, frames:%d", _width, _height, _numFrames);
+	debugC(1, kGroovieDebugCursor | kGroovieDebugAll,
+			"Groovie::Cursor: width: %d, height: %d, frames:%d", _width,
+			_height, _numFrames);
 
 	uint16 tmp16 = file.readUint16LE();
-	debugC(5, kDebugCursor, "hotspot x?: %d\n", tmp16);
+	debugC(5, kGroovieDebugCursor | kGroovieDebugAll, "hotspot x?: %d\n",
+			tmp16);
 	tmp16 = file.readUint16LE();
-	debugC(5, kDebugCursor, "hotspot y?: %d\n", tmp16);
+	debugC(5, kGroovieDebugCursor | kGroovieDebugAll, "hotspot y?: %d\n",
+			tmp16);
 	int loop2count = file.readUint16LE();
-	debugC(5, kDebugCursor, "loop2count?: %d\n", loop2count);
+	debugC(5, kGroovieDebugCursor | kGroovieDebugAll, "loop2count?: %d\n",
+			loop2count);
 	for (int l = 0; l < loop2count; l++) {
 		tmp16 = file.readUint16LE();
-		debugC(5, kDebugCursor, "loop2a: %d\n", tmp16);	// Index frame can merge to/from?
+		debugC(5, kGroovieDebugCursor | kGroovieDebugAll, "loop2a: %d\n",
+				tmp16); // Index frame can merge to/from?
 		tmp16 = file.readUint16LE();
-		debugC(5, kDebugCursor, "loop2b: %d\n", tmp16);	// Number of frames?
+		debugC(5, kGroovieDebugCursor | kGroovieDebugAll, "loop2b: %d\n",
+				tmp16); // Number of frames?
 	}
 
 	file.read(pal, 0x20 * 3);
 
 	for (int f = 0; f < _numFrames; f++) {
 		uint32 tmp32 = file.readUint32LE();
-		debugC(5, kDebugCursor, "loop3: %d\n", tmp32);
+		debugC(5, kGroovieDebugCursor | kGroovieDebugAll, "loop3: %d\n", tmp32);
 
 		byte *data = new byte[tmp32];
 		file.read(data, tmp32);
-		decodeFrame(pal, data, _img + (f * _width * _height * 4));
+		decodeFrame(pal, data, _img + (f * _width * _height * 2));
 
 		delete[] data;
 	}
@@ -298,7 +323,7 @@ Cursor_v2::~Cursor_v2() {
 }
 
 void Cursor_v2::decodeFrame(byte *pal, byte *data, byte *dest) {
-	// Scratch memory
+// Scratch memory
 	byte *tmp = new byte[_width * _height * 4];
 	byte *ptr = tmp;
 	memset(tmp, 0, _width * _height * 4);
@@ -309,7 +334,7 @@ void Cursor_v2::decodeFrame(byte *pal, byte *data, byte *dest) {
 
 	byte r, g, b;
 
-	// Start frame decoding
+// Start frame decoding
 	for (int y = 0; y < _height; y++) {
 		for (int x = 0; x < _width; x++) {
 			// If both counters are empty
@@ -349,9 +374,9 @@ void Cursor_v2::decodeFrame(byte *pal, byte *data, byte *dest) {
 
 					// TODO: The * 0 to be replaced by the component value of each pixel
 					//       below, respectively - does blending
-					r = (byte)((alpha * r + (256 - alpha) * 0) >> 8);
-					g = (byte)((alpha * g + (256 - alpha) * 0) >> 8);
-					b = (byte)((alpha * b + (256 - alpha) * 0) >> 8);
+					r = (byte) ((alpha * r + (256 - alpha) * 0) >> 8);
+					g = (byte) ((alpha * g + (256 - alpha) * 0) >> 8);
+					b = (byte) ((alpha * b + (256 - alpha) * 0) >> 8);
 				}
 
 				*ptr = 1;
@@ -363,17 +388,18 @@ void Cursor_v2::decodeFrame(byte *pal, byte *data, byte *dest) {
 		}
 	}
 
-	// Convert to screen format
-	// NOTE: Currently locked to 32bpp
+// Convert to screen format
+// NOTE: Currently locked to 16bit
 	ptr = tmp;
 	for (int y = 0; y < _height; y++) {
 		for (int x = 0; x < _width; x++) {
 			if (*ptr == 1) {
-				*(uint32 *)dest = _format.RGBToColor(*(ptr + 1), *(ptr + 2), *(ptr + 3));
+				*(uint16 *) dest = (uint16) _format.RGBToColor(*(ptr + 1),
+						*(ptr + 2), *(ptr + 3));
 			} else {
-				*(uint32 *)dest = 0;
+				*(uint16 *) dest = 0;
 			}
-			dest += 4;
+			dest += 2;
 			ptr += 4;
 		}
 	}
@@ -385,32 +411,32 @@ void Cursor_v2::enable() {
 }
 
 void Cursor_v2::showFrame(uint16 frame) {
-	int offset = _width * _height * frame * 4;
-	CursorMan.replaceCursor((const byte *)(_img + offset), _width, _height, _width >> 1, _height >> 1, 0, false, &_format);
+	int offset = _width * _height * frame * 2;
+	CursorMan.replaceCursor((const byte *) (_img + offset), _width, _height,
+			_width >> 1, _height >> 1, 0, false, &_format);
 }
-
 
 // v2 Cursor Manager
 
-GrvCursorMan_v2::GrvCursorMan_v2(OSystem *system) :
-	GrvCursorMan(system) {
+GrvCursorMan_v2::GrvCursorMan_v2(OSystem *system, GroovieEngine* vm) :
+		GrvCursorMan(system, vm) {
 
-	// Open the icons file
+// Open the icons file
 	Common::File iconsFile;
 	if (!iconsFile.open("icons.ph"))
 		error("Groovie::Cursor: Couldn't open icons.ph");
 
-	// Verify the signature
+// Verify the signature
 	uint32 tmp32 = iconsFile.readUint32BE();
 	uint16 tmp16 = iconsFile.readUint16LE();
-	if (tmp32 != MKTAG('i','c','o','n') || tmp16 != 1)
-		error("Groovie::Cursor: icons.ph signature failed: %s %d", tag2str(tmp32), tmp16);
+	if (tmp32 != MKTAG('i', 'c', 'o', 'n') || tmp16 != 1)
+		error("Groovie::Cursor: icons.ph signature failed: %s %d",
+				tag2str(tmp32), tmp16);
 
-
-	// Read the number of icons
+// Read the number of icons
 	uint16 nicons = iconsFile.readUint16LE();
 
-	// Read the icons
+// Read the icons
 	for (int i = 0; i < nicons; i++) {
 		Cursor *s = new Cursor_v2(iconsFile);
 		_cursors.push_back(s);
@@ -423,8 +449,8 @@ GrvCursorMan_v2::~GrvCursorMan_v2() {
 }
 
 void GrvCursorMan_v2::setStyle(uint8 newStyle) {
-	// Cursor 4 is actually cursor 3, but with some changes to alpha blending
-	// (which is currently not handled)
+// Cursor 4 is actually cursor 3, but with some changes to alpha blending
+// (which is currently not handled)
 	GrvCursorMan::setStyle(newStyle == 4 ? 3 : newStyle);
 }
 

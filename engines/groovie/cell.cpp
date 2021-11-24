@@ -30,6 +30,7 @@ CellGame::CellGame() {
 	_stack_index = _boardStackPtr = 0;
 	_flag4 = false;
 	_flag2 = false;
+	_flag1 = false;
 	_coeff3 = 0;
 
 	_moveCount = 0;
@@ -785,7 +786,7 @@ int CellGame::playStauf(byte color, uint16 depth, byte *scriptBoard) {
 	for (i = 49; i < 57; i++)
 		_board[i] = 0;
 
-	return calcMove(color, depth);
+	return calcMove(color, 0); // set depth to 0 in order to make difficulty reasonable on current CPUs
 }
 
 

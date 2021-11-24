@@ -25,6 +25,7 @@
 
 #include "common/array.h"
 #include "common/system.h"
+#include "groovie.h"
 
 namespace Common {
 class MacResManager;
@@ -47,7 +48,7 @@ protected:
 
 class GrvCursorMan {
 public:
-	GrvCursorMan(OSystem *system);
+	GrvCursorMan(OSystem *system, GroovieEngine* vm);
 	virtual ~GrvCursorMan();
 
 	virtual void show(bool visible);
@@ -57,6 +58,7 @@ public:
 
 protected:
 	OSystem *_syst;
+	GroovieEngine *_vm;
 
 	// Animation variables
 	uint8 _lastFrame;
@@ -66,11 +68,13 @@ protected:
 	Common::Array<Cursor *> _cursors;
 	uint8 _current;
 	Cursor *_cursor;
+
+	bool mCursorVisible;
 };
 
 class GrvCursorMan_t7g : public GrvCursorMan {
 public:
-	GrvCursorMan_t7g(OSystem *system, Common::MacResManager *macResFork = 0);
+	GrvCursorMan_t7g(OSystem *system, GroovieEngine* vm, Common::MacResManager *macResFork = 0);
 	~GrvCursorMan_t7g();
 
 private:
@@ -89,7 +93,7 @@ private:
 
 class GrvCursorMan_v2 : public GrvCursorMan {
 public:
-	GrvCursorMan_v2(OSystem *system);
+	GrvCursorMan_v2(OSystem *system, GroovieEngine* vm);
 	~GrvCursorMan_v2();
 
 	void setStyle(uint8 newStyle);

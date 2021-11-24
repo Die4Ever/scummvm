@@ -54,9 +54,10 @@ private:
 	bool play(uint32 fileref, bool loop);
 	bool _isPlaying;
 	uint32 _backgroundFileRef;
-	uint8 _prevCDtrack;
-
 	uint16 _backgroundDelay;
+	uint32 _prevBackgroundFileRef;
+	uint32 _prevFileRef;
+	uint8 _prevCDtrack;
 
 	// T7G iOS credits mp3 stream
 	void playCreditsIOS();
@@ -75,7 +76,8 @@ protected:
 
 	// Callback
 	static void onTimer(void *data);
-	virtual void onTimerInternal() {}
+	virtual void onTimerInternal() {
+	}
 	Common::Mutex _mutex;
 
 	// User volume
@@ -89,7 +91,7 @@ protected:
 	virtual void unload();
 };
 
-class MusicPlayerMidi : public MusicPlayer, public MidiDriver_BASE {
+class MusicPlayerMidi: public MusicPlayer, public MidiDriver_BASE {
 public:
 	MusicPlayerMidi(GroovieEngine *vm);
 	~MusicPlayerMidi();
@@ -117,7 +119,7 @@ protected:
 	bool loadParser(Common::SeekableReadStream *stream, bool loop);
 };
 
-class MusicPlayerXMI : public MusicPlayerMidi {
+class MusicPlayerXMI: public MusicPlayerMidi {
 public:
 	MusicPlayerXMI(GroovieEngine *vm, const Common::String &gtlName);
 	~MusicPlayerXMI();
@@ -134,12 +136,12 @@ private:
 	// Output music type
 	uint8 _musicType;
 
-	bool _milesAudioMode;
-
 	// Timbres
 	class Timbre {
 	public:
-		Timbre() : data(NULL) {}
+		Timbre() :
+				data(NULL), patch(0), bank(0), size(0) {
+		}
 		byte patch;
 		byte bank;
 		uint32 size;
@@ -152,7 +154,7 @@ private:
 	void setTimbreMT(byte channel, const Timbre &timbre);
 };
 
-class MusicPlayerMac_t7g : public MusicPlayerMidi {
+class MusicPlayerMac_t7g: public MusicPlayerMidi {
 public:
 	MusicPlayerMac_t7g(GroovieEngine *vm);
 
@@ -160,10 +162,11 @@ protected:
 	bool load(uint32 fileref, bool loop);
 
 private:
-	Common::SeekableReadStream *decompressMidi(Common::SeekableReadStream *stream);
+	Common::SeekableReadStream *decompressMidi(
+			Common::SeekableReadStream *stream);
 };
 
-class MusicPlayerMac_v2 : public MusicPlayerMidi {
+class MusicPlayerMac_v2: public MusicPlayerMidi {
 public:
 	MusicPlayerMac_v2(GroovieEngine *vm);
 
@@ -171,10 +174,10 @@ protected:
 	bool load(uint32 fileref, bool loop);
 };
 
-class MusicPlayerIOS : public MusicPlayer {
+class MusicPlayerEnhanced : public MusicPlayer {
 public:
-	MusicPlayerIOS(GroovieEngine *vm);
-	~MusicPlayerIOS();
+	MusicPlayerEnhanced(GroovieEngine *vm);
+	~MusicPlayerEnhanced();
 
 protected:
 	void updateVolume();
@@ -183,6 +186,25 @@ protected:
 
 private:
 	Audio::SoundHandle _handle;
+};
+
+class MP3VoicePlayer {
+public:
+	MP3VoicePlayer(GroovieEngine *vm);
+	~MP3VoicePlayer();
+
+	bool isPlayingSound();
+
+	bool prepare(Common::String filename);
+	void play();
+	void stop();
+
+private:
+	Audio::SoundHandle _handle;
+	bool _isPlaying;
+	GroovieEngine *_vm;
+	Common::Mutex _mutex;
+	Audio::AudioStream *_audStream;
 };
 
 } // End of Groovie namespace

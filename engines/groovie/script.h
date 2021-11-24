@@ -25,6 +25,9 @@
 
 #include "common/random.h"
 #include "common/rect.h"
+#include "common/error.h"
+
+#include "enhanced/HitAreaHelper.h"
 
 namespace Common {
 class SeekableReadStream;
@@ -37,8 +40,7 @@ struct Surface;
 namespace Groovie {
 
 enum EngineVersion {
-	kGroovieT7G,
-	kGroovieV2
+	kGroovieT7G, kGroovieV2
 };
 
 class CellGame;
@@ -64,7 +66,47 @@ public:
 	void setMouseClick(uint8 button);
 	void setKbdChar(uint8 c);
 
+	bool canSkip();
+	inline bool canReplay() {
+		return mCanReplay;
+	}
+
+	void skipAllPuzzles();
+
+	inline void replay() {
+		mPerformReplay = true;
+	}
+
+	bool skippedMicroscopePuzzle = false;
+	void skipMicroscopePuzzle();
+	void enableMicroscopePuzzle();
+	bool isMicroscopePuzzleSolved();
+
+	void skipCanPuzzle();
+
+	bool isCanPuzzleSolved();
+
+	void skipBedspreadPuzzle();
+
+	bool isBedspreadPuzzleSolved();
+
+	void skipHeartPuzzle();
+
+	bool isHeartPuzzleSolved();
+
 	Common::String &getContext();
+
+	Common::Error loadgame(uint slot);
+	Common::Error savegame(uint slot);
+
+	uint16 getCurrentHotspots(Enhanced::Hotspot* rectArray);
+	void addToCurrentHotspots(Common::Rect rect, uint8 cursor);
+	void clearCurrentHotspots();
+	inline void lockCurrentHotspots(bool lock)
+	{
+		mLockHotspots = lock;
+	}
+
 
 private:
 	GroovieEngine *_vm;
@@ -129,6 +171,18 @@ private:
 
 	CellGame *_staufsMove;
 
+	// Current hotspots
+	Enhanced::Hotspot* mCurrentHotspots;
+	uint16 mCurrentHotspotCount;
+	bool mLockHotspots;
+
+	bool mEnableQueensPuzzleHack;
+
+	bool mCanReplay;
+	bool mPerformReplay;
+
+	bool mEnabledOpenHouseMode;
+
 	// Helper functions
 	uint8 getCodeByte(uint16 address);
 	uint8 readScript8bits();
@@ -141,8 +195,6 @@ private:
 
 	bool hotspot(Common::Rect rect, uint16 addr, uint8 cursor);
 
-	void loadgame(uint slot);
-	void savegame(uint slot);
 	bool playvideofromref(uint32 fileref);
 	void printString(Graphics::Surface *surface, const char *str);
 
@@ -238,7 +290,6 @@ private:
 	void o2_setvideoskip();
 	void o2_copyscreentobg();
 	void o2_copybgtoscreen();
-	void o2_stub42();
 	void o2_stub52();
 	void o2_setscriptend();
 };
