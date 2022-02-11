@@ -285,6 +285,15 @@ public:
 	void copyRectToSurface(const Graphics::Surface &srcSurface, int destX, int destY, const Common::Rect subRect);
 
 	/**
+	 * Convenience wrapper around copyRectToSurface, centers the source when copying it.
+	 *
+	 * The pixel format of the buffer must match the pixel format of the surface.
+	 *
+	 * @param src  Source of the bitmap data.
+	 */
+	void copyFromCentered(const Graphics::Surface &src);
+
+	/**
 	 * Convert the data to another pixel format.
 	 *
 	 * This works in-place. This means it does not create an additional buffer

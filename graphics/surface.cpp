@@ -159,6 +159,31 @@ void Surface::copyRectToSurface(const Graphics::Surface &srcSurface, int destX, 
 	copyRectToSurface(srcSurface.getBasePtr(subRect.left, subRect.top), srcSurface.pitch, destX, destY, subRect.width(), subRect.height());
 }
 
+void Surface::copyFromCentered(const Graphics::Surface &src) {
+	int x = 0;
+	int y = 0;
+	Common::Rect rect(0, 0, src.w, src.h);
+
+	rect.bottom = MIN(rect.bottom, src.h);
+
+	if (w >= src.w) {
+		x = (w - src.w) / 2;
+	} else {
+		int off = (src.w - w) / 2;
+		rect.left = off;
+		rect.right = w + off;
+	}
+	if (h >= src.h) {
+		y = (h - src.h) / 2;
+	} else {
+		int off = (src.h - h) / 2;
+		rect.top = off;
+		rect.bottom = h + off;
+	}
+
+	copyRectToSurface(src, x, y, rect);
+}
+
 void Surface::hLine(int x, int y, int x2, uint32 color) {
 	// Clipping
 	if (y < 0 || y >= h)
