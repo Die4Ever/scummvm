@@ -75,21 +75,50 @@ void GraphicsMan::update() {
 	}
 }
 
+void copySurfaceCentered(Graphics::Surface &dst, const Graphics::Surface &src) {
+	int x = 0;
+	int y = 0;
+	Common::Rect rect(0, 0, src.w, src.h);
+
+	rect.bottom = MIN(rect.bottom, src.h);
+
+	if (dst.w >= src.w) {
+		x = (dst.w - src.w) / 2;
+	} else {
+		int off = (src.w - dst.w) / 2;
+		rect.left = off;
+		rect.right = dst.w + off;
+	}
+	if (dst.h >= src.h) {
+		y = (dst.h - src.h) / 2;
+	} else {
+		int off = (src.h - dst.h) / 2;
+		rect.top = off;
+		rect.bottom = dst.h + off;
+	}
+
+	dst.copyRectToSurface(src, x, y, rect);
+}
+
 void GraphicsMan::switchToFullScreen(bool fullScreen) {
 	// retain the image we currently have, Samantha's moves depend on this
+	Graphics::Surface tmp;
+	tmp.copyFrom(_background);
 	_background.copyFrom(_foreground);
 	_foreground.free();
 
 	if (fullScreen) {
 		_foreground.create(640, 480, _vm->_pixelFormat);
-		_foreground.copyRectToSurface(_background, 0, 80, Common::Rect(0, 0, 640, 320));
+		copySurfaceCentered(_foreground, _background);
 		_background.free();
 		_background.create(640, 480, _vm->_pixelFormat);
+		copySurfaceCentered(_background, tmp);
 	} else {
 		_foreground.create(640, 320, _vm->_pixelFormat);
-		_foreground.copyRectToSurface(_background, 0, 0, Common::Rect(0, 80, 640, 400));
+		copySurfaceCentered(_foreground, _background);
 		_background.free();
 		_background.create(640, 320, _vm->_pixelFormat);
+		copySurfaceCentered(_background, tmp);
 	}
 
 	_changed = true;
