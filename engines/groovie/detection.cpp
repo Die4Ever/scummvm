@@ -61,15 +61,25 @@ static const PlainGameDescriptor groovieGames[] = {
 
 const int BASE_FLAGS = ADGF_NO_FLAGS;
 
-/*constexpr GroovieGameDescription groovieGame(const char *id, const char *extra, const ADGameFileDescription (&filesDescriptions)[14], const char *guiOptions, EngineVersion version) {
-	return GroovieGameDescription();
+/*constexpr GroovieGameDescription GROOVIEGAME(const char *id, const char *extra,
+	const char *f1, const char *x1, int64 s1, const char *f2, const char *x2, int64 s2,
+	Common::Language language, Common::Platform platform, unsigned int flags, const char *guiOptions, EngineVersion version) {
+	return GroovieGameDescription{
+		{
+			id, extra,
+			AD_ENTRY2s(f1, x1, s1, f2, x2, s2),
+			language, platform, flags,
+			guiOptions
+		},
+		 version
+	};
 }*/
 
 // script file from the GROOVIE folder and a file from the MEDIA folder just to make sure we're in the correct root directly and not trying to play the game from inside the GROOVIE folder
 #define GROOVIEFILES(scriptName, scriptHash, scriptSize, mediaName) AD_ENTRY2s(scriptName, scriptHash, scriptSize, mediaName, nullptr, -1)
 
-#define GROOVIE2MIDIOPTS GUIO_MIDIADLIB GUIO_MIDIMT32 GUIO_MIDIGM GUIO_NOASPECT
-#define GROOVIE2NOMIDIOPTS GUIO_NOMIDI GUIO_NOASPECT
+//#define GROOVIE2MIDIOPTS GUIO_MIDIADLIB GUIO_MIDIMT32 GUIO_MIDIGM GUIO_NOASPECT
+//#define GROOVIE2NOMIDIOPTS GUIO_NOMIDI GUIO_NOASPECT
 #define GROOVIEGAME(id, extra, files, language, platform, flags, guiOptions, version)	\
 	{																					\
 		{																				\
@@ -83,19 +93,19 @@ const int BASE_FLAGS = ADGF_NO_FLAGS;
 
 
 #define T7GENTRY(extra, files, language, platform, flags) GROOVIEGAME("t7g", extra, files, language, platform, flags, GUIO8(GUIO_MIDIADLIB, GUIO_MIDIMT32, GUIO_MIDIGM, GUIO_NOASPECT, GUIO_NOSFX, GAMEOPTION_T7G_FAST_MOVIE_SPEED, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_EASIER_AI), kGroovieT7G)
-#define T7GNOMIDIENTRY(extra, files, language, platform, flags, guiOptions) GROOVIEGAME("t7g", extra, files, language, platform, flags, (GUIO_NOMIDI GUIO_NOASPECT GUIO_NOSFX GAMEOPTION_T7G_FAST_MOVIE_SPEED guiOptions), kGroovieT7G)
+#define T7GNOMIDIENTRY(extra, files, language, platform, flags, guiOptions) GROOVIEGAME("t7g", extra, files, language, platform, flags, GUIO4(GUIO_NOMIDI, GUIO_NOASPECT, GUIO_NOSFX, GAMEOPTION_T7G_FAST_MOVIE_SPEED), kGroovieT7G)
 
-#define T11HENTRY(extra, files, language, platform, flags) GROOVIEGAME("11h", extra, files, language, platform, flags | ADGF_TESTING, (GROOVIE2MIDIOPTS GAMEOPTION_ORIGINAL_SAVELOAD GAMEOPTION_EASIER_AI GAMEOPTION_FINAL_HOUR), kGroovieT11H)
+#define T11HENTRY(extra, files, language, platform, flags) GROOVIEGAME("11h", extra, files, language, platform, flags | ADGF_TESTING, GUIO6(GUIO_MIDIADLIB, GUIO_MIDIMT32, GUIO_MIDIGM GUIO_NOASPECT, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_EASIER_AI, GAMEOPTION_FINAL_HOUR), kGroovieT11H)
 #define T11HDEMOENTRY(extra, files, language, platform, flags) GROOVIEGAME("11h", extra, files, language, platform, flags | ADGF_DEMO | ADGF_TESTING, GUIO5(GUIO_NOLAUNCHLOAD, GUIO_MIDIADLIB, GUIO_MIDIMT32, GUIO_MIDIGM, GUIO_NOASPECT), kGroovieT11H)
 #define T11HMAKINGOFENTRY(files, language, platform) GROOVIEGAME("making11h", "", files, language, platform, ADGF_TESTING, GUIO4(GUIO_MIDIADLIB, GUIO_MIDIMT32, GUIO_MIDIGM, GUIO_NOASPECT), kGroovieT11H)
 
-#define CLANENTRY(extra, files, language, platform, flags) GROOVIEGAME("clandestiny", extra, files, language, platform, flags | ADGF_TESTING, (GROOVIE2NOMIDIOPTS GAMEOPTION_ORIGINAL_SAVELOAD GAMEOPTION_EASIER_AI), kGroovieCDY)
+#define CLANENTRY(extra, files, language, platform, flags) GROOVIEGAME("clandestiny", extra, files, language, platform, flags | ADGF_TESTING, GUIO4(GUIO_NOMIDI, GUIO_NOASPECT, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_EASIER_AI), kGroovieCDY)
 #define CLANDEMOENTRY(extra, files, language, platform, flags) GROOVIEGAME("clandestiny", extra, files, language, platform, flags | ADGF_DEMO | ADGF_TESTING, GUIO3(GUIO_NOMIDI, GUIO_NOLAUNCHLOAD, GUIO_NOASPECT), kGroovieCDY)
 
-#define UHPENTRY(extra, files, language, platform, flags) GROOVIEGAME("unclehenry", extra, files, language, platform, flags | ADGF_TESTING, (GROOVIE2NOMIDIOPTS GAMEOPTION_EASIER_AI), kGroovieUHP)
+#define UHPENTRY(extra, files, language, platform, flags) GROOVIEGAME("unclehenry", extra, files, language, platform, flags | ADGF_TESTING, GUIO3(GUIO_NOMIDI, GUIO_NOASPECT, GAMEOPTION_EASIER_AI), kGroovieUHP)
 
-#define TLCENTRY(extra, files, language, platform, flags) GROOVIEGAME("tlc", extra, files, language, platform, flags | ADGF_TESTING | ADGF_CD, (GROOVIE2NOMIDIOPTS), kGroovieTLC)
-#define TLCDVDENTRY(files, language, platform) GROOVIEGAME("tlc", _s("Missing game code"), files, language, platform, ADGF_UNSUPPORTED | ADGF_DVD, (GROOVIE2NOMIDIOPTS), kGroovieTLC)
+#define TLCENTRY(extra, files, language, platform, flags) GROOVIEGAME("tlc", extra, files, language, platform, flags | ADGF_TESTING | ADGF_CD, GUIO2(GUIO_NOMIDI, GUIO_NOASPECT), kGroovieTLC)
+#define TLCDVDENTRY(files, language, platform) GROOVIEGAME("tlc", _s("Missing game code"), files, language, platform, ADGF_UNSUPPORTED | ADGF_DVD, GUIO2(GUIO_NOMIDI, GUIO_NOASPECT), kGroovieTLC)
 
 // clang-format off
 static const GroovieGameDescription gameDescriptions[] = {
