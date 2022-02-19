@@ -80,8 +80,7 @@ const int BASE_FLAGS = ADGF_NO_FLAGS;
 
 //#define GROOVIE2MIDIOPTS GUIO_MIDIADLIB GUIO_MIDIMT32 GUIO_MIDIGM GUIO_NOASPECT
 //#define GROOVIE2NOMIDIOPTS GUIO_NOMIDI GUIO_NOASPECT
-#define GROOVIEGAME(id, extra, files, language, platform, flags, guiOptions, version)	\
-	{																					\
+#define GROOVIEGAME(id, extra, files, language, platform, flags, guiOptions, version) { \
 		{																				\
 			id, extra,																	\
 			files,																		\
