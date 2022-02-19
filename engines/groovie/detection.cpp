@@ -149,7 +149,8 @@ static const GroovieGameDescription gameDescriptions[] = {
 						"SeventhGuest", nullptr, -1, EN_ANY, kPlatformIOS, BASE_FLAGS, GAMEOPTION_ORIGINAL_SAVELOAD GAMEOPTION_EASIER_AI),
 
 	// "Guest" early DOS demo
-	T7GNOMIDIENTRY("The early \"Guest\" demo is not supported", "playtlc.exe", "9cff0e9649ddf49e9fe5168730aa7201", 254768, nullptr, nullptr, 0,
+	T7GNOMIDIENTRY("The early \"Guest\" demo is not supported", "playtlc.exe", "9cff0e9649ddf49e9fe5168730aa7201", 254768,
+						"FACE.VDX", "614f820265274dc99d8869de67df1718", 1382814,
 						EN_ANY, kPlatformDOS, ADGF_DEMO | ADGF_UNSUPPORTED, GUIO_NONE),
 
 /*==== The 11th Hour ====*/
