@@ -61,26 +61,6 @@ static const PlainGameDescriptor groovieGames[] = {
 
 const int BASE_FLAGS = ADGF_NO_FLAGS;
 
-/*constexpr GroovieGameDescription GROOVIEGAME(const char *id, const char *extra,
-	const char *f1, const char *x1, int64 s1, const char *f2, const char *x2, int64 s2,
-	Common::Language language, Common::Platform platform, unsigned int flags, const char *guiOptions, EngineVersion version) {
-	return GroovieGameDescription{
-		{
-			id, extra,
-			AD_ENTRY2s(f1, x1, s1, f2, x2, s2),
-			language, platform, flags,
-			guiOptions
-		},
-		 version
-	};
-}*/
-
-// script file from the GROOVIE folder and a file from the MEDIA folder just to make sure we're in the correct root directly and not trying to play the game from inside the GROOVIE folder
-//#define GROOVIEFILES(scriptName, scriptHash, scriptSize, mediaName) (scriptName, scriptHash, scriptSize, mediaName, nullptr, -1)
-//#define GROOVIEFILES2(scriptName, scriptHash, scriptSize, mediaName, mediaHash, mediaSize) (scriptName, scriptHash, scriptSize, mediaName, mediaHash, mediaSize)
-
-//#define GROOVIE2MIDIOPTS GUIO_MIDIADLIB GUIO_MIDIMT32 GUIO_MIDIGM GUIO_NOASPECT
-//#define GROOVIE2NOMIDIOPTS GUIO_NOMIDI GUIO_NOASPECT
 #define GROOVIEGAME(id, extra, f1, x1, s1, f2, x2, s2, language, platform, flags, guiOptions, version) \
 	{																							\
 		{																				\
