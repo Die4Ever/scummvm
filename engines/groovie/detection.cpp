@@ -84,8 +84,8 @@ const int BASE_FLAGS = ADGF_NO_FLAGS;
 		{																				\
 			id, extra,																	\
 			files,																		\
-			language, platform, flags,													\
-			guiOptions																	\
+			language, platform, (flags),												\
+			(guiOptions)																\
 		},																				\
 		version																			\
 	}
