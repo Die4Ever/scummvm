@@ -25,6 +25,8 @@
 #include "saga2/saga2.h"
 #include "saga2/detection.h"
 
+test compile failure dshjfhsdkfhe
+
 static const DebugChannelDef debugFlagList[] = {
 	{Saga2::kDebugResources, "resources", "Debug the resources"},
 	{Saga2::kDebugActors,    "actors",    "Debug the actors"},
