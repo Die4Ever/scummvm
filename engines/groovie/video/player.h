@@ -72,7 +72,7 @@ private:
 	float _frameTimeDrift;
 
 protected:
-	void waitFrame();
+	virtual void waitFrame();
 };
 
 } // End of Groovie namespace

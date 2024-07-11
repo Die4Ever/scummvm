@@ -24,6 +24,7 @@
 
 #include "groovie/video/player.h"
 #include "audio/mixer.h"
+#include "video/video_decoder.h"
 
 namespace Groovie {
 
@@ -49,6 +50,7 @@ public:
 	void copyfgtobg(uint8 arg) override;
 
 protected:
+	void waitFrame() override;
 	uint16 loadInternal() override;
 	bool playFrameInternal() override;
 	void stopAudioStream() override;
@@ -59,6 +61,7 @@ protected:
 	Graphics::Surface *_currBuf, *_prevBuf;
 
 private:
+	Video::VideoDecoder *_videoDecoder;
 	bool readBlockHeader(ROQBlockHeader &blockHeader);
 
 	bool processBlock();
