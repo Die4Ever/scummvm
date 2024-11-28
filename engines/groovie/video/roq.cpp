@@ -41,6 +41,7 @@
 #include "audio/audiostream.h"
 #include "audio/mixer.h"
 #include "audio/decoders/raw.h"
+#include "video/mpegps_decoder.h"
 
 #include "common/file.h"
 #ifdef USE_PNG
@@ -109,7 +110,17 @@ ROQPlayer::ROQPlayer(GroovieEngine *vm) :
 	_currBuf = new Graphics::Surface();
 	_prevBuf = new Graphics::Surface();
 	_overBuf = new Graphics::Surface();	// Overlay buffer. Objects move behind this layer
+
+	// Allocate new buffers
+	_currBuf->create(_bg->w, _bg->h, _vm->_pixelFormat);
+	_prevBuf->create(_bg->w, _bg->h, _vm->_pixelFormat);
+	_overBuf->create(_bg->w, _bg->h, _vm->_pixelFormat);
+
+	_scaleX = MIN(_syst->getWidth() / _bg->w, 2);
+	_scaleY = MIN(_syst->getHeight() / _bg->h, 2);
+
 	_restoreArea = new Common::Rect();
+	_videoDecoder = nullptr;
 }
 
 ROQPlayer::~ROQPlayer() {
@@ -180,6 +191,13 @@ uint16 ROQPlayer::loadInternal() {
 	debugC(6, kDebugVideo, "Groovie::ROQ: First Block param = 0x%04X", blockHeader.param);
 
 	// Verify the file signature
+	if (blockHeader.type == 0) {
+		_videoDecoder = new Video::MPEGPSDecoder();
+		_videoDecoder->loadStream(_file);
+		return 24;
+	}
+	delete _videoDecoder;
+	_videoDecoder = nullptr;
 	if (blockHeader.type != 0x1084) {
 		return 0;
 	}
@@ -214,6 +232,14 @@ uint16 ROQPlayer::loadInternal() {
 		warning("Groovie::ROQ: Invalid header with size=%d and param=%d", blockHeader.size, blockHeader.param);
 		return 0;
 	}
+}
+
+void ROQPlayer::waitFrame() {
+	if (_videoDecoder) {
+		uint32 wait = _videoDecoder->getTimeToNextFrame();
+		_syst->delayMillis(wait);
+	} else
+		VideoPlayer::waitFrame();
 }
 
 void ROQPlayer::clearOverlay() {
@@ -430,6 +456,17 @@ void ROQPlayer::buildShowBuf() {
 
 bool ROQPlayer::playFrameInternal() {
 	debugC(5, kDebugVideo, "Groovie::ROQ: Playing frame");
+
+	if (_videoDecoder) {
+		const Graphics::Surface *srcSurf = _videoDecoder->decodeNextFrame();
+		_currBuf->free();
+		delete _currBuf;
+
+		_currBuf = new Graphics::Surface();
+		_currBuf->copyFrom(*srcSurf);
+		buildShowBuf();
+		return _videoDecoder->endOfVideo();
+	}
 
 	// Process the needed blocks until the next video frame
 	bool endframe = false;

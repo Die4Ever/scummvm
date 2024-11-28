@@ -4,6 +4,7 @@ MODULE_OBJS := \
 	logic/cell.o \
 	video/player.o \
 	video/vdx.o \
+	video/vdxdecoder.o \
 	cursor.o \
 	debug.o \
 	font.o \
