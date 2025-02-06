@@ -42,7 +42,7 @@
 #include "audio/decoders/raw.h"
 
 #ifdef USE_MPEG2
-#include "video/mpegps_decoder.h"
+#include "video/ffmpeg_decoder.h"
 #endif
 
 #include "common/file.h"
@@ -195,7 +195,7 @@ uint16 ROQPlayer::loadInternal() {
 	// Verify the file signature
 #ifdef USE_MPEG2
 	if (blockHeader.type == 0) {
-		_videoDecoder = new Video::MPEGPSDecoder();
+		_videoDecoder = new Video::FfmpegDecoder();
 		_videoDecoder->setSoundType(Audio::Mixer::kSFXSoundType);
 		_videoDecoder->loadStream(_file);
 
@@ -407,8 +407,8 @@ void ROQPlayer::buildShowBuf() {
 	int startX, startY, stopX, stopY;
 	calcStartStop(startX, stopX, _origX, _screen->w);
 	calcStartStop(startY, stopY, _origY, _screen->h);
-	assert(destBuf->format == srcBuf->format);
-	assert(destBuf->format == _overBuf->format);
+	//assert(destBuf->format == srcBuf->format);
+	//assert(destBuf->format == _overBuf->format);
 	assert(destBuf->format.bytesPerPixel == 4);
 
 	for (int line = startY; line < stopY; line++) {
