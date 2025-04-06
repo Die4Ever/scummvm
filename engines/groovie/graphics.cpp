@@ -29,12 +29,15 @@
 
 namespace Groovie {
 
-GraphicsMan::GraphicsMan(GroovieEngine *vm) :
+GraphicsMan::GraphicsMan(GroovieEngine *vm, int w, int h, int hf) :
 	_vm(vm), _changed(false), _fading(0), _fadeStartTime(0) {
+	_w = w;
+	_h = h;
+	_hf = hf;
 	// Create the game surfaces
-	_foreground.create(640, 320, _vm->_pixelFormat);
-	_background.create(640, 320, _vm->_pixelFormat);
-	_savedground.create(640, 480, _vm->_pixelFormat);
+	_foreground.create(_w, _h, _vm->_pixelFormat);
+	_background.create(_w, _h, _vm->_pixelFormat);
+	_savedground.create(_w, _hf, _vm->_pixelFormat);
 }
 
 GraphicsMan::~GraphicsMan() {
@@ -64,7 +67,7 @@ void GraphicsMan::update() {
 
 			// Clear the buffer when ending the fade out
 			if (_fading == 2)
-				_foreground.fillRect(Common::Rect(640, _foreground.h), 0);
+				_foreground.fillRect(Common::Rect(_foreground.w, _foreground.h), 0);
 		}
 	}
 
@@ -80,16 +83,17 @@ void GraphicsMan::switchToFullScreen(bool fullScreen) {
 	_background.copyFrom(_foreground);
 	_foreground.free();
 
+	int half = (_hf - _h) / 2;
 	if (fullScreen) {
-		_foreground.create(640, 480, _vm->_pixelFormat);
-		_foreground.copyRectToSurface(_background, 0, 80, Common::Rect(0, 0, 640, 320));
+		_foreground.create(_w, _hf, _vm->_pixelFormat);
+		_foreground.copyRectToSurface(_background, 0, half, Common::Rect(0, 0, _w, _h));
 		_background.free();
-		_background.create(640, 480, _vm->_pixelFormat);
+		_background.create(_w, _hf, _vm->_pixelFormat);
 	} else {
-		_foreground.create(640, 320, _vm->_pixelFormat);
-		_foreground.copyRectToSurface(_background, 0, 0, Common::Rect(0, 80, 640, 400));
+		_foreground.create(_w, _h, _vm->_pixelFormat);
+		_foreground.copyRectToSurface(_background, 0, 0, Common::Rect(0, half, _w, _h+half));
 		_background.free();
-		_background.create(640, 320, _vm->_pixelFormat);
+		_background.create(_w, _h, _vm->_pixelFormat);
 	}
 
 	_changed = true;
@@ -105,7 +109,7 @@ void GraphicsMan::mergeFgAndBg() {
 
 	countf = (byte *)_foreground.getPixels();
 	countb = (byte *)_background.getPixels();
-	for (i = 640 * _foreground.h; i; i--) {
+	for (i = _foreground.w * _foreground.h; i; i--) {
 		if (255 == *(countf)) {
 			*(countf) = *(countb);
 		}
@@ -115,21 +119,30 @@ void GraphicsMan::mergeFgAndBg() {
 }
 
 void GraphicsMan::updateScreen(Graphics::Surface *source) {
-	if (!isFullScreen())
-		_vm->_system->copyRectToScreen(source->getPixels(), source->pitch, 0, 80, 640, 320);
+	if (isFullScreen())
+		_vm->_system->copyRectToScreen(source->getPixels(), source->pitch, 0, 0, _w, _hf);
 	else
-		_vm->_system->copyRectToScreen(source->getPixels(), source->pitch, 0, 0, 640, 480);
+		_vm->_system->copyRectToScreen(source->getPixels(), source->pitch, 0, (_hf-_h)/2, _w, _h);
 	change();
+}
+
+void GraphicsMan::copyToForeground(Graphics::Surface *source) {
+	if (isFullScreen())
+		_foreground.copyFrom(source->getSubArea(Common::Rect(0, 0, _w, _hf)));
+	else {
+		int half = (_hf-_h)/2;
+		_foreground.copyFrom(source->getSubArea(Common::Rect(0, half, _w, _h+half)));
+	}
 }
 
 void GraphicsMan::saveScreen() {
 	Graphics::Surface *screen = _vm->_system->lockScreen();
-	_vm->_graphicsMan->_savedground.copyFrom(screen->getSubArea(Common::Rect(0, 0, 640, 480)));
+	_vm->_graphicsMan->_savedground.copyFrom(screen->getSubArea(Common::Rect(0, 0, _w, _hf)));
 	_vm->_system->unlockScreen();
 }
 
 void GraphicsMan::restoreScreen() {
-	_vm->_system->copyRectToScreen(_savedground.getPixels(), _savedground.pitch, 0, 0, 640, 480);
+	_vm->_system->copyRectToScreen(_savedground.getPixels(), _savedground.pitch, 0, 0, _w, _hf);
 	change();
 }
 

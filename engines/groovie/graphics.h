@@ -30,7 +30,7 @@ class GroovieEngine;
 
 class GraphicsMan {
 public:
-	GraphicsMan(GroovieEngine *vm);
+	GraphicsMan(GroovieEngine *vm, int w, int h, int hf);
 	~GraphicsMan();
 
 	// Buffers
@@ -38,8 +38,9 @@ public:
 	void change();
 	void mergeFgAndBg();
 	void switchToFullScreen(bool fullScreen);
-	bool isFullScreen() { return (_foreground.h == 480); }
+	bool isFullScreen() { return (_foreground.h == _hf); }
 	void updateScreen(Graphics::Surface *source);
+	void copyToForeground(Graphics::Surface *source);
 	void saveScreen();
 	void restoreScreen();
 	Graphics::Surface _foreground;	// The main surface that most things are drawn to
@@ -50,6 +51,8 @@ public:
 	bool isFading();
 	void fadeIn(byte *pal);
 	void fadeOut();
+
+	int _w, _h, _hf; // width, height, height full
 
 private:
 	GroovieEngine *_vm;

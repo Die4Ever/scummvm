@@ -102,8 +102,7 @@ Common::Error GroovieEngine::run() {
 	switch (_gameDescription->version) {
 	case kGroovieT11H:
 	case kGroovieCDY:
-	case kGroovieUHP:
-	case kGroovieTLC: {
+	case kGroovieUHP: {
 		// Request the mode with the highest precision available
 		Graphics::PixelFormat format(4, 8, 8, 8, 8, 24, 16, 8, 0);
 		initGraphics(640, 480, &format);
@@ -113,11 +112,30 @@ Common::Error GroovieEngine::run() {
 
 		// Save the enabled mode
 		_pixelFormat = format;
+		// Create the graphics manager
+		_graphicsMan = new GraphicsMan(this, 640, 320, 480);
+		break;
+	}
+
+	case kGroovieTLC: {
+		// Request the mode with the highest precision available
+		Graphics::PixelFormat format(4, 8, 8, 8, 8, 24, 16, 8, 0);
+		initGraphics(1920, 1080, &format);
+
+		if (_system->getScreenFormat() != format)
+			return Common::kUnsupportedColorMode;
+
+		// Save the enabled mode
+		_pixelFormat = format;
+		// Create the graphics manager
+		_graphicsMan = new GraphicsMan(this, 1920, 1080, 1080);
 		break;
 	}
 	case kGroovieT7G:
 		initGraphics(640, 480);
 		_pixelFormat = Graphics::PixelFormat::createFormatCLUT8();
+		// Create the graphics manager
+		_graphicsMan = new GraphicsMan(this, 640, 320, 480);
 		break;
 
 	default:
@@ -128,9 +146,6 @@ Common::Error GroovieEngine::run() {
 	Debugger *debugger = new Debugger(this);
 	setDebugger(debugger);
 	_script->setDebugger(debugger);
-
-	// Create the graphics manager
-	_graphicsMan = new GraphicsMan(this);
 
 	// Create the resource and cursor managers and the video player
 	// Prepare the font too

@@ -547,6 +547,8 @@ void Script::executeInputAction(uint16 address) {
 bool Script::hotspot(Common::Rect rect, uint16 address, uint8 cursor) {
 	// Test if the current mouse position is contained in the specified rectangle
 	Common::Point mousepos = _vm->_system->getEventManager()->getMousePos();
+	mousepos.x = mousepos.x * 640 / _vm->_graphicsMan->_w;
+	mousepos.y = mousepos.y * 480 / _vm->_graphicsMan->_hf;
 	bool contained = rect.contains(mousepos);
 
 	// Show hotspots when debugging
@@ -1477,11 +1479,7 @@ void Script::o2_copybgtofg() { // 0x22
 	debugC(2, kDebugVideo, "Groovie::Script: @0x%04X: COPY_SCREEN_TO_BG", _currentInstruction - 1);
 
 	Graphics::Surface *screen = _vm->_system->lockScreen();
-	if (_vm->_graphicsMan->isFullScreen()) {
-		_vm->_graphicsMan->_foreground.copyFrom(screen->getSubArea(Common::Rect(0, 0, 640, 480)));
-	} else {
-		_vm->_graphicsMan->_foreground.copyFrom(screen->getSubArea(Common::Rect(0, 80, 640, 400)));
-	}
+	_vm->_graphicsMan->copyToForeground(screen);
 	_vm->_system->unlockScreen();
 }
 
@@ -1787,6 +1785,7 @@ void Script::o_copyrecttobg() {	// 0x37
 	debugC(1, kDebugScript, "Groovie::Script: COPYRECT((%d,%d)->(%d,%d))", left, top, right, bottom);
 	debugC(2, kDebugVideo, "Groovie::Script: @0x%04X: COPYRECT((%d,%d)->(%d,%d))",_currentInstruction-9, left, top, right, bottom);
 
+	// TODO: make this work with alternate resolutions
 	byte *fg = (byte *)_vm->_graphicsMan->_foreground.getBasePtr(left, top - baseTop);
 	byte *bg = (byte *)_vm->_graphicsMan->_background.getBasePtr(left, top - baseTop);
 	for (uint16 i = 0; i < height; i++) {
@@ -1843,7 +1842,7 @@ void Script::o_printstring() {
 
 	stringstorage[counter] = 0;
 
-	Common::Rect topbar(640, 80);
+	Common::Rect topbar(_vm->_graphicsMan->_w, MAX(160, _vm->_graphicsMan->_hf - _vm->_graphicsMan->_h) / 2);
 
 	// Clear the top bar
 	_vm->_system->fillScreen(topbar, 0);

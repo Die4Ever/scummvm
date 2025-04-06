@@ -171,7 +171,7 @@ FfmpegDecoder::FfmpegVideoTrack::FfmpegVideoTrack(AVStream *videoStream) {
 	_surface = new Graphics::Surface();
 	//_surface->create(_codecContext->width, _codecContext->height, Graphics::PixelFormat::PixelFormat(4, 0, 0, 0, 0, 24, 16, 8, 0));
 	//_surface->create(640, 320, Graphics::PixelFormat::PixelFormat(4, 0, 0, 0, 0, 24, 16, 8, 0));
-	_surface->create(640, 320, Graphics::PixelFormat::PixelFormat(4, 8, 8, 8, 8, 24, 16, 8, 0));
+	_surface->create(1920, 1080, Graphics::PixelFormat::PixelFormat(4, 8, 8, 8, 8, 24, 16, 8, 0));
 	_rgbFrame = av_frame_alloc();
 	_rgbFrame->linesize[0] = _surface->w * 4;
 

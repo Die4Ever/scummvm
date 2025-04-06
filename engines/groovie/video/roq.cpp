@@ -372,8 +372,8 @@ void ROQPlayer::dumpAllSurfaces(const Common::String funcname) {
 void ROQPlayer::buildShowBuf() {
 	// Calculate screen offset for normal / fullscreen videos and images
 	int screenOffset = 0;
-	if (_screen->h != 480) {
-		screenOffset = 80;
+	if (_screen->h < _bg->h) {
+		screenOffset = (_bg->h - _screen->h) / 2;
 	}
 	debugC(1, kDebugVideo, "scr: %d x %d screenOffset: %d  orig: %d, %d scale: %d %d", _screen->w, _screen->h, screenOffset, _origX, _origY, _scaleX, _scaleY);
 
@@ -636,7 +636,7 @@ bool ROQPlayer::processBlockInfo(ROQBlockHeader &blockHeader) {
 	}
 
 	// If the size of the image has changed, resize the buffers
-	if ((width != _currBuf->w) || (height != _currBuf->h)) {
+	/*if ((width != _currBuf->w) || (height != _currBuf->h)) {
 		// Calculate the maximum scale that fits the screen
 		_scaleX = MIN(_syst->getWidth() / width, 2);
 		_scaleY = MIN(_syst->getHeight() / height, 2);
@@ -650,7 +650,7 @@ bool ROQPlayer::processBlockInfo(ROQBlockHeader &blockHeader) {
 		_currBuf->create(width, height, _vm->_pixelFormat);
 		_prevBuf->create(width, height, _vm->_pixelFormat);
 		_overBuf->create(width, height, _vm->_pixelFormat);
-	}
+	}*/
 
 	// Hack: Detect a video with interlaced black lines, by checking its height compared to width
 	_interlacedVideo = 0;
@@ -834,7 +834,13 @@ bool ROQPlayer::processBlockStill(ROQBlockHeader &blockHeader) {
 	delete _currBuf;
 
 	_currBuf = new Graphics::Surface();
-	_currBuf->copyFrom(*srcSurf);
+	if (srcSurf->w != _bg->w || srcSurf->h != _bg->h) {
+		const Graphics::Surface *t = srcSurf->scale(_bg->w, _bg->h, true);
+		_currBuf->copyFrom(*t);
+		delete t;
+	} else {
+		_currBuf->copyFrom(*srcSurf);
+	}
 
 	_file->seek(startPos + blockHeader.size);
 	return true;
@@ -1064,7 +1070,8 @@ void ROQPlayer::copyfgtobg(uint8 arg) {
 	// but since we're doing a full redraw of all layers we might not need to care about the arg
 	debugC(1, kDebugVideo, "Groovie::ROQ: copyfgtobg (0x%02X)", arg);
 
-	redrawRestoreArea(_screen->h == 480 ? 0 : 80, true);
+	int offset = (_bg->h - _screen->h) / 2;
+	redrawRestoreArea(offset, true);
 	_screen->copyFrom(*_bg);
 	_vm->_system->updateScreen();
 	clearOverlay();
@@ -1074,7 +1081,7 @@ ROQSoundPlayer::ROQSoundPlayer(GroovieEngine *vm) : ROQPlayer(vm) {
 	// HACK: we set the pixel format here to prevent a crash because this never plays any videos
 	// maybe we should just pre-create these buffers no matter what
 	_overBuf->free();
-	_overBuf->create(640, 480, _vm->_pixelFormat);
+	_overBuf->create(2, 2, _vm->_pixelFormat);
 }
 
 ROQSoundPlayer::~ROQSoundPlayer() {
