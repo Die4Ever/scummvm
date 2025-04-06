@@ -407,8 +407,8 @@ void ROQPlayer::buildShowBuf() {
 	int startX, startY, stopX, stopY;
 	calcStartStop(startX, stopX, _origX, _screen->w);
 	calcStartStop(startY, stopY, _origY, _screen->h);
-	//assert(destBuf->format == srcBuf->format);
-	//assert(destBuf->format == _overBuf->format);
+	assert(destBuf->format == srcBuf->format);
+	assert(destBuf->format == _overBuf->format);
 	assert(destBuf->format.bytesPerPixel == 4);
 
 	for (int line = startY; line < stopY; line++) {

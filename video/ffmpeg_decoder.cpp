@@ -23,6 +23,12 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
+#include <libavutil/opt.h>
+#include <libavutil/hwcontext.h>
+#include <libavdevice/avdevice.h>
+
+ //#include <libavutil/hwdevice.h>
+ //#include <libavutil/dict.h>
 }
 
 #include "common/endian.h"
@@ -42,6 +48,29 @@ FfmpegDecoder::~FfmpegDecoder() {
 	close();
 	//av_packet_unref(&_packet);
 	avformat_close_input(&_formatContext);
+}
+
+void listAllHwDecoders() {
+	// List all available hardware acceleration devices
+	warning("Available hardware acceleration methods:\n");
+
+	// Iterate through all available devices
+	/*AVBufferRef *device_ref = nullptr;
+	AVHWDeviceType hw_type;
+	int i = 0;
+
+	// Loop through all hardware acceleration types (e.g., VA-API, CUDA, DXVA2, etc.)
+	while ((hw_type = av_hwdevice_iterate_devices(&device_ref)) != AV_HWDEVICE_TYPE_NONE) {
+		const char *hw_type_str = av_hwdevice_get_type_name(hw_type);
+		if (hw_type_str) {
+			warning(" - %s\n", hw_type_str);
+		}
+	}*/
+
+	const char *s = av_hwdevice_get_type_name(AVHWDeviceType::AV_HWDEVICE_TYPE_VULKAN);
+	warning("- %s\n", s);
+
+	warning("End of hardware acceleration methods.\n");
 }
 
 bool FfmpegDecoder::loadFile(const Common::Path &filename) {
@@ -87,7 +116,9 @@ bool FfmpegDecoder::loadFile(const Common::Path &filename) {
 
 bool FfmpegDecoder::loadStream(Common::SeekableReadStream *stream) {
 	// TODO
+	listAllHwDecoders();
 	return loadFile("yay.mp4");
+	//return loadFile("test4k.avi");
 }
 
 void FfmpegDecoder::readNextPacket() {
@@ -122,22 +153,30 @@ FfmpegDecoder::FfmpegVideoTrack::FfmpegVideoTrack(AVStream *videoStream) {
 		return;
 	}
 
+	/*if (av_opt_set(_codecContext->priv_data, "hwaccel", "vulkan", 0) < 0) {
+		error("Error setting hwaccel option.\n");
+		avcodec_free_context(&_codecContext);
+		//avformat_close_input(&_formatContext);
+		return;
+	}*/
+
 	if (avcodec_open2(_codecContext, codec, nullptr) < 0) {
 		error("Failed to open codec\n");
 		avcodec_free_context(&_codecContext);
 		return;
 	}
-		
+
 	_frame = av_frame_alloc();
 
 	_surface = new Graphics::Surface();
-	_surface->create(_codecContext->width, _codecContext->height, Graphics::PixelFormat::PixelFormat(4, 0, 0, 0, 0, 24, 16, 8, 0));
-	//_surface->create(640, 480, Graphics::PixelFormat::PixelFormat(4, 0, 0, 0, 0, 24, 16, 8, 0));
+	//_surface->create(_codecContext->width, _codecContext->height, Graphics::PixelFormat::PixelFormat(4, 0, 0, 0, 0, 24, 16, 8, 0));
+	//_surface->create(640, 320, Graphics::PixelFormat::PixelFormat(4, 0, 0, 0, 0, 24, 16, 8, 0));
+	_surface->create(640, 320, Graphics::PixelFormat::PixelFormat(4, 8, 8, 8, 8, 24, 16, 8, 0));
 	_rgbFrame = av_frame_alloc();
-	_rgbFrame->linesize[0] = _surface->w * 3;
+	_rgbFrame->linesize[0] = _surface->w * 4;
 
 	_swsContext = sws_getContext(_codecContext->width, _codecContext->height, _codecContext->pix_fmt,
-				_surface->w, _surface->h, AV_PIX_FMT_RGBA, SWS_POINT,
+				_surface->w, _surface->h, AV_PIX_FMT_ABGR, SWS_BILINEAR,
 				nullptr, nullptr, nullptr);
 }
 
@@ -170,7 +209,7 @@ const Graphics::Surface *FfmpegDecoder::FfmpegVideoTrack::decodeNextFrame() {
 				  _rgbFrame->data, _rgbFrame->linesize);
 	}
 
-	_nextFrameStartTime = _nextFrameStartTime.addFrames(33);
+	_nextFrameStartTime = _nextFrameStartTime.addFrames(1);
 
 	return _surface;
 }

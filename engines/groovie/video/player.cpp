@@ -78,6 +78,7 @@ void VideoPlayer::fastForward() {
 }
 
 bool VideoPlayer::isFastForwarding() {
+	//fastForward();
 	return DebugMan.isDebugChannelEnabled(kDebugFast) || _millisBetweenFrames <= 0;
 }
 
